@@ -10,7 +10,7 @@ final routes = GoRouter(
       builder: (ctx, state) => const LoginScreen(),
     ),
     GoRoute(
-      path: "/admin/login",
+      path: "/admin",
       builder: (ctx, state) => const AdminScreen(),
     )
   ],

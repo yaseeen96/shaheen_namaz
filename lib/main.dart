@@ -25,9 +25,12 @@ class MyApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'Shaheen Namaz App',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
+          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff002147)),
+          useMaterial3: true,
+          listTileTheme: ListTileThemeData(
+            textColor: Colors.white,
+            selectedColor: Colors.white,
+          )),
       routerConfig: routes,
     );
   }

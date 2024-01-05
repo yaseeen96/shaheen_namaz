@@ -26,7 +26,7 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
         }
         // user is signed in
         else {
-          return AdminHomeWidget();
+          return const AdminHomeWidget();
         }
       }, error: (err, stk) {
         return Center(
