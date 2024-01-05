@@ -1,38 +1,102 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shaheen_namaz/admin/providers/get_masjids_provider.dart';
 
-class MasjidWidget extends ConsumerWidget {
+class MasjidWidget extends ConsumerStatefulWidget {
   const MasjidWidget({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MasjidWidget> createState() => _MasjidWidgetState();
+}
+
+class _MasjidWidgetState extends ConsumerState<MasjidWidget> {
+  final masjidNameController = TextEditingController();
+
+  void addMasjid(String name) {
+    if (name.trim().length < 2 || name.length < 3 || name.isEmpty) {
+      return;
+    } else {
+      FirebaseFirestore.instance.collection("Masjid").add({
+        "name": name,
+      });
+      masjidNameController.clear();
+      context.pop();
+    }
+  }
+
+  Future<void> showPopup() async {
+    return showDialog(
+        context: context,
+        builder: (ctx) {
+          return AlertDialog(
+            title: const Text('Please Enter the Name of Masjid'),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: <Widget>[
+                  TextField(
+                    controller: masjidNameController,
+                    decoration: const InputDecoration(
+                      label: Text("Name of Masjid"),
+                    ),
+                    onSubmitted: (value) {
+                      addMasjid(value);
+                    },
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              ElevatedButton(
+                  onPressed: () {
+                    addMasjid(masjidNameController.text);
+                  },
+                  child: const Text("Add"))
+            ],
+          );
+        });
+  }
+
+  @override
+  void dispose() {
+    masjidNameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final masjids = ref.watch(getMasjidProvider);
     return masjids.when(
       data: (data) {
         final masjidList = data.docs;
         if (masjidList.isEmpty) {
-          return Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "All Masjids",
-                    style: TextStyle(fontSize: 40, fontWeight: FontWeight.w900),
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.add),
-                    label: const Text("Add Masjid"),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              Text("No Masjids Added. Please Add some"),
-              const Spacer(),
-            ],
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "All Masjids",
+                      style:
+                          TextStyle(fontSize: 40, fontWeight: FontWeight.w900),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        await showPopup();
+                      },
+                      icon: const Icon(Icons.add),
+                      label: const Text("Add Masjid"),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                Text("No Masjids Added. Please Add some"),
+                const Spacer(),
+              ],
+            ),
           );
         }
         return ListView(
@@ -46,7 +110,7 @@ class MasjidWidget extends ConsumerWidget {
                   style: TextStyle(fontSize: 40, fontWeight: FontWeight.w900),
                 ),
                 ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: showPopup,
                   icon: const Icon(Icons.add),
                   label: const Text("Add Masjid"),
                 ),
@@ -57,7 +121,7 @@ class MasjidWidget extends ConsumerWidget {
               itemCount: masjidList.length,
               itemBuilder: (ctx, index) {
                 return Container(
-                  margin: EdgeInsets.symmetric(vertical: 5),
+                  margin: const EdgeInsets.symmetric(vertical: 5),
                   child: ListTile(
                     title: Text(
                       masjidList[index].data()["name"],
