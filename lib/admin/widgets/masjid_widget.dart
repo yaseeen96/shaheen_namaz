@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -58,6 +59,13 @@ class _MasjidWidgetState extends ConsumerState<MasjidWidget> {
         });
   }
 
+  void deleteMasjid(String docID) async {
+    // delete masjid from Masjid Collection
+    DocumentReference masjidReference =
+        FirebaseFirestore.instance.collection("Masjid").doc();
+    await masjidReference.delete();
+  }
+
   @override
   void dispose() {
     masjidNameController.dispose();
@@ -93,7 +101,7 @@ class _MasjidWidgetState extends ConsumerState<MasjidWidget> {
                   ],
                 ),
                 const Spacer(),
-                Text("No Masjids Added. Please Add some"),
+                const Text("No Masjids Added. Please Add some"),
                 const Spacer(),
               ],
             ),
@@ -131,12 +139,8 @@ class _MasjidWidgetState extends ConsumerState<MasjidWidget> {
                         Icons.delete,
                         color: Colors.grey,
                       ),
-                      onPressed: () async {
-                        DocumentReference documentReference = FirebaseFirestore
-                            .instance
-                            .collection("Masjid")
-                            .doc(masjidList[index].id);
-                        await documentReference.delete();
+                      onPressed: () {
+                        deleteMasjid(masjidList[index].id);
                       },
                     ),
                     tileColor: Theme.of(context).primaryColor,

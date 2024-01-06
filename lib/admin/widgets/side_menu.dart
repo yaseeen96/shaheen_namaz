@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:shaheen_namaz/admin/providers/admin_home_provider.dart';
 import 'package:shaheen_namaz/admin/widgets/masjid_widget.dart';
-import 'package:shaheen_namaz/admin/widgets/users_widget.dart';
+import 'package:shaheen_namaz/admin/widgets/users/users_widget.dart';
 
 class SideMenuDrawer extends ConsumerWidget {
   const SideMenuDrawer({

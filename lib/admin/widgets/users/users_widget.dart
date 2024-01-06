@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:shaheen_namaz/admin/providers/get_users_provider.dart';
+import 'package:shaheen_namaz/admin/widgets/users/subtitle_widget.dart';
 
 class UsersWidget extends ConsumerWidget {
   const UsersWidget({super.key});
@@ -45,6 +47,12 @@ class UsersWidget extends ConsumerWidget {
                           color: Colors.grey,
                         ),
                         onPressed: () {},
+                      ),
+                      subtitle: Row(
+                        children:
+                            user.users![index].masjidAllocated!.map((masjidId) {
+                          return SubtitleWidget(masjidId: masjidId);
+                        }).toList(),
                       ),
                       tileColor: Theme.of(context).primaryColor,
                       shape: RoundedRectangleBorder(
