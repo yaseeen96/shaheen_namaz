@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shaheen_namaz/admin/providers/get_users_provider.dart';
 import 'package:shaheen_namaz/admin/widgets/users/subtitle_widget.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
@@ -20,6 +22,7 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
   String? password;
   List<QueryDocumentSnapshot<Object?>> menuItems = [];
   List<Map<String, String>> selectedItems = [];
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -29,14 +32,43 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
     super.initState();
   }
 
-  void addUser() {
+  void addUser() async {
     if (_formKey.currentState != null) {
       if (_formKey.currentState!.validate()) {
         _formKey.currentState!.save();
-        logger.i('$displayName $userEmail $password');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$displayName $userEmail $password')),
-        );
+
+        final masjidList = selectedItems.map((data) => data["id"]).toList();
+
+        if (masjidList.isNotEmpty) {
+          setState(() {
+            isLoading = true;
+          });
+          if (password != null) {
+            await FirebaseFunctions.instance.httpsCallable("add_user").call({
+              "email": userEmail,
+              "displayName": displayName,
+              "password": password,
+              "masjidDocNames": masjidList,
+            });
+          } else {
+            await FirebaseFunctions.instance.httpsCallable("add_user").call(
+              {
+                "email": userEmail,
+                "displayName": displayName,
+                "masjidDocNames": masjidList,
+              },
+            );
+          }
+
+          setState(() {
+            isLoading = false;
+          });
+
+          if (!context.mounted) return;
+          context.pop();
+
+          ref.invalidate(getUsersProvider);
+        }
       }
     }
   }
@@ -210,7 +242,12 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                 ),
               ),
               actions: [
-                ElevatedButton(onPressed: addUser, child: const Text("Add"))
+                ElevatedButton(
+                  onPressed: isLoading ? null : addUser,
+                  child: isLoading
+                      ? const CircularProgressIndicator()
+                      : const Text("Add"),
+                )
               ],
             );
           },
@@ -242,34 +279,90 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
               ],
             ),
             const Gap(6),
-            ListView.builder(
-                shrinkWrap: true,
-                physics: const ScrollPhysics(),
-                itemCount: user.users!.length,
-                itemBuilder: (ctx, index) {
-                  return Container(
-                    margin: EdgeInsets.symmetric(vertical: 3),
-                    child: ListTile(
-                      title: Text(user.users![index].email!),
-                      trailing: IconButton(
-                        icon: const Icon(
-                          Icons.delete,
-                          color: Colors.grey,
+            isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : ListView.builder(
+                    shrinkWrap: true,
+                    physics: const ScrollPhysics(),
+                    itemCount: user.users!.length,
+                    itemBuilder: (ctx, index) {
+                      return Container(
+                        margin: const EdgeInsets.symmetric(vertical: 3),
+                        child: ListTile(
+                          key: ValueKey(user.users![index].uid),
+                          title: Text(user.users![index].email!),
+                          trailing: IconButton(
+                            icon: const Icon(
+                              Icons.delete,
+                              color: Colors.grey,
+                            ),
+                            onPressed: () async {
+                              setState(() {
+                                isLoading = true;
+                              });
+                              await FirebaseFunctions.instance
+                                  .httpsCallable("delete_user")
+                                  .call(
+                                {
+                                  "uid": user.users![index].uid!,
+                                },
+                              );
+                              ref.invalidate(getUsersProvider);
+                              setState(() {
+                                isLoading = false;
+                              });
+                            },
+                          ),
+                          subtitle: Row(children: [
+                            ...user.users![index].masjidAllocated!
+                                .map((masjidId) {
+                              return SubtitleWidget(
+                                masjidId: masjidId,
+                                userId: user.users![index].uid!,
+                              );
+                            }),
+                            PopupMenuButton(
+                              icon: const Icon(Icons.add),
+                              itemBuilder: (context) {
+                                return menuItems
+                                    .map(
+                                      (e) => PopupMenuItem(
+                                        value: e.id,
+                                        onTap: () async {
+                                          final DocumentReference masjidRef =
+                                              FirebaseFirestore.instance
+                                                  .collection("Masjid")
+                                                  .doc(e.id);
+                                          await FirebaseFirestore.instance
+                                              .collection("Users")
+                                              .doc(user.users![index].uid!)
+                                              .update(
+                                            {
+                                              "masjid_allocated":
+                                                  FieldValue.arrayUnion(
+                                                [masjidRef],
+                                              ),
+                                            },
+                                          );
+                                          ref.invalidate(getUsersProvider);
+                                        },
+                                        child: Text(
+                                          e.get("name"),
+                                        ),
+                                      ),
+                                    )
+                                    .toList();
+                              },
+                            ),
+                          ]),
+                          tileColor: Theme.of(context).primaryColor,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6)),
                         ),
-                        onPressed: () {},
-                      ),
-                      subtitle: Row(
-                        children:
-                            user.users![index].masjidAllocated!.map((masjidId) {
-                          return SubtitleWidget(masjidId: masjidId);
-                        }).toList(),
-                      ),
-                      tileColor: Theme.of(context).primaryColor,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(6)),
-                    ),
-                  );
-                }),
+                      );
+                    }),
           ],
         );
       },
