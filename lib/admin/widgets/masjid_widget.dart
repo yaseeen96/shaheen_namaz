@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -62,7 +61,7 @@ class _MasjidWidgetState extends ConsumerState<MasjidWidget> {
   void deleteMasjid(String docID) async {
     // delete masjid from Masjid Collection
     DocumentReference masjidReference =
-        FirebaseFirestore.instance.collection("Masjid").doc();
+        FirebaseFirestore.instance.collection("Masjid").doc(docID);
     await masjidReference.delete();
   }
 

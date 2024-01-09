@@ -6,7 +6,6 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shaheen_namaz/admin/providers/get_users_provider.dart';
 import 'package:shaheen_namaz/admin/widgets/users/subtitle_widget.dart';
-import 'package:shaheen_namaz/utils/config/logger.dart';
 
 class UsersWidget extends ConsumerStatefulWidget {
   const UsersWidget({super.key});
@@ -298,22 +297,25 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                               Icons.delete,
                               color: Colors.grey,
                             ),
-                            onPressed: () async {
-                              setState(() {
-                                isLoading = true;
-                              });
-                              await FirebaseFunctions.instance
-                                  .httpsCallable("delete_user")
-                                  .call(
-                                {
-                                  "uid": user.users![index].uid!,
-                                },
-                              );
-                              ref.invalidate(getUsersProvider);
-                              setState(() {
-                                isLoading = false;
-                              });
-                            },
+                            onPressed:
+                                user.users![index].email!.contains("admin")
+                                    ? null
+                                    : () async {
+                                        setState(() {
+                                          isLoading = true;
+                                        });
+                                        await FirebaseFunctions.instance
+                                            .httpsCallable("delete_user")
+                                            .call(
+                                          {
+                                            "uid": user.users![index].uid!,
+                                          },
+                                        );
+                                        ref.invalidate(getUsersProvider);
+                                        setState(() {
+                                          isLoading = false;
+                                        });
+                                      },
                           ),
                           subtitle: Row(children: [
                             ...user.users![index].masjidAllocated!
