@@ -9,10 +9,11 @@ class SignInWIdget extends StatelessWidget {
     return SignInScreen(
       sideBuilder: (ctx, constraints) {
         return Container(
-            height: double.infinity,
-            width: double.infinity,
-            decoration: const BoxDecoration(color: Colors.black),
-            child: Image.asset("assets/logo.png"));
+          height: double.infinity,
+          width: double.infinity,
+          decoration: const BoxDecoration(color: Colors.black),
+          child: Image.asset("assets/logo.png"),
+        );
       },
       styles: const {
         EmailFormStyle(
@@ -25,6 +26,5 @@ class SignInWIdget extends StatelessWidget {
         EmailAuthProvider(),
       ],
     );
-    ;
   }
 }
