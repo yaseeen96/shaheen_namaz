@@ -100,7 +100,12 @@ class MasjidNameText extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const LinearProgressIndicator();
         }
-        return Text(snapshot.data!["name"]);
+        return Text(
+          snapshot.data!["name"],
+          style: TextStyle(
+            color: Colors.black,
+          ),
+        );
       },
     );
   }
