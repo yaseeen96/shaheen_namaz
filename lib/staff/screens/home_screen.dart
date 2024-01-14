@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shaheen_namaz/staff/widgets/side_drawer.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -25,48 +26,7 @@ class HomeScreen extends ConsumerWidget {
             },
             child: const Text("Logout")),
       ),
-      drawer: Drawer(
-        child: Column(
-          children: [
-            DrawerHeader(
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.account_circle_rounded,
-                    size: 100,
-                  ),
-                  Text(
-                    "Welcome ${FirebaseAuth.instance.currentUser!.displayName!}",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Text(
-              "Masjids",
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge!
-                  .copyWith(color: Theme.of(context).primaryColor),
-            ),
-            RadioListTile<bool>(
-              value: true,
-              groupValue: false,
-              onChanged: (currentVal) {},
-              title: Text("Masjid 1"),
-            ),
-            const Spacer(),
-            ElevatedButton.icon(
-                onPressed: () {
-                  FirebaseAuth.instance.signOut();
-                },
-                icon: Icon(Icons.logout),
-                label: Text("Logout"))
-          ],
-        ),
-      ),
+      drawer: const SideDrawer(),
     );
   }
 }
