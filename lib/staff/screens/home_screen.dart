@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shaheen_namaz/staff/widgets/app_bar.dart';
 import 'package:shaheen_namaz/staff/widgets/side_drawer.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
 
@@ -10,16 +12,7 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        toolbarHeight: 120,
-        title: Image.asset(
-          "assets/logo.png",
-          width: 150,
-          height: 150,
-        ),
-        backgroundColor: Theme.of(context).primaryColor,
-      ),
+      appBar: CustomAppbar(),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -33,7 +26,7 @@ class HomeScreen extends ConsumerWidget {
           const Gap(20),
           MenuButton(
             onTap: () {
-              logger.i("Student Register Tapped");
+              context.push("/register_student");
             },
             imagePath: "assets/register_icon.png",
             title: "Register a Student",
@@ -68,14 +61,15 @@ class MenuButton extends StatelessWidget {
           width: MediaQuery.of(context).size.width,
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: Theme.of(context).primaryColor,
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black, blurRadius: 2, spreadRadius: 1,
-                  // offset: Offset.fromDirection(1, 5),
-                )
-              ]),
+            borderRadius: BorderRadius.circular(10),
+            color: Theme.of(context).primaryColor,
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black, blurRadius: 2, spreadRadius: 1,
+                // offset: Offset.fromDirection(1, 5),
+              ),
+            ],
+          ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
