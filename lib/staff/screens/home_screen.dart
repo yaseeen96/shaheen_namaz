@@ -72,7 +72,7 @@ class MenuButton extends StatelessWidget {
               color: Theme.of(context).primaryColor,
               boxShadow: const [
                 BoxShadow(
-                  color: Colors.black, blurRadius: 8, spreadRadius: 1,
+                  color: Colors.black, blurRadius: 2, spreadRadius: 1,
                   // offset: Offset.fromDirection(1, 5),
                 )
               ]),
