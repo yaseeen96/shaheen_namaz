@@ -3,7 +3,7 @@ import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
-import "package:firebase_ui_auth/firebase_ui_auth.dart" as UiAuth;
+import "package:firebase_ui_auth/firebase_ui_auth.dart" as ui_auth;
 
 class LoginScreen extends ConsumerWidget {
   const LoginScreen({super.key});
@@ -26,11 +26,11 @@ class LoginScreen extends ConsumerWidget {
       showAuthActionSwitch: false,
       auth: FirebaseAuth.instance,
       providers: [
-        UiAuth.EmailAuthProvider(),
+        ui_auth.EmailAuthProvider(),
       ],
       headerBuilder: (context, constraints, shrinkOffset) {
         return Container(
-          margin: EdgeInsets.all(8),
+          margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: Theme.of(context).primaryColor,
             borderRadius: BorderRadius.circular(10),

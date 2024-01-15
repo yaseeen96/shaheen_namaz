@@ -12,11 +12,11 @@ class AllUsersResponse {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> _data = <String, dynamic>{};
+    final Map<String, dynamic> data = <String, dynamic>{};
     if (users != null) {
-      _data["users"] = users?.map((e) => e.toJson()).toList();
+      data["users"] = users?.map((e) => e.toJson()).toList();
     }
-    return _data;
+    return data;
   }
 }
 
@@ -44,13 +44,13 @@ class Users {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> _data = <String, dynamic>{};
-    _data["display_name"] = displayName;
-    _data["email"] = email;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data["display_name"] = displayName;
+    data["email"] = email;
     if (masjidAllocated != null) {
-      _data["masjid_allocated"] = masjidAllocated;
+      data["masjid_allocated"] = masjidAllocated;
     }
-    _data["uid"] = uid;
-    return _data;
+    data["uid"] = uid;
+    return data;
   }
 }

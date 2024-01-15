@@ -30,7 +30,7 @@ class HomeScreen extends ConsumerWidget {
             imagePath: "assets/calendar_icon.png",
             title: "Track Attendance",
           ),
-          Gap(20),
+          const Gap(20),
           MenuButton(
             onTap: () {
               logger.i("Student Register Tapped");
@@ -70,7 +70,7 @@ class MenuButton extends StatelessWidget {
           decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
               color: Theme.of(context).primaryColor,
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
                   color: Colors.black, blurRadius: 8, spreadRadius: 1,
                   // offset: Offset.fromDirection(1, 5),

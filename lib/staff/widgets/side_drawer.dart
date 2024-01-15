@@ -75,8 +75,8 @@ class SideDrawer extends ConsumerWidget {
                   onPressed: () {
                     FirebaseAuth.instance.signOut();
                   },
-                  icon: Icon(Icons.logout),
-                  label: Text("Logout"))
+                  icon: const Icon(Icons.logout),
+                  label: const Text("Logout"))
             ],
           ),
         );
@@ -102,7 +102,7 @@ class MasjidNameText extends StatelessWidget {
         }
         return Text(
           snapshot.data!["name"],
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.black,
           ),
         );

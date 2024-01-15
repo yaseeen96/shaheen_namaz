@@ -261,7 +261,7 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
     return users.when(
       data: (user) {
         return ListView(
-          padding: EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -272,8 +272,8 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                 ),
                 ElevatedButton.icon(
                   onPressed: showPopup,
-                  icon: Icon(Icons.add),
-                  label: Text("Add New User"),
+                  icon: const Icon(Icons.add),
+                  label:const  Text("Add New User"),
                 ),
               ],
             ),

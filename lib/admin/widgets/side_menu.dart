@@ -76,7 +76,7 @@ class SideMenuDrawer extends ConsumerWidget {
   }
 }
 
-Widget ChildWidget(int index) {
+Widget childWidget(int index) {
   switch (index) {
     case 1:
       return const UsersWidget();
@@ -85,7 +85,7 @@ Widget ChildWidget(int index) {
     default:
       return Container(
         alignment: Alignment.center,
-        child: Text("PLease Select a view from menu"),
+        child: const Text("Please Select a view from menu"),
       );
   }
 }
