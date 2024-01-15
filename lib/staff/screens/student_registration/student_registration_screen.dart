@@ -1,12 +1,15 @@
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
 import 'package:shaheen_namaz/staff/widgets/app_bar.dart';
 import 'package:shaheen_namaz/staff/widgets/image_preview.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
 
 class StudentRegistrationScreen extends ConsumerStatefulWidget {
-  const StudentRegistrationScreen({super.key});
+  const StudentRegistrationScreen({super.key, this.image});
+  final XFile? image;
 
   @override
   ConsumerState<StudentRegistrationScreen> createState() =>
@@ -22,9 +25,18 @@ class _StudentRegistrationScreenState
   void onRegister() {
     final currentState = formkey.currentState;
     if (currentState == null) return;
-    if (currentState.validate()) {
+    if (currentState.validate() && widget.image != null) {
       currentState.save();
+      logger.i("Saved");
     }
+  }
+
+  void onAddImage() async {
+    final cameras = await availableCameras();
+
+    final firstCamera = cameras.first;
+    if (!context.mounted) return;
+    context.push("/camera_preview", extra: firstCamera);
   }
 
   @override
@@ -41,9 +53,8 @@ class _StudentRegistrationScreenState
                 Align(
                   alignment: Alignment.center,
                   child: ImagePreview(
-                    onTap: () {
-                      logger.i("Preview pressed");
-                    },
+                    onTap: onAddImage,
+                    image: widget.image,
                   ),
                 ),
                 Gap(MediaQuery.of(context).size.height * 0.05),

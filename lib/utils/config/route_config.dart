@@ -1,6 +1,8 @@
+import 'package:camera/camera.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shaheen_namaz/admin/screens/admin_screen.dart';
+import 'package:shaheen_namaz/staff/screens/camera/camera_preview_screen.dart';
 import 'package:shaheen_namaz/staff/screens/parent_screen.dart';
 import 'package:shaheen_namaz/staff/screens/student_registration/student_registration_screen.dart';
 
@@ -17,7 +19,15 @@ final routes = GoRouter(
     ),
     GoRoute(
       path: "/register_student",
-      builder: (ctx, state) => const StudentRegistrationScreen(),
+      builder: (ctx, state) => StudentRegistrationScreen(
+        image: state.extra as XFile?,
+      ),
+    ),
+    GoRoute(
+      path: "/camera_preview",
+      builder: (ctx, state) => TakePictureScreen(
+        camera: state.extra! as CameraDescription,
+      ),
     ),
   ],
 );
