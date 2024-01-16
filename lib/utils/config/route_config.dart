@@ -1,5 +1,4 @@
 import 'package:camera/camera.dart';
-import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shaheen_namaz/admin/screens/admin_screen.dart';
 import 'package:shaheen_namaz/staff/screens/camera/camera_preview_screen.dart';

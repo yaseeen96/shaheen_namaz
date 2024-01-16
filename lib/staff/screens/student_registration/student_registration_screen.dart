@@ -27,7 +27,11 @@ class _StudentRegistrationScreenState
     if (currentState == null) return;
     if (currentState.validate() && widget.image != null) {
       currentState.save();
-      logger.i("Saved");
+      // todo - get face id via aws sdk
+
+      // todo - create a doc of faceId with collection "Students" in firestore
+      //
+      // fields - name and guardian number
     }
   }
 
