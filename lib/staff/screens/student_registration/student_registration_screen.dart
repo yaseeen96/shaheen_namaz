@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:camera/camera.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
@@ -22,12 +25,23 @@ class _StudentRegistrationScreenState
   String? name;
   String? guardianNumber;
 
-  void onRegister() {
+  void onRegister() async {
     final currentState = formkey.currentState;
     if (currentState == null) return;
     if (currentState.validate() && widget.image != null) {
       currentState.save();
       // todo - get face id via aws sdk
+      final bytes = await widget.image!.readAsBytes();
+      final base64Image = base64Encode(bytes);
+      final response = await FirebaseFunctions.instance
+          .httpsCallable('register_student')
+          .call({
+        "image_data": base64Image,
+        "name": name,
+        "guardianNumber": guardianNumber,
+      });
+
+      logger.i("Response: ${response.data}");
 
       // todo - create a doc of faceId with collection "Students" in firestore
       //
