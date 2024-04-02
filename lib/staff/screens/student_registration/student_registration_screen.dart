@@ -1,14 +1,18 @@
 import 'dart:convert';
 
 import 'package:camera/camera.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shaheen_namaz/staff/providers/providers.dart';
 import 'package:shaheen_namaz/staff/widgets/app_bar.dart';
 import 'package:shaheen_namaz/staff/widgets/image_preview.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
 class StudentRegistrationScreen extends ConsumerStatefulWidget {
   const StudentRegistrationScreen({super.key, this.image});
@@ -24,28 +28,72 @@ class _StudentRegistrationScreenState
   final formkey = GlobalKey<FormState>();
   String? name;
   String? guardianNumber;
+  bool isLoading = false;
 
   void onRegister() async {
-    final currentState = formkey.currentState;
-    if (currentState == null) return;
-    if (currentState.validate() && widget.image != null) {
-      currentState.save();
-      // todo - get face id via aws sdk
-      final bytes = await widget.image!.readAsBytes();
-      final base64Image = base64Encode(bytes);
-      final response = await FirebaseFunctions.instance
-          .httpsCallable('register_student')
-          .call({
-        "image_data": base64Image,
-        "name": name,
-        "guardianNumber": guardianNumber,
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      final currentState = formkey.currentState;
+      if (currentState == null) return;
+      if (currentState.validate() && widget.image != null) {
+        currentState.save();
+
+        final bytes = await widget.image!.readAsBytes();
+        final base64Image = base64Encode(bytes);
+        // Read the selected masjid from the provider
+        final DocumentReference? selectedMasjidRef =
+            ref.read(selectedMasjidProvider);
+        if (selectedMasjidRef == null) {
+          // Handle the case where no masjid is selected, if necessary
+          if (!context.mounted) return;
+          showTopSnackBar(
+            Overlay.of(context),
+            const CustomSnackBar.error(
+                message: "Please select a masjid before registering."),
+          );
+          return;
+        }
+        final response = await FirebaseFunctions.instance
+            .httpsCallable('register_student')
+            .call({
+          "image_data": base64Image,
+          "name": name,
+          "guardianNumber": guardianNumber,
+          "masjidId": selectedMasjidRef.id,
+        });
+
+        final jsonResponse = response.data;
+        if (jsonResponse["faceId"] != null) {
+          logger.i("Success");
+          if (!context.mounted) return;
+          showTopSnackBar(
+            Overlay.of(context),
+            const CustomSnackBar.success(
+                message: "Yayyy!! Successfully Registered"),
+          );
+        } else {
+          if (!context.mounted) return;
+          showTopSnackBar(
+              Overlay.of(context),
+              CustomSnackBar.error(
+                  message:
+                      "An Error Occurred: ${jsonResponse["error"] ?? ''}"));
+        }
+
+        logger.i("Response: ${jsonResponse}");
+      }
+    } catch (err) {
+      if (!context.mounted) return;
+      showTopSnackBar(
+          Overlay.of(context),
+          const CustomSnackBar.error(
+              message: "Server Error. Please Come Back Later."));
+    } finally {
+      setState(() {
+        isLoading = false;
       });
-
-      logger.i("Response: ${response.data}");
-
-      // todo - create a doc of faceId with collection "Students" in firestore
-      //
-      // fields - name and guardian number
     }
   }
 
@@ -54,7 +102,7 @@ class _StudentRegistrationScreenState
 
     final firstCamera = cameras.first;
     if (!context.mounted) return;
-    context.push("/camera_preview", extra: firstCamera);
+    context.push("/camera_preview/false", extra: firstCamera);
   }
 
   @override
@@ -112,8 +160,10 @@ class _StudentRegistrationScreenState
                 const Gap(30),
                 ElevatedButton(
                   style: buttonStyle(),
-                  onPressed: onRegister,
-                  child: const Text("Register"),
+                  onPressed: isLoading ? null : onRegister,
+                  child: isLoading
+                      ? const CircularProgressIndicator()
+                      : const Text("Register"),
                 ),
               ],
             ),

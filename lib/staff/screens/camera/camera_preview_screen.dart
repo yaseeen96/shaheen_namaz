@@ -8,9 +8,11 @@ class TakePictureScreen extends StatefulWidget {
   const TakePictureScreen({
     super.key,
     required this.camera,
+    this.isAttendanceTracking = false,
   });
 
   final CameraDescription camera;
+  final bool isAttendanceTracking;
 
   @override
   TakePictureScreenState createState() => TakePictureScreenState();
@@ -41,7 +43,11 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       // where the image file is saved.
       final image = await _controller.takePicture();
       if (!context.mounted) return;
-      context.go("/register_student", extra: image);
+      if (widget.isAttendanceTracking) {
+        context.push("/image_preview", extra: image);
+      } else {
+        context.go("/register_student", extra: image);
+      }
     } catch (e) {
       // If an error occurs, log the error to the console.
       logger.e("Error while capturing picture", error: e);

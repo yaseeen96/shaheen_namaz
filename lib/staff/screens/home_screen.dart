@@ -1,3 +1,4 @@
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
@@ -6,20 +7,34 @@ import 'package:shaheen_namaz/staff/widgets/app_bar.dart';
 import 'package:shaheen_namaz/staff/widgets/side_drawer.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  void onTrackAttendance() async {
+    final cameras = await availableCameras();
+
+    final firstCamera = cameras.first;
+    if (!context.mounted) return;
+    context.push(
+      "/camera_preview/true",
+      extra: firstCamera,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: const CustomAppbar(),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           MenuButton(
-            onTap: () {
-              logger.i("Button Tapped");
-            },
+            onTap: onTrackAttendance,
             imagePath: "assets/calendar_icon.png",
             title: "Track Attendance",
           ),
