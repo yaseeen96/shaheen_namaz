@@ -133,7 +133,7 @@ class _VerificationPopupState extends State<VerificationPopup> {
         "streak_last_modified": DateTime.now()
       });
       final String url =
-          'http://bulksms.saakshisoftware.com/api/mt/SendSMS?user=BETTERMENTFOUNDATION&password=91647676&senderid=BDRBBF&channel=Trans&DCS=0&flashsms=0&number=${widget.guardianNumber}&text=Dear Parent, Great news! ${widget.name} prayed Fajr today, on day ${widget.streak + 1} of the 40-Day Fajr Challenge. Keep the support! BIDAR BETTERMENT FOUNDATION&route=04&DLTTemplateId=1707170436518100086&PEID=1701170408820217696';
+          'http://bulksms.saakshisoftware.com/api/mt/SendSMS?user=BETTERMENTFOUNDATION&password=91647676&senderid=BDRBBF&channel=Trans&DCS=0&flashsms=0&number=${widget.guardianNumber}&text=Dear Parent, Great news! ${widget.name} prayed Fajr today, on day ${widget.streak < 40 ? (widget.streak + 1) : 40} of the 40-Day Fajr Challenge. Keep the support! BIDAR BETTERMENT FOUNDATION&route=04&DLTTemplateId=1707170436518100086&PEID=1701170408820217696';
       final response = await Dio().get(url);
 
       if (response.statusCode == 200) {
