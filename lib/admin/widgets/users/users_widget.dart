@@ -6,6 +6,9 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shaheen_namaz/admin/providers/get_users_provider.dart';
 import 'package:shaheen_namaz/admin/widgets/users/subtitle_widget.dart';
+import 'package:shaheen_namaz/utils/config/logger.dart';
+import 'package:top_snackbar_flutter/custom_snack_bar.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
 class UsersWidget extends ConsumerStatefulWidget {
   const UsersWidget({super.key});
@@ -19,9 +22,10 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
   String? displayName;
   String? userEmail;
   String? password;
-  List<QueryDocumentSnapshot<Object?>> menuItems = [];
+
   List<Map<String, String>> selectedItems = [];
   bool isLoading = false;
+  List<QueryDocumentSnapshot<Object?>> menuItems = [];
 
   @override
   void initState() {
@@ -31,228 +35,12 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
     super.initState();
   }
 
-  void addUser() async {
-    if (_formKey.currentState != null) {
-      if (_formKey.currentState!.validate()) {
-        _formKey.currentState!.save();
-
-        final masjidList = selectedItems.map((data) => data["id"]).toList();
-
-        if (masjidList.isNotEmpty) {
-          setState(() {
-            isLoading = true;
-          });
-          if (password != null) {
-            await FirebaseFunctions.instance.httpsCallable("add_user").call({
-              "email": userEmail,
-              "displayName": displayName,
-              "password": password,
-              "masjidDocNames": masjidList,
-            });
-          } else {
-            await FirebaseFunctions.instance.httpsCallable("add_user").call(
-              {
-                "email": userEmail,
-                "displayName": displayName,
-                "masjidDocNames": masjidList,
-              },
-            );
-          }
-
-          setState(() {
-            isLoading = false;
-          });
-
-          if (!context.mounted) return;
-          context.pop();
-
-          ref.invalidate(getUsersProvider);
-        }
-      }
-    }
-  }
-
   Future<List<QueryDocumentSnapshot<Object?>>> getMenuItems() async {
     final CollectionReference collectionReference =
         FirebaseFirestore.instance.collection("Masjid");
     final QuerySnapshot querySnapshot = await collectionReference.get();
     final allMasjids = querySnapshot.docs.map((e) => e).toList();
     return allMasjids;
-  }
-
-  Future<void> showPopup() async {
-    return showDialog(
-      context: context,
-      builder: (ctx) {
-        bool setPassword = true;
-
-        return StatefulBuilder(
-          builder: (ctx, setState) {
-            return AlertDialog(
-              title: const Text('Enter User Details'),
-              content: SingleChildScrollView(
-                child: Form(
-                  key: _formKey,
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width,
-                    height: MediaQuery.of(context).size.height * 0.6,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextFormField(
-                          decoration: const InputDecoration(
-                            label: Text("Name of User"),
-                          ),
-                          validator: (value) {
-                            if (value == null ||
-                                value.trim().isEmpty ||
-                                value.length < 4) {
-                              return "The name must be at least 4 characters long";
-                            }
-                            return null;
-                          },
-                          onSaved: (newValue) {
-                            displayName = newValue;
-                          },
-                        ),
-                        TextFormField(
-                          decoration: const InputDecoration(
-                            label: Text("User's email"),
-                          ),
-                          validator: (value) {
-                            if (value == null ||
-                                value.trim().isEmpty ||
-                                value.length < 8 ||
-                                !value.contains("@")) {
-                              return "Please enter a valid email";
-                            }
-                            return null;
-                          },
-                          onSaved: (newValue) {
-                            userEmail = newValue;
-                          },
-                        ),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: RadioListTile<bool>(
-                                value: true,
-                                groupValue: setPassword,
-                                onChanged: (value) {
-                                  setState(() {
-                                    setPassword = true;
-                                  });
-                                },
-                                title: const Text(
-                                  "Give User Password",
-                                  style: TextStyle(color: Colors.black),
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              child: RadioListTile<bool>(
-                                value: false,
-                                groupValue: setPassword,
-                                onChanged: (value) {
-                                  setState(() {
-                                    setPassword = false;
-                                  });
-                                },
-                                title: const Text(
-                                  "Send Password reset Email",
-                                  style: TextStyle(color: Colors.black),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (setPassword)
-                          TextFormField(
-                            decoration: const InputDecoration(
-                              label: Text("User's Password"),
-                            ),
-                            onSaved: (newValue) {
-                              password = newValue;
-                            },
-                            validator: (value) {
-                              if (value == null ||
-                                  value.trim().isEmpty ||
-                                  value.length < 6) {
-                                return "Password must be atleast 6 chars long";
-                              }
-                              return null;
-                            },
-                          ),
-                        const Gap(20),
-                        const Text(
-                          "Masjids Allocated",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        const Gap(10),
-                        SingleChildScrollView(
-                          child: Row(
-                            children: [
-                              for (Map<String, String> item in selectedItems)
-                                Container(
-                                  margin:
-                                      const EdgeInsets.symmetric(horizontal: 5),
-                                  child: Chip(
-                                    label: Text(item["name"] ?? ""),
-                                    onDeleted: () async {
-                                      setState(() {
-                                        selectedItems.remove(item);
-                                      });
-                                      menuItems = await getMenuItems();
-                                    },
-                                  ),
-                                ),
-                              PopupMenuButton(
-                                icon: const Icon(Icons.add),
-                                itemBuilder: (context) {
-                                  return menuItems
-                                      .map(
-                                        (e) => PopupMenuItem(
-                                          value: e.id,
-                                          onTap: () {
-                                            setState(() {
-                                              selectedItems.add(
-                                                {
-                                                  "id": e.id,
-                                                  "name": e.get("name")
-                                                },
-                                              );
-                                              menuItems.remove(e);
-                                            });
-                                          },
-                                          child: Text(
-                                            e.get("name"),
-                                          ),
-                                        ),
-                                      )
-                                      .toList();
-                                },
-                              ),
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              actions: [
-                ElevatedButton(
-                  onPressed: isLoading ? null : addUser,
-                  child: isLoading
-                      ? const CircularProgressIndicator()
-                      : const Text("Add"),
-                )
-              ],
-            );
-          },
-        );
-      },
-    );
   }
 
   @override
@@ -271,9 +59,16 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                   style: TextStyle(fontSize: 40, fontWeight: FontWeight.w900),
                 ),
                 ElevatedButton.icon(
-                  onPressed: showPopup,
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return UserDetailsPopup();
+                      },
+                    );
+                  },
                   icon: const Icon(Icons.add),
-                  label:const  Text("Add New User"),
+                  label: const Text("Add New User"),
                 ),
               ],
             ),
@@ -375,5 +170,206 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
         child: Text("An Error Occurred. Error: $err"),
       ),
     );
+  }
+}
+
+class UserDetailsPopup extends ConsumerStatefulWidget {
+  @override
+  _UserDetailsPopupState createState() => _UserDetailsPopupState();
+}
+
+class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool isLoading = false;
+  List<Map<String, String>> selectedItems = [];
+  List<QueryDocumentSnapshot<Object?>> menuItems = [];
+
+  String? displayName;
+  String? userEmail;
+  String? password;
+
+  @override
+  void initState() {
+    getMenuItems().then((value) {
+      menuItems = value;
+    });
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Enter User Details'),
+      content: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextFormField(
+                  decoration: const InputDecoration(
+                    label: Text("Name of User"),
+                  ),
+                  validator: (value) {
+                    if (value == null ||
+                        value.trim().isEmpty ||
+                        value.length < 4) {
+                      return "The name must be at least 4 characters long";
+                    }
+                    return null;
+                  },
+                  onSaved: (newValue) {
+                    displayName = newValue;
+                  },
+                ),
+                TextFormField(
+                  decoration: const InputDecoration(
+                    label: Text("User's email"),
+                  ),
+                  validator: (value) {
+                    if (value == null ||
+                        value.trim().isEmpty ||
+                        value.length < 8 ||
+                        !value.contains("@")) {
+                      return "Please enter a valid email";
+                    }
+                    return null;
+                  },
+                  onSaved: (newValue) {
+                    userEmail = newValue;
+                  },
+                ),
+                TextFormField(
+                  decoration: const InputDecoration(
+                    label: Text("User's Password"),
+                  ),
+                  onSaved: (newValue) {
+                    password = newValue;
+                  },
+                  validator: (value) {
+                    if (value == null ||
+                        value.trim().isEmpty ||
+                        value.length < 6) {
+                      return "Password must be at least 6 characters long";
+                    }
+                    return null;
+                  },
+                ),
+                const Gap(20),
+                const Text(
+                  "Masjids Allocated",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const Gap(10),
+                SingleChildScrollView(
+                  child: Row(
+                    children: [
+                      for (Map<String, String> item in selectedItems)
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 5),
+                          child: Chip(
+                            label: Text(item["name"] ?? ""),
+                            onDeleted: () async {
+                              setState(() {
+                                selectedItems.remove(item);
+                              });
+                              // Assuming getMenuItems is an async function that fetches the menu items
+                              menuItems = await getMenuItems();
+                            },
+                          ),
+                        ),
+                      PopupMenuButton(
+                        icon: const Icon(Icons.add),
+                        itemBuilder: (context) {
+                          return menuItems.map((e) {
+                            return PopupMenuItem(
+                              value: e.id,
+                              onTap: () {
+                                setState(() {
+                                  selectedItems
+                                      .add({"id": e.id, "name": e.get("name")});
+                                  menuItems.remove(e);
+                                });
+                              },
+                              child: Text(e.get("name")),
+                            );
+                          }).toList();
+                        },
+                      ),
+                    ],
+                  ),
+                )
+              ],
+            ),
+          ),
+        ),
+      ),
+      actions: [
+        ElevatedButton(
+          onPressed: isLoading
+              ? null
+              : () {
+                  addUser();
+                },
+          child:
+              isLoading ? const CircularProgressIndicator() : const Text("Add"),
+        )
+      ],
+    );
+  }
+
+  Future<List<QueryDocumentSnapshot<Object?>>> getMenuItems() async {
+    final CollectionReference collectionReference =
+        FirebaseFirestore.instance.collection("Masjid");
+    final QuerySnapshot querySnapshot = await collectionReference.get();
+    final allMasjids = querySnapshot.docs.map((e) => e).toList();
+    return allMasjids;
+  }
+
+  void addUser() async {
+    if (_formKey.currentState != null) {
+      if (_formKey.currentState!.validate()) {
+        _formKey.currentState!.save();
+
+        final masjidList = selectedItems.map((data) => data["id"]).toList();
+
+        if (masjidList.isNotEmpty) {
+          setState(() {
+            isLoading = true;
+          });
+
+          try {
+            await FirebaseFunctions.instance.httpsCallable("add_user").call(
+              {
+                "email": userEmail,
+                "displayName": displayName,
+                "masjidDocNames": masjidList,
+              },
+            );
+            if (!mounted) return;
+            context.pop();
+          } on FirebaseFunctionsException catch (e) {
+            if (e.code == "aborted") {
+              if (!mounted) return;
+              showTopSnackBar(
+                  Overlay.of(context),
+                  const CustomSnackBar.error(
+                      message:
+                          "Uh Ohh. An Error Occurred. Try with different data."));
+            }
+            logger.e("error code: ${e.message}");
+          } finally {
+            setState(() {
+              isLoading = false;
+            });
+
+            ref.invalidate(getUsersProvider);
+          }
+        }
+      }
+    }
   }
 }
