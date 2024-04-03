@@ -6,7 +6,6 @@ import 'package:shaheen_namaz/utils/config/route_config.dart';
 import 'firebase_options.dart';
 
 void main() async {
-  await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
