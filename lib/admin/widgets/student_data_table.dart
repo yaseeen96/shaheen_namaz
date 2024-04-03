@@ -60,48 +60,51 @@ class _StudentDataTableState extends State<StudentDataTable> {
       height: double.infinity,
       child: SingleChildScrollView(
         scrollDirection: Axis.vertical,
-        child: DataTable(
-          columnSpacing: 40,
-          columns: const [
-            DataColumn(
-                label: Text(
-              'Student Name',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            )),
-            DataColumn(
-                label: Text(
-                  'Streak',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: DataTable(
+            columnSpacing: 40,
+            columns: const [
+              DataColumn(
+                  label: Text(
+                'Student Name',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
                 ),
-                numeric: true),
-            DataColumn(
-                label: Text(
-                  'Guardian Number',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
+              )),
+              DataColumn(
+                  label: Text(
+                    'Streak',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
+                  numeric: true),
+              DataColumn(
+                  label: Text(
+                    'Guardian Number',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  numeric: true),
+              DataColumn(
+                  label: Text(
+                'Masjid',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
                 ),
-                numeric: true),
-            DataColumn(
-                label: Text(
-              'Masjid',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            )),
-          ],
-          rows: _students.map((StudentData student) {
-            return DataRow(cells: [
-              DataCell(Text(student.name)),
-              DataCell(Text(student.streak.toString())),
-              DataCell(Text(student.guardianNumber)),
-              DataCell(Text(student.masjid)),
-            ]);
-          }).toList(),
+              )),
+            ],
+            rows: _students.map((StudentData student) {
+              return DataRow(cells: [
+                DataCell(Text(student.name)),
+                DataCell(Text(student.streak.toString())),
+                DataCell(Text(student.guardianNumber)),
+                DataCell(Text(student.masjid)),
+              ]);
+            }).toList(),
+          ),
         ),
       ),
     );

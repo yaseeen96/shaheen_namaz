@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
   const CustomAppbar(
@@ -11,6 +12,7 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       centerTitle: true,
+      foregroundColor: Colors.white,
       toolbarHeight: 120,
       title: Image.asset(
         "assets/logo.png",
@@ -18,6 +20,16 @@ class CustomAppbar extends StatelessWidget implements PreferredSizeWidget {
         height: 150,
       ),
       backgroundColor: Theme.of(context).primaryColor,
+      actions: [
+        IconButton(
+            onPressed: () {
+              context.push("/student_data_mobile");
+            },
+            icon: const Icon(
+              Icons.dataset_rounded,
+              size: 35,
+            ))
+      ],
     );
   }
 }

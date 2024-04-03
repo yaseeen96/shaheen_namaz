@@ -8,6 +8,7 @@ import 'package:shaheen_namaz/admin/screens/admin_screen.dart';
 import 'package:shaheen_namaz/staff/screens/camera/camera_preview_screen.dart';
 import 'package:shaheen_namaz/staff/screens/camera/image_preview_screen.dart';
 import 'package:shaheen_namaz/staff/screens/parent_screen.dart';
+import 'package:shaheen_namaz/staff/screens/student_data_mobile.dart';
 import 'package:shaheen_namaz/staff/screens/student_registration/student_registration_screen.dart';
 
 final routes = GoRouter(
@@ -54,5 +55,8 @@ final routes = GoRouter(
         image: state.extra as XFile?,
       ),
     ),
+    GoRoute(
+        path: "/student_data_mobile",
+        builder: (ctx, state) => const StudentDataMobile()),
   ],
 );
