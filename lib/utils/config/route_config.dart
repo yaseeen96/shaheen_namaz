@@ -33,20 +33,22 @@ final routes = GoRouter(
       builder: (ctx, state) => const ParentScreen(),
     ),
     GoRoute(
+      name: "register_student",
       path: "/register_student",
       builder: (ctx, state) => StudentRegistrationScreen(
         image: state.extra as XFile?,
       ),
     ),
     GoRoute(
-      path: "/camera_preview/:isAttendanceTracking",
+      name: "camera_preview",
+      path: "/camera_preview/:isAttendanceTracking/:name/:guardianNumber",
       builder: (ctx, state) => TakePictureScreen(
         camera: state.extra! as CameraDescription,
         isAttendanceTracking:
-            (state.pathParameters["isAttendanceTracking"] != null)
-                ? state.pathParameters["isAttendanceTracking"]!.toLowerCase() ==
-                    "true"
-                : false,
+            state.pathParameters["isAttendanceTracking"]?.toLowerCase() ==
+                "true",
+        name: state.pathParameters["name"],
+        guardianNumber: state.pathParameters["guardianNumber"],
       ),
     ),
     GoRoute(

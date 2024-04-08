@@ -9,10 +9,14 @@ class TakePictureScreen extends StatefulWidget {
     super.key,
     required this.camera,
     this.isAttendanceTracking = false,
+    this.name,
+    this.guardianNumber,
   });
 
   final CameraDescription camera;
   final bool isAttendanceTracking;
+  final String? name;
+  final String? guardianNumber;
 
   @override
   TakePictureScreenState createState() => TakePictureScreenState();
@@ -46,7 +50,10 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       if (widget.isAttendanceTracking) {
         context.push("/image_preview", extra: image);
       } else {
-        context.go("/register_student", extra: image);
+        context.go(
+          "/register_student",
+          extra: image,
+        );
       }
     } catch (e) {
       // If an error occurs, log the error to the console.

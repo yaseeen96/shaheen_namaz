@@ -86,12 +86,6 @@ class _SideDrawerState extends ConsumerState<SideDrawer> {
                   },
                 );
               }).toList(),
-              // RadioListTile<bool>(
-              //   value: true,
-              //   groupValue: false,
-              //   onChanged: (currentVal) {},
-              //   title: Text("Masjid 1"),
-              // ),
               const Spacer(),
               ElevatedButton.icon(
                   onPressed: () {

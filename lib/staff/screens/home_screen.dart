@@ -22,7 +22,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final firstCamera = cameras.first;
     if (!context.mounted) return;
     context.push(
-      "/camera_preview/true",
+      "/camera_preview/true/a/a",
       extra: firstCamera,
     );
   }

@@ -347,6 +347,7 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                 "email": userEmail,
                 "displayName": displayName,
                 "masjidDocNames": masjidList,
+                "password": password,
               },
             );
             if (!mounted) return;
