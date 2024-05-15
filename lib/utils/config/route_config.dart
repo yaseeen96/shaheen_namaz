@@ -37,6 +37,8 @@ final routes = GoRouter(
       path: "/register_student",
       builder: (ctx, state) => StudentRegistrationScreen(
         image: state.extra as XFile?,
+        name: state.pathParameters["name"],
+        guardianNumber: state.pathParameters["guardianNumber"],
       ),
     ),
     GoRoute(

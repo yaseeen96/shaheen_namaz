@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:logger/logger.dart';
 import 'package:shaheen_namaz/staff/providers/providers.dart';
 import 'package:shaheen_namaz/staff/widgets/app_bar.dart';
 import 'package:shaheen_namaz/staff/widgets/image_preview.dart';
@@ -34,6 +35,9 @@ class _StudentRegistrationScreenState
   String? name;
   String? guardianNumber;
   bool isLoading = false;
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController guardianNumberController =
+      TextEditingController();
 
   void onRegister() async {
     setState(() {
@@ -113,15 +117,26 @@ class _StudentRegistrationScreenState
     }
   }
 
+  @override
+  void dispose() {
+    nameController.dispose();
+    guardianNumberController.dispose();
+    super.dispose();
+  }
+
   void onAddImage() async {
     final cameras = await availableCameras();
 
     final firstCamera = cameras.first;
-    if (!context.mounted) return;
+    if (!mounted) return;
+    Logger().e("name: ${nameController.text == ""}");
+
     context.pushNamed("camera_preview", extra: firstCamera, pathParameters: {
       "isAttendanceTracking": "false",
-      "name": name ?? "a",
-      "guardianNumber": guardianNumber ?? "a",
+      "name": (nameController.text == "") ? "s" : nameController.text,
+      "guardianNumber": (guardianNumberController.text == "")
+          ? "A"
+          : guardianNumberController.text,
     });
   }
 
@@ -169,6 +184,7 @@ class _StudentRegistrationScreenState
                       ),
                       Gap(MediaQuery.of(context).size.height * 0.05),
                       TextFormField(
+                        controller: nameController,
                         decoration: formDecoration(label: "Name"),
                         validator: (value) {
                           if (value == null ||
@@ -185,6 +201,7 @@ class _StudentRegistrationScreenState
                       ),
                       const Gap(10),
                       TextFormField(
+                        controller: guardianNumberController,
                         maxLength: 10,
                         keyboardType: TextInputType.number,
                         decoration: formDecoration(label: "Guardian Number"),

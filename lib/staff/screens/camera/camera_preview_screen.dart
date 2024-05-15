@@ -46,14 +46,15 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       // Attempt to take a picture and then get the location
       // where the image file is saved.
       final image = await _controller.takePicture();
-      if (!context.mounted) return;
       if (widget.isAttendanceTracking) {
+        if (!mounted) return;
         context.push("/image_preview", extra: image);
       } else {
-        context.go(
-          "/register_student",
-          extra: image,
-        );
+        if (!mounted) return;
+        context.goNamed("register_student", extra: image, pathParameters: {
+          "name": widget.name ?? "",
+          "guardianNumber": widget.guardianNumber ?? ""
+        });
       }
     } catch (e) {
       // If an error occurs, log the error to the console.
