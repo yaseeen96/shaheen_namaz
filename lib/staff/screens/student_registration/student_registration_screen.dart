@@ -102,7 +102,7 @@ class _StudentRegistrationScreenState
                       "An Error Occurred: ${jsonResponse["error"] ?? ''}"));
         }
 
-        logger.i("Response: ${jsonResponse}");
+        logger.i("Response: $jsonResponse");
       }
     } catch (err) {
       if (!context.mounted) return;

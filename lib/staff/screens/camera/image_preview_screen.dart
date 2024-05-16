@@ -5,8 +5,8 @@ import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shaheen_namaz/staff/widgets/app_bar.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
@@ -125,11 +125,22 @@ class _VerificationPopupState extends State<VerificationPopup> {
     });
 
     try {
+      // get current user id
+      final userId = FirebaseAuth.instance.currentUser!.uid;
+      // get details from users collection
+      final userDoc = await FirebaseFirestore.instance
+          .collection("Users")
+          .doc(userId)
+          .get();
+      final user = userDoc.data();
+      final masjidAllocated = user!["masjid_allocated"];
+
       await FirebaseFirestore.instance
           .collection("students")
           .doc(widget.faceId)
           .update({
         "streak": FieldValue.increment(1),
+        "masjid": masjidAllocated[0],
         "streak_last_modified": DateTime.now()
       });
       final String url =
