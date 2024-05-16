@@ -120,39 +120,40 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                                 userId: user.users![index].uid!,
                               );
                             }),
-                            PopupMenuButton(
-                              icon: const Icon(Icons.add),
-                              itemBuilder: (context) {
-                                return menuItems
-                                    .map(
-                                      (e) => PopupMenuItem(
-                                        value: e.id,
-                                        onTap: () async {
-                                          final DocumentReference masjidRef =
-                                              FirebaseFirestore.instance
-                                                  .collection("Masjid")
-                                                  .doc(e.id);
-                                          await FirebaseFirestore.instance
-                                              .collection("Users")
-                                              .doc(user.users![index].uid!)
-                                              .update(
-                                            {
-                                              "masjid_allocated":
-                                                  FieldValue.arrayUnion(
-                                                [masjidRef],
-                                              ),
-                                            },
-                                          );
-                                          ref.invalidate(getUsersProvider);
-                                        },
-                                        child: Text(
-                                          e.get("name"),
+                            if (user.users![index].masjidAllocated!.isEmpty)
+                              PopupMenuButton(
+                                icon: const Icon(Icons.add),
+                                itemBuilder: (context) {
+                                  return menuItems
+                                      .map(
+                                        (e) => PopupMenuItem(
+                                          value: e.id,
+                                          onTap: () async {
+                                            final DocumentReference masjidRef =
+                                                FirebaseFirestore.instance
+                                                    .collection("Masjid")
+                                                    .doc(e.id);
+                                            await FirebaseFirestore.instance
+                                                .collection("Users")
+                                                .doc(user.users![index].uid!)
+                                                .update(
+                                              {
+                                                "masjid_allocated":
+                                                    FieldValue.arrayUnion(
+                                                  [masjidRef],
+                                                ),
+                                              },
+                                            );
+                                            ref.invalidate(getUsersProvider);
+                                          },
+                                          child: Text(
+                                            e.get("name"),
+                                          ),
                                         ),
-                                      ),
-                                    )
-                                    .toList();
-                              },
-                            ),
+                                      )
+                                      .toList();
+                                },
+                              ),
                           ]),
                           tileColor: Theme.of(context).primaryColor,
                           shape: RoundedRectangleBorder(
