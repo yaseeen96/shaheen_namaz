@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
@@ -121,39 +122,99 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                               );
                             }),
                             if (user.users![index].masjidAllocated!.isEmpty)
-                              PopupMenuButton(
-                                icon: const Icon(Icons.add),
-                                itemBuilder: (context) {
-                                  return menuItems
-                                      .map(
-                                        (e) => PopupMenuItem(
-                                          value: e.id,
-                                          onTap: () async {
-                                            final DocumentReference masjidRef =
-                                                FirebaseFirestore.instance
-                                                    .collection("Masjid")
-                                                    .doc(e.id);
-                                            await FirebaseFirestore.instance
-                                                .collection("Users")
-                                                .doc(user.users![index].uid!)
-                                                .update(
-                                              {
-                                                "masjid_allocated":
-                                                    FieldValue.arrayUnion(
-                                                  [masjidRef],
-                                                ),
-                                              },
-                                            );
-                                            ref.invalidate(getUsersProvider);
-                                          },
-                                          child: Text(
-                                            e.get("name"),
+                              SizedBox(
+                                width: 500,
+                                child: DropdownSearch<
+                                    QueryDocumentSnapshot<Object?>>(
+                                  itemAsString: (item) => item.get("name"),
+                                  dropdownBuilder: (context, selectedItem) {
+                                    return const Text(
+                                      "Please select a masjid",
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                      ),
+                                    );
+                                  },
+                                  popupProps: PopupProps.menu(
+                                    showSearchBox: true,
+                                    searchFieldProps: TextFieldProps(
+                                      decoration:
+                                          InputDecoration(labelText: "Name"),
+                                    ),
+                                    itemBuilder: (context, item, isSelected) {
+                                      return ListTile(
+                                        title: Text(
+                                          item.get("name"),
+                                          style: const TextStyle(
+                                            color: Colors.black,
                                           ),
                                         ),
-                                      )
-                                      .toList();
-                                },
-                              ),
+                                      );
+                                    },
+                                  ),
+                                  dropdownDecoratorProps:
+                                      DropDownDecoratorProps(
+                                          dropdownSearchDecoration:
+                                              InputDecoration(
+                                                  fillColor: Colors.black),
+                                          baseStyle: TextStyle(
+                                            color: Colors.black,
+                                          )),
+                                  onChanged: (value) async {
+                                    final DocumentReference masjidRef =
+                                        FirebaseFirestore.instance
+                                            .collection("Masjid")
+                                            .doc(value!.id);
+                                    await FirebaseFirestore.instance
+                                        .collection("Users")
+                                        .doc(user.users![index].uid!)
+                                        .update(
+                                      {
+                                        "masjid_allocated":
+                                            FieldValue.arrayUnion(
+                                          [masjidRef],
+                                        ),
+                                      },
+                                    );
+                                    ref.invalidate(getUsersProvider);
+                                  },
+                                  items: menuItems,
+                                  selectedItem: menuItems[0],
+                                ),
+                              )
+                            // PopupMenuButton(
+                            //   icon: const Icon(Icons.add),
+                            //   itemBuilder: (context) {
+                            //     return menuItems
+                            //         .map(
+                            //           (e) => PopupMenuItem(
+                            //             value: e.id,
+                            //             onTap: () async {
+                            // final DocumentReference masjidRef =
+                            //     FirebaseFirestore.instance
+                            //         .collection("Masjid")
+                            //         .doc(e.id);
+                            // await FirebaseFirestore.instance
+                            //     .collection("Users")
+                            //     .doc(user.users![index].uid!)
+                            //     .update(
+                            //   {
+                            //     "masjid_allocated":
+                            //         FieldValue.arrayUnion(
+                            //       [masjidRef],
+                            //     ),
+                            //   },
+                            // );
+                            // ref.invalidate(getUsersProvider);
+                            //             },
+                            //             child: Text(
+                            //               e.get("name"),
+                            //             ),
+                            //           ),
+                            //         )
+                            //         .toList();
+                            //   },
+                            // ),
                           ]),
                           tileColor: Theme.of(context).primaryColor,
                           shape: RoundedRectangleBorder(
@@ -282,24 +343,25 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                             },
                           ),
                         ),
-                      PopupMenuButton(
-                        icon: const Icon(Icons.add),
-                        itemBuilder: (context) {
-                          return menuItems.map((e) {
-                            return PopupMenuItem(
-                              value: e.id,
-                              onTap: () {
-                                setState(() {
-                                  selectedItems
-                                      .add({"id": e.id, "name": e.get("name")});
-                                  menuItems.remove(e);
-                                });
-                              },
-                              child: Text(e.get("name")),
-                            );
-                          }).toList();
-                        },
-                      ),
+                      if (selectedItems.isEmpty)
+                        PopupMenuButton(
+                          icon: const Icon(Icons.add),
+                          itemBuilder: (context) {
+                            return menuItems.map((e) {
+                              return PopupMenuItem(
+                                value: e.id,
+                                onTap: () {
+                                  setState(() {
+                                    selectedItems.add(
+                                        {"id": e.id, "name": e.get("name")});
+                                    menuItems.remove(e);
+                                  });
+                                },
+                                child: Text(e.get("name")),
+                              );
+                            }).toList();
+                          },
+                        ),
                     ],
                   ),
                 )
