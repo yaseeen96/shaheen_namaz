@@ -37,20 +37,15 @@ final routes = GoRouter(
       path: "/register_student",
       builder: (ctx, state) => StudentRegistrationScreen(
         image: state.extra as XFile?,
-        name: state.pathParameters["name"],
-        guardianNumber: state.pathParameters["guardianNumber"],
       ),
     ),
     GoRoute(
       name: "camera_preview",
-      path: "/camera_preview/:isAttendanceTracking/:name/:guardianNumber",
+      path: "/camera_preview/:isAttendenceTracking",
       builder: (ctx, state) => TakePictureScreen(
         camera: state.extra! as CameraDescription,
-        isAttendanceTracking:
-            state.pathParameters["isAttendanceTracking"]?.toLowerCase() ==
-                "true",
-        name: state.pathParameters["name"],
-        guardianNumber: state.pathParameters["guardianNumber"],
+        isAttendenceTracking:
+            state.pathParameters['isAttendenceTracking'] == "true",
       ),
     ),
     GoRoute(

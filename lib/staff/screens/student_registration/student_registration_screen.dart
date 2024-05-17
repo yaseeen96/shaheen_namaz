@@ -40,15 +40,16 @@ class _StudentRegistrationScreenState
       TextEditingController();
 
   void onRegister() async {
-    setState(() {
-      isLoading = true;
-    });
-    try {
-      final currentState = formkey.currentState;
-      if (currentState == null) return;
-      if (currentState.validate()) {
-        currentState.save();
-
+    final currentState = formkey.currentState;
+    logger.i(currentState == null);
+    if (currentState == null) return;
+    if (currentState.validate()) {
+      logger.i("Form is valid");
+      currentState.save();
+      try {
+        setState(() {
+          isLoading = true;
+        });
         if (widget.image == null) {
           if (!context.mounted) return;
           showTopSnackBar(
@@ -80,19 +81,20 @@ class _StudentRegistrationScreenState
           "image_data": base64Image,
           "name": name,
           "guardianNumber": guardianNumber,
-          "masjidId": selectedMasjidRef.id,
+          "masjidId": selectedMasjidRef.id, //add id if not working
         });
 
         final jsonResponse = response.data;
         if (jsonResponse["faceId"] != null) {
           logger.i("Success");
-          if (!context.mounted) return;
+          if (!mounted) return;
           showTopSnackBar(
             Overlay.of(context),
             const CustomSnackBar.success(
                 message: "Yayyy!! Successfully Registered"),
           );
-          context.pop();
+          ref.read(studentDetailsProvider.notifier).state = {};
+          context.go("/user");
         } else {
           if (!context.mounted) return;
           showTopSnackBar(
@@ -103,17 +105,18 @@ class _StudentRegistrationScreenState
         }
 
         logger.i("Response: $jsonResponse");
+      } catch (err) {
+        logger.e("Error: $err");
+        if (!mounted) return;
+        showTopSnackBar(
+            Overlay.of(context),
+            const CustomSnackBar.error(
+                message: "Server Error. Please Come Back Later."));
+      } finally {
+        setState(() {
+          isLoading = false;
+        });
       }
-    } catch (err) {
-      if (!context.mounted) return;
-      showTopSnackBar(
-          Overlay.of(context),
-          const CustomSnackBar.error(
-              message: "Server Error. Please Come Back Later."));
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
     }
   }
 
@@ -125,25 +128,30 @@ class _StudentRegistrationScreenState
   }
 
   void onAddImage() async {
+    ref.read(studentDetailsProvider.notifier).state = {
+      "name": nameController.text,
+      "guardianNumber": guardianNumberController.text,
+    };
     final cameras = await availableCameras();
 
     final firstCamera = cameras.first;
     if (!mounted) return;
+
     Logger().e("name: ${nameController.text == ""}");
 
-    context.pushNamed("camera_preview", extra: firstCamera, pathParameters: {
-      "isAttendanceTracking": "false",
-      "name": (nameController.text == "") ? "s" : nameController.text,
-      "guardianNumber": (guardianNumberController.text == "")
-          ? "A"
-          : guardianNumberController.text,
-    });
+    context.pushNamed(
+      "camera_preview",
+      extra: firstCamera,
+      pathParameters: {"isAttendenceTracking": "false"},
+    );
   }
 
   @override
   void initState() {
-    name = widget.name;
-    guardianNumber = widget.guardianNumber;
+    final studentDetails = ref.read(studentDetailsProvider);
+    nameController.text = studentDetails["name"] as String? ?? "";
+    guardianNumberController.text =
+        studentDetails["guardianNumber"] as String? ?? "";
     super.initState();
   }
 

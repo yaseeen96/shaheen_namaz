@@ -8,15 +8,11 @@ class TakePictureScreen extends StatefulWidget {
   const TakePictureScreen({
     super.key,
     required this.camera,
-    this.isAttendanceTracking = false,
-    this.name,
-    this.guardianNumber,
+    this.isAttendenceTracking = false,
   });
 
   final CameraDescription camera;
-  final bool isAttendanceTracking;
-  final String? name;
-  final String? guardianNumber;
+  final bool isAttendenceTracking;
 
   @override
   TakePictureScreenState createState() => TakePictureScreenState();
@@ -46,15 +42,17 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       // Attempt to take a picture and then get the location
       // where the image file is saved.
       final image = await _controller.takePicture();
-      if (widget.isAttendanceTracking) {
+      logger.i("isAttendenceTracking: ${widget.isAttendenceTracking}");
+      if (widget.isAttendenceTracking) {
+        logger.i("inside isAttendenceTracking");
         if (!mounted) return;
         context.push("/image_preview", extra: image);
       } else {
         if (!mounted) return;
-        context.goNamed("register_student", extra: image, pathParameters: {
-          "name": widget.name ?? "",
-          "guardianNumber": widget.guardianNumber ?? ""
-        });
+        context.goNamed(
+          "register_student",
+          extra: image,
+        );
       }
     } catch (e) {
       // If an error occurs, log the error to the console.

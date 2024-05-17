@@ -137,7 +137,7 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                                   },
                                   popupProps: PopupProps.menu(
                                     showSearchBox: true,
-                                    searchFieldProps: TextFieldProps(
+                                    searchFieldProps: const TextFieldProps(
                                       decoration:
                                           InputDecoration(labelText: "Name"),
                                     ),

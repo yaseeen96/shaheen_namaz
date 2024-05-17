@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:shaheen_namaz/admin/models/student_data.dart';
+import 'package:shaheen_namaz/utils/config/logger.dart';
 
 class StudentDataTable extends StatefulWidget {
   const StudentDataTable({super.key});
@@ -17,7 +18,8 @@ class _StudentDataTableState extends State<StudentDataTable> {
         await FirebaseFirestore.instance.collection('students').get();
 
     List<Future<StudentData>> studentFutures = snapshot.docs.map((doc) async {
-      var data = doc.data() as Map<String, dynamic>;
+      logger.i("doc data ${doc.data()}");
+      var data = doc.data();
       String masjidName = '';
 
       // Fetch masjid document reference
@@ -28,6 +30,7 @@ class _StudentDataTableState extends State<StudentDataTable> {
         var masjidData = masjidSnapshot.data() as Map<String, dynamic>?;
         // Use the casted map to access fields
         masjidName = masjidData?['name'] ?? 'Unknown';
+        logger.i("masjid name: ${masjidSnapshot.data()}");
       }
 
       return StudentData(

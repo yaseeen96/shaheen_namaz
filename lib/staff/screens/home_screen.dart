@@ -20,10 +20,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final cameras = await availableCameras();
 
     final firstCamera = cameras.first;
-    if (!context.mounted) return;
-    context.push(
-      "/camera_preview/true/a/a",
+    if (!mounted) return;
+    context.pushNamed(
+      "camera_preview",
       extra: firstCamera,
+      pathParameters: {"isAttendenceTracking": "true"},
     );
   }
 
@@ -42,7 +43,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           const Gap(20),
           MenuButton(
             onTap: () {
-              context.push("/register_student");
+              context.push("/register_student", extra: null);
             },
             imagePath: "assets/register_icon.png",
             title: "Register a Student",
