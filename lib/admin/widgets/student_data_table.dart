@@ -66,8 +66,10 @@ class _StudentDataTableState extends State<StudentDataTable> {
     if (widget.isAdmin) {
       setState(() {
         _students = students;
-        widget.onDataFetched(_students.length);
+        _filteredStudents = _students;
+        isLoading = false;
       });
+      widget.onDataFetched(_students.length);
       logger.i("Students: $_students");
       return;
     }
@@ -124,6 +126,8 @@ class _StudentDataTableState extends State<StudentDataTable> {
                 ),
               ),
               DataTable(
+                dataRowMinHeight: 30,
+                dataRowMaxHeight: 100,
                 columnSpacing: 40,
                 columns: const [
                   DataColumn(
@@ -200,7 +204,9 @@ class _StudentDataTableState extends State<StudentDataTable> {
                     DataCell(Text(student.studentClass)),
                     DataCell(Text(student.age)),
                     DataCell(Text(student.guardianName)),
-                    DataCell(Text(student.guardianNumber)),
+                    DataCell(
+                      Text(student.guardianNumber),
+                    ),
                     DataCell(Text(student.address)),
                     DataCell(Text(student.masjid)),
                     DataCell(Text(student.streakLastModified)),

@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shaheen_namaz/admin/providers/get_masjids_provider.dart';
+import 'package:shaheen_namaz/utils/config/logger.dart';
 
 class MasjidWidget extends ConsumerStatefulWidget {
   const MasjidWidget({super.key});
@@ -12,6 +14,7 @@ class MasjidWidget extends ConsumerStatefulWidget {
 }
 
 class _MasjidWidgetState extends ConsumerState<MasjidWidget> {
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> filteredMasjidList = [];
   final masjidNameController = TextEditingController();
 
   void addMasjid(String name) {
@@ -77,32 +80,38 @@ class _MasjidWidgetState extends ConsumerState<MasjidWidget> {
     return masjids.when(
       data: (data) {
         final masjidList = data.docs;
-        if (masjidList.isEmpty) {
+        if (filteredMasjidList.isEmpty) {
+          filteredMasjidList = masjidList;
+        }
+        if (filteredMasjidList.isEmpty) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "All Masjids",
-                      style:
-                          TextStyle(fontSize: 40, fontWeight: FontWeight.w900),
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: () async {
-                        await showPopup();
-                      },
-                      icon: const Icon(Icons.add),
-                      label: const Text("Add Masjid"),
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                const Text("No Masjids Added. Please Add some"),
-                const Spacer(),
-              ],
+            child: SizedBox(
+              height: MediaQuery.sizeOf(context).height,
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "All Masjids",
+                        style: TextStyle(
+                            fontSize: 40, fontWeight: FontWeight.w900),
+                      ),
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          await showPopup();
+                        },
+                        icon: const Icon(Icons.add),
+                        label: const Text("Add Masjid"),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  const Text("No Masjids Added. Please Add some"),
+                  const Spacer(),
+                ],
+              ),
             ),
           );
         }
@@ -123,26 +132,53 @@ class _MasjidWidgetState extends ConsumerState<MasjidWidget> {
                 ),
               ],
             ),
+            const Gap(10),
+            TextField(
+              decoration: const InputDecoration(
+                hintText: "Search Masjid",
+                prefixIcon: Icon(Icons.search),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  filteredMasjidList = masjidList
+                      .where((masjid) => masjid
+                          .data()["name"]
+                          .toLowerCase()
+                          .contains(value.toLowerCase()))
+                      .toList();
+                  logger.i(
+                      "filtered masjid list: ${filteredMasjidList[0].data()["name"]}");
+                });
+              },
+            ),
+            const Gap(10),
             ListView.builder(
               shrinkWrap: true,
-              itemCount: masjidList.length,
+              itemCount: filteredMasjidList.length,
               itemBuilder: (ctx, index) {
                 return Container(
                   margin: const EdgeInsets.symmetric(vertical: 5),
                   child: ListTile(
+                    leading: const Icon(
+                      Icons.mosque,
+                      color: Colors.white,
+                    ),
                     title: Text(
-                      masjidList[index].data()["name"],
+                      filteredMasjidList[index].data()["name"],
+                    ),
+                    subtitle: Text(
+                      "Cluster no: ${filteredMasjidList[index].data()["cluster_number"]}",
                     ),
                     trailing: IconButton(
                       icon: const Icon(
                         Icons.delete,
-                        color: Colors.grey,
+                        color: Colors.red,
                       ),
                       onPressed: () {
-                        deleteMasjid(masjidList[index].id);
+                        deleteMasjid(filteredMasjidList[index].id);
                       },
                     ),
-                    tileColor: Theme.of(context).primaryColor,
+                    tileColor: Colors.black87,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(6),
                     ),
