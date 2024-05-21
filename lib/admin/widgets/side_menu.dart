@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:shaheen_namaz/admin/providers/admin_home_provider.dart';
 import 'package:shaheen_namaz/admin/widgets/masjid_widget.dart';
+import 'package:shaheen_namaz/admin/widgets/reports/report_widget.dart';
 import 'package:shaheen_namaz/admin/widgets/student_data_table.dart';
 import 'package:shaheen_namaz/admin/widgets/users/users_widget.dart';
 
@@ -74,6 +75,14 @@ class SideMenuDrawer extends ConsumerWidget {
             selected: homeState.selectedIndex == 3,
             selectedTileColor: Theme.of(context).primaryColor,
           ),
+          ListTile(
+            title: const Text("Reports"),
+            onTap: () {
+              operations.updateSelectedIndex(4);
+            },
+            selected: homeState.selectedIndex == 4,
+            selectedTileColor: Theme.of(context).primaryColor,
+          ),
           const Spacer(),
           Image.asset("assets/logo.png"),
           const Gap(10),
@@ -112,6 +121,8 @@ Widget childWidget(int index, WidgetRef ref) {
         },
         isAdmin: true,
       );
+    case 4:
+      return const ReportsWidget();
     default:
       return Container(
         alignment: Alignment.center,

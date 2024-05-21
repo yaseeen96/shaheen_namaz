@@ -134,7 +134,7 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                                     return const Text(
                                       "Please select a masjid",
                                       style: TextStyle(
-                                        color: Colors.black,
+                                        color: Colors.grey,
                                       ),
                                     );
                                   },
