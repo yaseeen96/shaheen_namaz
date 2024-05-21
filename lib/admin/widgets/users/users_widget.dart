@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shaheen_namaz/admin/providers/get_users_provider.dart';
+import 'package:shaheen_namaz/admin/widgets/users/custom_dropdown_button.dart';
 import 'package:shaheen_namaz/admin/widgets/users/subtitle_widget.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
@@ -66,7 +67,9 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                     showDialog(
                       context: context,
                       builder: (BuildContext context) {
-                        return UserDetailsPopup();
+                        return UserDetailsPopup(
+                          menuItems: menuItems,
+                        );
                       },
                     );
                   },
@@ -127,42 +130,9 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                             if (user.users![index].masjidAllocated!.isEmpty)
                               SizedBox(
                                 width: 500,
-                                child: DropdownSearch<
-                                    QueryDocumentSnapshot<Object?>>(
-                                  itemAsString: (item) => item.get("name"),
-                                  dropdownBuilder: (context, selectedItem) {
-                                    return const Text(
-                                      "Please select a masjid",
-                                      style: TextStyle(
-                                        color: Colors.grey,
-                                      ),
-                                    );
-                                  },
-                                  popupProps: PopupProps.menu(
-                                    showSearchBox: true,
-                                    searchFieldProps: const TextFieldProps(
-                                      decoration:
-                                          InputDecoration(labelText: "Name"),
-                                    ),
-                                    itemBuilder: (context, item, isSelected) {
-                                      return ListTile(
-                                        title: Text(
-                                          item.get("name"),
-                                          style: const TextStyle(
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  dropdownDecoratorProps:
-                                      DropDownDecoratorProps(
-                                          dropdownSearchDecoration:
-                                              InputDecoration(
-                                                  fillColor: Colors.black),
-                                          baseStyle: TextStyle(
-                                            color: Colors.black,
-                                          )),
+                                child: CustomDropDown(
+                                  ref: ref,
+                                  menuItems: menuItems,
                                   onChanged: (value) async {
                                     final DocumentReference masjidRef =
                                         FirebaseFirestore.instance
@@ -181,9 +151,6 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                                     );
                                     ref.invalidate(getUsersProvider);
                                   },
-                                  items: menuItems,
-                                  selectedItem:
-                                      (menuItems.isEmpty) ? null : menuItems[0],
                                 ),
                               )
                           ]),
@@ -207,6 +174,10 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
 }
 
 class UserDetailsPopup extends ConsumerStatefulWidget {
+  const UserDetailsPopup({super.key, required this.menuItems});
+
+  final List<QueryDocumentSnapshot<Object?>> menuItems;
+
   @override
   _UserDetailsPopupState createState() => _UserDetailsPopupState();
 }
@@ -215,19 +186,10 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool isLoading = false;
   List<Map<String, String>> selectedItems = [];
-  List<QueryDocumentSnapshot<Object?>> menuItems = [];
 
   String? displayName;
   String? userEmail;
   String? password;
-
-  @override
-  void initState() {
-    getMenuItems().then((value) {
-      menuItems = value;
-    });
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -310,29 +272,26 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                                 selectedItems.remove(item);
                               });
                               // Assuming getMenuItems is an async function that fetches the menu items
-                              menuItems = await getMenuItems();
                             },
                           ),
                         ),
                       if (selectedItems.isEmpty)
-                        PopupMenuButton(
-                          icon: const Icon(Icons.add),
-                          itemBuilder: (context) {
-                            return menuItems.map((e) {
-                              return PopupMenuItem(
-                                value: e.id,
-                                onTap: () {
-                                  setState(() {
-                                    selectedItems.add(
-                                        {"id": e.id, "name": e.get("name")});
-                                    menuItems.remove(e);
-                                  });
-                                },
-                                child: Text(e.get("name")),
-                              );
-                            }).toList();
-                          },
-                        ),
+                        SizedBox(
+                            height: 100,
+                            width: 300,
+                            child: CustomDropDown(
+                                ref: ref,
+                                menuItems: widget.menuItems,
+                                onChanged: (e) {
+                                  if (e != null) {
+                                    setState(() {
+                                      selectedItems.add(
+                                          {"id": e.id, "name": e.get("name")});
+                                      widget.menuItems.remove(e);
+                                    });
+                                    logger.i("selected items: $selectedItems");
+                                  }
+                                }))
                     ],
                   ),
                 )
