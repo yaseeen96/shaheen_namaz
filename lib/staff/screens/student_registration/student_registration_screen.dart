@@ -34,9 +34,17 @@ class _StudentRegistrationScreenState
   final formkey = GlobalKey<FormState>();
   String? name;
   String? guardianNumber;
+  String? guardianName;
+  String? studentClass;
+  String? studentAddress;
+  String? dob;
   bool isLoading = false;
   final TextEditingController nameController = TextEditingController();
   final TextEditingController guardianNumberController =
+      TextEditingController();
+  final TextEditingController guardianNameController = TextEditingController();
+  final TextEditingController studentClassController = TextEditingController();
+  final TextEditingController studentAddressController =
       TextEditingController();
 
   void onRegister() async {
@@ -82,6 +90,10 @@ class _StudentRegistrationScreenState
           "name": name,
           "guardianNumber": guardianNumber,
           "masjidId": selectedMasjidRef.id, //add id if not working
+          "guardianName": guardianName,
+          "dob": dob,
+          "class": studentClass,
+          "address": studentAddress,
         });
 
         final jsonResponse = response.data;
@@ -124,6 +136,9 @@ class _StudentRegistrationScreenState
   void dispose() {
     nameController.dispose();
     guardianNumberController.dispose();
+    guardianNameController.dispose();
+    studentClassController.dispose();
+    studentAddressController.dispose();
     super.dispose();
   }
 
@@ -131,6 +146,10 @@ class _StudentRegistrationScreenState
     ref.read(studentDetailsProvider.notifier).state = {
       "name": nameController.text,
       "guardianNumber": guardianNumberController.text,
+      "guardianName": guardianNameController.text,
+      "dob": dob,
+      "studentClass": studentClassController.text,
+      "studentAddress": studentAddressController.text,
     };
     final cameras = await availableCameras();
 
@@ -152,6 +171,13 @@ class _StudentRegistrationScreenState
     nameController.text = studentDetails["name"] as String? ?? "";
     guardianNumberController.text =
         studentDetails["guardianNumber"] as String? ?? "";
+    guardianNameController.text =
+        studentDetails["guardianName"] as String? ?? "";
+    dob = studentDetails["dob"] as String? ?? "";
+    studentClassController.text =
+        studentDetails["studentClass"] as String? ?? "";
+    studentAddressController.text =
+        studentDetails["studentAddress"] as String? ?? "";
     super.initState();
   }
 
@@ -170,6 +196,7 @@ class _StudentRegistrationScreenState
                   child: CircularProgressIndicator(),
                 );
               } else if (snapshot.hasError) {
+                logger.e("Error: ${snapshot.error}");
                 return const Center(
                   child: Text("Something went Wrong"),
                 );
@@ -205,6 +232,88 @@ class _StudentRegistrationScreenState
                         },
                         onSaved: (currentVal) {
                           name = currentVal;
+                        },
+                      ),
+                      const Gap(10),
+                      // add dropdown list for studentClass. keep options 1-10
+                      TextFormField(
+                        controller: studentClassController,
+                        decoration: formDecoration(label: "Class"),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return "Please enter a valid class";
+                          } else {
+                            return null;
+                          }
+                        },
+                        onSaved: (currentVal) {
+                          studentClass = currentVal;
+                        },
+                      ),
+
+                      const Gap(10),
+
+                      TextFormField(
+                        initialValue: dob,
+                        decoration: formDecoration(label: "Date of Birth"),
+                        readOnly: true,
+                        onTap: () async {
+                          final selectedDate = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime(1900),
+                            lastDate: DateTime.now(),
+                          );
+                          if (selectedDate != null) {
+                            setState(() {
+                              dob = selectedDate.toString().split(" ")[0];
+                            });
+                          }
+                        },
+                        validator: (value) {
+                          if (dob == null) {
+                            return "Please select a valid date";
+                          } else {
+                            return null;
+                          }
+                        },
+                        onSaved: (value) {
+                          logger.i("saved value: $value");
+                          dob = value;
+                        },
+                      ),
+                      const Gap(10),
+                      // add field for student address
+                      TextFormField(
+                        maxLines: 4,
+                        controller: studentAddressController,
+                        decoration: formDecoration(label: "Address"),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return "Please enter a valid address";
+                          } else {
+                            return null;
+                          }
+                        },
+                        onSaved: (currentVal) {
+                          studentAddress = currentVal;
+                        },
+                      ),
+                      const Gap(10),
+                      TextFormField(
+                        controller: guardianNameController,
+                        decoration: formDecoration(label: "Guardian Name"),
+                        validator: (value) {
+                          if (value == null ||
+                              value.length < 2 ||
+                              value.trim().isEmpty) {
+                            return "Please enter a valid name";
+                          } else {
+                            return null;
+                          }
+                        },
+                        onSaved: (currentVal) {
+                          guardianName = currentVal;
                         },
                       ),
                       const Gap(10),

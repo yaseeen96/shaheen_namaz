@@ -16,6 +16,7 @@ class SideMenuDrawer extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final operations = ref.read(adminNotifierProvider.notifier);
     final homeState = ref.watch(adminNotifierProvider);
+    final dataCount = ref.watch(dataCountProvider);
     return Material(
       color: Colors.black,
       child: Column(
@@ -56,6 +57,17 @@ class SideMenuDrawer extends ConsumerWidget {
           const Gap(5),
           ListTile(
             title: const Text("Track Attendance"),
+            trailing: (dataCount == 0)
+                ? null
+                : Container(
+                    margin: const EdgeInsets.only(right: 10),
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.red,
+                    ),
+                    child: Text("$dataCount"),
+                  ),
             onTap: () {
               operations.updateSelectedIndex(3);
             },
@@ -86,14 +98,20 @@ class SideMenuDrawer extends ConsumerWidget {
   }
 }
 
-Widget childWidget(int index) {
+Widget childWidget(int index, WidgetRef ref) {
   switch (index) {
     case 1:
       return const UsersWidget();
     case 2:
       return const MasjidWidget();
     case 3:
-      return const StudentDataTable();
+      // todo - add the onDataFetched function
+      return StudentDataTable(
+        onDataFetched: (value) {
+          ref.read(dataCountProvider.notifier).state = value;
+        },
+        isAdmin: true,
+      );
     default:
       return Container(
         alignment: Alignment.center,

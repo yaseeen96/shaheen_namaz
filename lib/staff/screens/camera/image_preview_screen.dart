@@ -136,6 +136,15 @@ class _VerificationPopupState extends State<VerificationPopup> {
       final masjidAllocated = user!["masjid_allocated"];
 
       await FirebaseFirestore.instance
+          .collection("Attendance")
+          .doc(widget.faceId)
+          .set({
+        "name": widget.name,
+        "masjid": masjidAllocated[0],
+        "attendance_time": DateTime.now(),
+      });
+
+      await FirebaseFirestore.instance
           .collection("students")
           .doc(widget.faceId)
           .update({

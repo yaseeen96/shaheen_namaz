@@ -13,3 +13,7 @@ final adminNotifierProvider =
     StateNotifierProvider<AdminHomeNotifier, AdminHomeModel>((ref) {
   return AdminHomeNotifier();
 });
+
+final dataCountProvider = StateProvider<int>((ref) {
+  return 0;
+});

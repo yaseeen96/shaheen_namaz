@@ -1,19 +1,27 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shaheen_namaz/admin/models/student_data.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
 
 class StudentDataTable extends StatefulWidget {
-  const StudentDataTable({super.key});
+  const StudentDataTable(
+      {super.key, required this.onDataFetched, this.isAdmin = false});
+  final bool isAdmin;
 
+  final ValueChanged<int> onDataFetched;
   @override
   State<StudentDataTable> createState() => _StudentDataTableState();
 }
 
 class _StudentDataTableState extends State<StudentDataTable> {
+  bool isLoading = false;
   List<StudentData> _students = [];
-
+  List<StudentData> _filteredStudents = [];
   Future<void> _fetchStudents() async {
+    setState(() {
+      isLoading = true;
+    });
     var snapshot =
         await FirebaseFirestore.instance.collection('students').get();
 
@@ -30,34 +38,62 @@ class _StudentDataTableState extends State<StudentDataTable> {
         var masjidData = masjidSnapshot.data() as Map<String, dynamic>?;
         // Use the casted map to access fields
         masjidName = masjidData?['name'] ?? 'Unknown';
-        logger.i("masjid name: ${masjidSnapshot.data()}");
       }
 
-      return StudentData(
-        uid: doc.id,
-        name: data['name'] ?? '',
-        streak: data['streak'] ?? 0,
-        guardianNumber: data['guardianNumber'].toString(),
-        masjid: masjidName,
-      );
+      final studentData = StudentData.getStudentDataFromFirestore(doc);
+      logger.i(studentData);
+
+      return studentData;
     }).toList();
 
     // Wait for all futures to complete
     var students = await Future.wait(studentFutures);
+    // get current user id
+    final userId = FirebaseAuth.instance.currentUser!.uid;
+    final user =
+        await FirebaseFirestore.instance.collection('Users').doc(userId).get();
+
+    // get user's masjid reference
+    final DocumentReference userMasjidRef =
+        await user.get("masjid_allocated")[0];
+    // get masjid document
+    DocumentSnapshot masjidSnapshot = await (userMasjidRef).get();
+    // Assuming the masjid document has a 'name' field
+    var masjidData = masjidSnapshot.data() as Map<String, dynamic>?;
+    // Use the casted map to access fields
+    final String userMasjidName = masjidData?['name'] ?? 'Unknown';
+    logger.i("user's masjid name: $userMasjidName");
+    if (widget.isAdmin) {
+      setState(() {
+        _students = students;
+        widget.onDataFetched(_students.length);
+      });
+      logger.i("Students: $_students");
+      return;
+    }
 
     setState(() {
-      _students = students;
+      _students = students.where((student) {
+        logger.i("masjid name: ${student.name == "abdullah"}");
+        return student.masjid == userMasjidName;
+      }).toList();
+      _filteredStudents = _students;
+      widget.onDataFetched(_students.length);
+      isLoading = false;
     });
+    logger.i("Students: $_students");
   }
 
   @override
   void initState() {
     _fetchStudents();
+
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) return const Center(child: CircularProgressIndicator());
     return SizedBox(
       width: double.infinity,
       height: double.infinity,
@@ -65,48 +101,114 @@ class _StudentDataTableState extends State<StudentDataTable> {
         scrollDirection: Axis.vertical,
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          child: DataTable(
-            columnSpacing: 40,
-            columns: const [
-              DataColumn(
-                  label: Text(
-                'Student Name',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // add a search field
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.1,
+                width: MediaQuery.of(context).size.width * 0.95,
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Search by name',
+                    prefixIcon: Icon(Icons.search),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _filteredStudents = _students
+                          .where((student) =>
+                              student.name.toLowerCase().contains(value))
+                          .toList();
+                    });
+                  },
                 ),
-              )),
-              DataColumn(
-                  label: Text(
-                    'Streak',
+              ),
+              DataTable(
+                columnSpacing: 40,
+                columns: const [
+                  DataColumn(
+                      label: Text(
+                    'Student Name',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                     ),
-                  ),
-                  numeric: true),
-              DataColumn(
-                  label: Text(
-                    'Guardian Number',
+                  )),
+                  DataColumn(
+                      label: Text(
+                    'Class',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                     ),
+                  )),
+                  DataColumn(
+                      label: Text(
+                    'Age',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )),
+                  DataColumn(
+                    label: Text(
+                      'Guardian name',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                  numeric: true),
-              DataColumn(
-                  label: Text(
-                'Masjid',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              )),
+                  DataColumn(
+                      label: Text(
+                        'Guardian Number',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      numeric: true),
+                  DataColumn(
+                    label: Text(
+                      'Student Address',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                      label: Text(
+                    'Masjid',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )),
+                  DataColumn(
+                      label: Text(
+                    'Last Prayed',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )),
+                  DataColumn(
+                      label: Text(
+                        'Streak',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      numeric: true),
+                ],
+                rows: _filteredStudents.map((StudentData student) {
+                  return DataRow(cells: [
+                    DataCell(Text(student.name)),
+                    DataCell(Text(student.studentClass)),
+                    DataCell(Text(student.age)),
+                    DataCell(Text(student.guardianName)),
+                    DataCell(Text(student.guardianNumber)),
+                    DataCell(Text(student.address)),
+                    DataCell(Text(student.masjid)),
+                    DataCell(Text(student.streakLastModified)),
+                    DataCell(Text(student.streak.toString())),
+                  ]);
+                }).toList(),
+              ),
             ],
-            rows: _students.map((StudentData student) {
-              return DataRow(cells: [
-                DataCell(Text(student.name)),
-                DataCell(Text(student.streak.toString())),
-                DataCell(Text(student.guardianNumber)),
-                DataCell(Text(student.masjid)),
-              ]);
-            }).toList(),
           ),
         ),
       ),

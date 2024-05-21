@@ -25,7 +25,7 @@ class _AdminHomeWidgetState extends ConsumerState<AdminHomeWidget> {
           flex: 4,
           child: Container(
               alignment: Alignment.center,
-              child: childWidget(homeState.selectedIndex)),
+              child: childWidget(homeState.selectedIndex, ref)),
         ),
       ],
     );
