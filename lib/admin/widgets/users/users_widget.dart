@@ -31,7 +31,9 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
   @override
   void initState() {
     getMenuItems().then((value) {
-      menuItems = value;
+      setState(() {
+        menuItems = value;
+      });
     });
     super.initState();
   }
@@ -85,6 +87,7 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                     itemBuilder: (ctx, index) {
                       return Container(
                         margin: const EdgeInsets.symmetric(vertical: 3),
+                        height: 100,
                         child: ListTile(
                           key: ValueKey(user.users![index].uid),
                           title: Text(user.users![index].email!),
@@ -179,44 +182,12 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                                     ref.invalidate(getUsersProvider);
                                   },
                                   items: menuItems,
-                                  selectedItem: menuItems[0],
+                                  selectedItem:
+                                      (menuItems.isEmpty) ? null : menuItems[0],
                                 ),
                               )
-                            // PopupMenuButton(
-                            //   icon: const Icon(Icons.add),
-                            //   itemBuilder: (context) {
-                            //     return menuItems
-                            //         .map(
-                            //           (e) => PopupMenuItem(
-                            //             value: e.id,
-                            //             onTap: () async {
-                            // final DocumentReference masjidRef =
-                            //     FirebaseFirestore.instance
-                            //         .collection("Masjid")
-                            //         .doc(e.id);
-                            // await FirebaseFirestore.instance
-                            //     .collection("Users")
-                            //     .doc(user.users![index].uid!)
-                            //     .update(
-                            //   {
-                            //     "masjid_allocated":
-                            //         FieldValue.arrayUnion(
-                            //       [masjidRef],
-                            //     ),
-                            //   },
-                            // );
-                            // ref.invalidate(getUsersProvider);
-                            //             },
-                            //             child: Text(
-                            //               e.get("name"),
-                            //             ),
-                            //           ),
-                            //         )
-                            //         .toList();
-                            //   },
-                            // ),
                           ]),
-                          tileColor: Theme.of(context).primaryColor,
+                          tileColor: Colors.black87,
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(6)),
                         ),

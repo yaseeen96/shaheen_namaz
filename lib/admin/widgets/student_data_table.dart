@@ -53,16 +53,6 @@ class _StudentDataTableState extends State<StudentDataTable> {
     final user =
         await FirebaseFirestore.instance.collection('Users').doc(userId).get();
 
-    // get user's masjid reference
-    final DocumentReference userMasjidRef =
-        await user.get("masjid_allocated")[0];
-    // get masjid document
-    DocumentSnapshot masjidSnapshot = await (userMasjidRef).get();
-    // Assuming the masjid document has a 'name' field
-    var masjidData = masjidSnapshot.data() as Map<String, dynamic>?;
-    // Use the casted map to access fields
-    final String userMasjidName = masjidData?['name'] ?? 'Unknown';
-    logger.i("user's masjid name: $userMasjidName");
     if (widget.isAdmin) {
       setState(() {
         _students = students;
@@ -72,18 +62,28 @@ class _StudentDataTableState extends State<StudentDataTable> {
       widget.onDataFetched(_students.length);
       logger.i("Students: $_students");
       return;
+    } else {
+// get user's masjid reference
+      final DocumentReference userMasjidRef =
+          await user.get("masjid_allocated")[0];
+      // get masjid document
+      DocumentSnapshot masjidSnapshot = await (userMasjidRef).get();
+      // Assuming the masjid document has a 'name' field
+      var masjidData = masjidSnapshot.data() as Map<String, dynamic>?;
+      // Use the casted map to access fields
+      final String userMasjidName = masjidData?['name'] ?? 'Unknown';
+      logger.i("user's masjid name: $userMasjidName");
+      setState(() {
+        _students = students.where((student) {
+          logger.i("masjid name: ${student.name == "abdullah"}");
+          return student.masjid == userMasjidName;
+        }).toList();
+        _filteredStudents = _students;
+        widget.onDataFetched(_students.length);
+        isLoading = false;
+      });
+      logger.i("Students: $_students");
     }
-
-    setState(() {
-      _students = students.where((student) {
-        logger.i("masjid name: ${student.name == "abdullah"}");
-        return student.masjid == userMasjidName;
-      }).toList();
-      _filteredStudents = _students;
-      widget.onDataFetched(_students.length);
-      isLoading = false;
-    });
-    logger.i("Students: $_students");
   }
 
   @override
@@ -111,7 +111,7 @@ class _StudentDataTableState extends State<StudentDataTable> {
                 height: MediaQuery.of(context).size.height * 0.1,
                 width: MediaQuery.of(context).size.width * 0.95,
                 child: TextField(
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Search by name',
                     prefixIcon: Icon(Icons.search),
                   ),
