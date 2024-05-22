@@ -150,10 +150,15 @@ class _MasjidWidgetState extends ConsumerState<MasjidWidget> {
               onChanged: (value) {
                 setState(() {
                   filteredMasjidList = masjidList
-                      .where((masjid) => masjid
-                          .data()["name"]
-                          .toLowerCase()
-                          .contains(value.toLowerCase()))
+                      .where((masjid) =>
+                          masjid
+                              .data()["name"]
+                              .toLowerCase()
+                              .contains(value.toLowerCase()) ||
+                          masjid
+                              .data()["cluster_number"]
+                              .toString()
+                              .contains(value))
                       .toList();
                   logger.i(
                       "filtered masjid list: ${filteredMasjidList[0].data()["name"]}");
