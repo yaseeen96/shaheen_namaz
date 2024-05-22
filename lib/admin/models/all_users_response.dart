@@ -1,3 +1,5 @@
+import 'dart:isolate';
+
 class AllUsersResponse {
   List<Users>? users;
 
@@ -25,8 +27,19 @@ class Users {
   String? email;
   List<String>? masjidAllocated;
   String? uid;
+  bool? isAdmin;
+  bool? isStaff;
+  bool? isTrustee;
 
-  Users({this.displayName, this.email, this.masjidAllocated, this.uid});
+  Users({
+    this.displayName,
+    this.email,
+    this.masjidAllocated,
+    this.uid,
+    this.isAdmin,
+    this.isStaff,
+    this.isTrustee,
+  });
 
   Users.fromJson(Map<String, dynamic> json) {
     displayName = json["display_name"];
@@ -41,6 +54,15 @@ class Users {
     if (json["uid"] is String) {
       uid = json["uid"];
     }
+    if (json["is_admin"] is bool) {
+      isAdmin = json["is_admin"];
+    }
+    if (json["is_staff"] is bool) {
+      isStaff = json["is_staff"];
+    }
+    if (json["is_trustee"] is bool) {
+      isTrustee = json["is_trustee"];
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -51,6 +73,9 @@ class Users {
       data["masjid_allocated"] = masjidAllocated;
     }
     data["uid"] = uid;
+    data["is_admin"] = isAdmin;
+    data["is_staff"] = isStaff;
+    data["is_trustee"] = isTrustee;
     return data;
   }
 }

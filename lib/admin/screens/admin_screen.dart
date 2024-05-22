@@ -38,6 +38,10 @@ class _AdminScreenState extends ConsumerState<AdminScreen> {
                   return const Center(
                     child: CircularProgressIndicator(),
                   );
+                } else if (snapshot.hasError) {
+                  return Center(
+                    child: Text("An error occurred ${snapshot.error}"),
+                  );
                 }
                 Map<String, dynamic> data =
                     snapshot.data!.data() as Map<String, dynamic>;

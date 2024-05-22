@@ -21,8 +21,8 @@ class ImagePreview extends StatelessWidget {
       child: Stack(
         children: [
           Ink(
-            height: (image != null) ? 200 : null,
-            width: (image != null) ? 200 : null,
+            height: (image != null) ? 150 : null,
+            width: (image != null) ? 150 : null,
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               image: (image != null)
@@ -50,7 +50,7 @@ class ImagePreview extends StatelessWidget {
             child: (image == null)
                 ? const Icon(
                     Icons.camera,
-                    size: 150,
+                    size: 100,
                   )
                 : null,
           ),

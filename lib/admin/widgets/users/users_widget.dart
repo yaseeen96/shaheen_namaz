@@ -182,10 +182,19 @@ class UserDetailsPopup extends ConsumerStatefulWidget {
   _UserDetailsPopupState createState() => _UserDetailsPopupState();
 }
 
+enum UserRoles { trustee, volunteer }
+
+extension ParseToString on UserRoles {
+  String toShortString() {
+    return this.toString().split('.').last;
+  }
+}
+
 class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool isLoading = false;
   List<Map<String, String>> selectedItems = [];
+  String? role;
 
   String? displayName;
   String? userEmail;
@@ -249,6 +258,35 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                         value.trim().isEmpty ||
                         value.length < 6) {
                       return "Password must be at least 6 characters long";
+                    }
+                    return null;
+                  },
+                ),
+                const Gap(20),
+                const Text(
+                  "User Role",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const Gap(10),
+                DropdownButtonFormField<UserRoles>(
+                  hint: const Text("Please select a role"),
+                  items: const [
+                    DropdownMenuItem(
+                      value: UserRoles.trustee,
+                      child: Text("Trustee"),
+                    ),
+                    DropdownMenuItem(
+                      value: UserRoles.volunteer,
+                      child: Text("Volunteer"),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    logger.i("value: $value");
+                  },
+                  onSaved: (newValue) => role = newValue.toString(),
+                  validator: (value) {
+                    if (value == null) {
+                      return "Please select a role";
                     }
                     return null;
                   },
@@ -335,12 +373,14 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
           });
 
           try {
+            logger.i("role: ${role!.split(".").last}");
             await FirebaseFunctions.instance.httpsCallable("add_user").call(
               {
                 "email": userEmail,
                 "displayName": displayName,
                 "masjidDocNames": masjidList,
                 "password": password,
+                "role": role!.split(".").last,
               },
             );
             if (!mounted) return;

@@ -120,6 +120,7 @@ class MasjidNameText extends StatelessWidget {
           snapshot.data!["name"],
           style: const TextStyle(
             color: Colors.black,
+            fontSize: 14,
           ),
         );
       },

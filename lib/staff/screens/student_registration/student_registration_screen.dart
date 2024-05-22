@@ -345,7 +345,10 @@ class _StudentRegistrationScreenState
                                 .textTheme
                                 .titleLarge!
                                 .copyWith(
-                                    color: Theme.of(context).primaryColor),
+                                  color: Theme.of(context).primaryColor,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                         ),
                       ),
@@ -395,8 +398,12 @@ class _StudentRegistrationScreenState
 
   InputDecoration formDecoration({required String label}) {
     return InputDecoration(
-      label: Text(label),
+      label: Text(
+        label,
+        style: TextStyle(fontSize: 12),
+      ),
       border: const OutlineInputBorder(),
+      contentPadding: EdgeInsets.symmetric(horizontal: 10),
     );
   }
 }
