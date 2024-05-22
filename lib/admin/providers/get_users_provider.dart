@@ -24,6 +24,19 @@ class filteredUsersNotifier extends StateNotifier<List<Users>> {
   void setFilteredToTrustee(List<Users> users) {
     state = users.where((user) => user.isTrustee == true).toList();
   }
+
+  void searchUsers(List<Users> users, String query) {
+    // on backspace it should clear all values
+    if (query.trim().isEmpty) {
+      state = users;
+      return;
+    } else {
+      state = users
+          .where((user) =>
+              user.displayName!.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    }
+  }
 }
 
 final filteredUsersProvider =

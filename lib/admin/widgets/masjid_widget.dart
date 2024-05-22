@@ -16,15 +16,18 @@ class MasjidWidget extends ConsumerStatefulWidget {
 class _MasjidWidgetState extends ConsumerState<MasjidWidget> {
   List<QueryDocumentSnapshot<Map<String, dynamic>>> filteredMasjidList = [];
   final masjidNameController = TextEditingController();
+  final clusterNameController = TextEditingController();
 
-  void addMasjid(String name) {
+  void addMasjid(String name, clusterNumber) {
     if (name.trim().length < 2 || name.length < 3 || name.isEmpty) {
       return;
     } else {
       FirebaseFirestore.instance.collection("Masjid").add({
         "name": name,
+        "cluster_number": int.parse(clusterNumber),
       });
       masjidNameController.clear();
+      clusterNameController.clear();
       context.pop();
     }
   }
@@ -43,9 +46,14 @@ class _MasjidWidgetState extends ConsumerState<MasjidWidget> {
                     decoration: const InputDecoration(
                       label: Text("Name of Masjid"),
                     ),
-                    onSubmitted: (value) {
-                      addMasjid(value);
-                    },
+                  ),
+                  const Gap(10),
+                  TextField(
+                    keyboardType: TextInputType.number,
+                    controller: clusterNameController,
+                    decoration: const InputDecoration(
+                      label: Text("Cluster Number"),
+                    ),
                   ),
                 ],
               ),
@@ -53,7 +61,8 @@ class _MasjidWidgetState extends ConsumerState<MasjidWidget> {
             actions: [
               ElevatedButton(
                   onPressed: () {
-                    addMasjid(masjidNameController.text);
+                    addMasjid(
+                        masjidNameController.text, clusterNameController.text);
                   },
                   child: const Text("Add"))
             ],

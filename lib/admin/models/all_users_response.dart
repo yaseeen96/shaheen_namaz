@@ -1,6 +1,3 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'dart:isolate';
-
 class AllUsersResponse {
   List<Users>? users;
 
@@ -39,6 +36,7 @@ class Users {
   bool? isAdmin;
   bool? isStaff;
   bool? isTrustee;
+  List<MasjidDetails>? masjidDetails;
 
   Users({
     this.displayName,
@@ -48,29 +46,23 @@ class Users {
     this.isAdmin,
     this.isStaff,
     this.isTrustee,
+    this.masjidDetails,
   });
 
   Users.fromJson(Map<String, dynamic> json) {
     displayName = json["display_name"];
-    if (json["email"] is String) {
-      email = json["email"];
-    }
-    if (json["masjid_allocated"] is List) {
-      masjidAllocated = json["masjid_allocated"] == null
-          ? null
-          : List<String>.from(json["masjid_allocated"]);
-    }
-    if (json["uid"] is String) {
-      uid = json["uid"];
-    }
-    if (json["isAdmin"] is String) {
-      isAdmin = json["isAdmin"];
-    }
-    if (json["isStaff"] is bool) {
-      isStaff = json["isStaff"];
-    }
-    if (json["isTrustee"] is bool) {
-      isTrustee = json["isTrustee"];
+    email = json["email"];
+    masjidAllocated = json["masjid_allocated"] == null
+        ? null
+        : List<String>.from(json["masjid_allocated"]);
+    uid = json["uid"];
+    isAdmin = json["isAdmin"];
+    isStaff = json["isStaff"];
+    isTrustee = json["isTrustee"];
+    if (json["masjid_details"] != null) {
+      masjidDetails = (json["masjid_details"] as List)
+          .map((e) => MasjidDetails.fromJson(e))
+          .toList();
     }
   }
 
@@ -85,17 +77,21 @@ class Users {
     data["is_admin"] = isAdmin;
     data["is_staff"] = isStaff;
     data["is_trustee"] = isTrustee;
+    if (masjidDetails != null) {
+      data["masjid_details"] = masjidDetails?.map((e) => e.toJson()).toList();
+    }
     return data;
   }
 
   Users copyWith({
-    dynamic? displayName,
+    String? displayName,
     String? email,
     List<String>? masjidAllocated,
     String? uid,
     bool? isAdmin,
     bool? isStaff,
     bool? isTrustee,
+    List<MasjidDetails>? masjidDetails,
   }) {
     return Users(
       displayName: displayName ?? this.displayName,
@@ -105,11 +101,34 @@ class Users {
       isAdmin: isAdmin ?? this.isAdmin,
       isStaff: isStaff ?? this.isStaff,
       isTrustee: isTrustee ?? this.isTrustee,
+      masjidDetails: masjidDetails ?? this.masjidDetails,
     );
   }
 
   @override
   String toString() {
-    return 'Users(displayName: $displayName, email: $email, masjidAllocated: $masjidAllocated, uid: $uid, isAdmin: $isAdmin, isStaff: $isStaff, isTrustee: $isTrustee)';
+    return 'Users(displayName: $displayName, email: $email, masjidAllocated: $masjidAllocated, uid: $uid, isAdmin: $isAdmin, isStaff: $isStaff, isTrustee: $isTrustee, masjidDetails: $masjidDetails)';
+  }
+}
+
+class MasjidDetails {
+  int? clusterNumber;
+  String? masjidId;
+  String? masjidName;
+
+  MasjidDetails({this.clusterNumber, this.masjidId, this.masjidName});
+
+  MasjidDetails.fromJson(Map<String, dynamic> json) {
+    clusterNumber = json['clusterNumber'];
+    masjidId = json['masjidId'];
+    masjidName = json['masjidName'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['clusterNumber'] = clusterNumber;
+    data['masjidId'] = masjidId;
+    data['masjidName'] = masjidName;
+    return data;
   }
 }

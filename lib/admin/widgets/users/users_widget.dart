@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
@@ -74,6 +75,21 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
           body: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             children: [
+              // add search bar to search for users
+              TextFormField(
+                decoration: const InputDecoration(
+                  hintText: "Search for a user",
+                  prefixIcon: Icon(Icons.search),
+                ),
+                onChanged: (value) {
+                  ref
+                      .read(filteredUsersProvider.notifier)
+                      .searchUsers(user.users!, value);
+                },
+              ),
+
+              const Gap(20),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -105,14 +121,26 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                   : ListView.builder(
                       shrinkWrap: true,
                       physics: const ScrollPhysics(),
-                      itemCount: filteredUsers!.length,
+                      itemCount: filteredUsers.length,
                       itemBuilder: (ctx, index) {
                         return Container(
                           margin: const EdgeInsets.symmetric(vertical: 3),
-                          height: 100,
+                          width: MediaQuery.of(context).size.width * 0.6,
+                          constraints: BoxConstraints(
+                            maxHeight: 300,
+                          ),
                           child: ListTile(
                             key: ValueKey(filteredUsers[index].uid),
-                            title: Text(filteredUsers[index].email!),
+                            title: Text(filteredUsers[index].displayName!),
+                            onTap: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return UserDetailsPopup(
+                                        menuItems: menuItems,
+                                        user: filteredUsers[index]);
+                                  });
+                            },
                             trailing: IconButton(
                               icon: const Icon(
                                 Icons.delete,
@@ -138,7 +166,7 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                                           });
                                         },
                             ),
-                            subtitle: Row(children: [
+                            subtitle: Wrap(runSpacing: 10, children: [
                               ...filteredUsers[index]
                                   .masjidAllocated!
                                   .map((masjidId) {
@@ -147,7 +175,10 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                                   userId: filteredUsers[index].uid!,
                                 );
                               }),
-                              if (filteredUsers[index].masjidAllocated!.isEmpty)
+                              if (filteredUsers[index]
+                                      .masjidAllocated!
+                                      .isEmpty ||
+                                  filteredUsers[index].isTrustee == true)
                                 SizedBox(
                                   width: 500,
                                   child: CustomDropDown(
@@ -166,6 +197,17 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                                           "masjid_allocated":
                                               FieldValue.arrayUnion(
                                             [masjidRef],
+                                          ),
+                                          "masjid_details":
+                                              FieldValue.arrayUnion(
+                                            [
+                                              {
+                                                "clusterNumber":
+                                                    value.get("clusterNumber"),
+                                                "masjidId": value.id,
+                                                "masjidName": value.get("name"),
+                                              }
+                                            ],
                                           ),
                                         },
                                       );
@@ -195,9 +237,14 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
 }
 
 class UserDetailsPopup extends ConsumerStatefulWidget {
-  const UserDetailsPopup({super.key, required this.menuItems});
+  const UserDetailsPopup({
+    super.key,
+    required this.menuItems,
+    this.user,
+  });
 
   final List<QueryDocumentSnapshot<Object?>> menuItems;
+  final Users? user;
 
   @override
   _UserDetailsPopupState createState() => _UserDetailsPopupState();
@@ -221,6 +268,26 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
   String? userEmail;
   String? password;
 
+  void getSelectedItems() async {
+    if (widget.user == null ||
+        widget.user!.masjidDetails!.isEmpty ||
+        widget.user?.masjidDetails == null) {
+      return;
+    }
+    for (var masjid in widget.user!.masjidDetails!) {
+      setState(() {
+        selectedItems.add({"id": masjid.masjidId!, "name": masjid.masjidName!});
+        logger.i("selected items: $selectedItems");
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    getSelectedItems();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -230,11 +297,12 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
           key: _formKey,
           child: SizedBox(
             width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height * 0.6,
+            height: MediaQuery.of(context).size.height,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 TextFormField(
+                  initialValue: widget.user?.displayName,
                   decoration: const InputDecoration(
                     label: Text("Name of User"),
                   ),
@@ -251,6 +319,7 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                   },
                 ),
                 TextFormField(
+                  initialValue: widget.user?.email,
                   decoration: const InputDecoration(
                     label: Text("User's email"),
                   ),
@@ -274,14 +343,16 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                   onSaved: (newValue) {
                     password = newValue;
                   },
-                  validator: (value) {
-                    if (value == null ||
-                        value.trim().isEmpty ||
-                        value.length < 6) {
-                      return "Password must be at least 6 characters long";
-                    }
-                    return null;
-                  },
+                  validator: (widget.user == null)
+                      ? (value) {
+                          if (value == null ||
+                              value.trim().isEmpty ||
+                              value.length < 6) {
+                            return "Password must be at least 6 characters long";
+                          }
+                          return null;
+                        }
+                      : null,
                 ),
                 const Gap(20),
                 const Text(
@@ -290,6 +361,9 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                 ),
                 const Gap(10),
                 DropdownButtonFormField<UserRoles>(
+                  value: (widget.user?.isTrustee == true)
+                      ? UserRoles.trustee
+                      : UserRoles.volunteer,
                   hint: const Text("Please select a role"),
                   items: const [
                     DropdownMenuItem(
@@ -318,8 +392,10 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const Gap(10),
-                SingleChildScrollView(
-                  child: Row(
+                Container(
+                  width: double.infinity,
+                  constraints: const BoxConstraints(maxHeight: 300),
+                  child: Wrap(
                     children: [
                       for (Map<String, String> item in selectedItems)
                         Container(
@@ -334,7 +410,8 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                             },
                           ),
                         ),
-                      if (selectedItems.isEmpty)
+                      if (selectedItems.isEmpty ||
+                          widget.user!.isTrustee == true)
                         SizedBox(
                             height: 100,
                             width: 300,
@@ -363,11 +440,18 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
         ElevatedButton(
           onPressed: isLoading
               ? null
-              : () {
-                  addUser();
-                },
-          child:
-              isLoading ? const CircularProgressIndicator() : const Text("Add"),
+              : widget.user == null
+                  ? () {
+                      addUser(shouldUpdate: false);
+                    }
+                  : () {
+                      addUser(shouldUpdate: true);
+                    },
+          child: isLoading
+              ? const CircularProgressIndicator()
+              : (widget.user == null)
+                  ? const Text("Add")
+                  : const Text("Update"),
         )
       ],
     );
@@ -381,7 +465,9 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
     return allMasjids;
   }
 
-  void addUser() async {
+  void addUser({required bool shouldUpdate}) async {
+    final String functionName =
+        shouldUpdate ? "shaheen_update_user" : "add_user";
     if (_formKey.currentState != null) {
       if (_formKey.currentState!.validate()) {
         _formKey.currentState!.save();
@@ -395,12 +481,13 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
 
           try {
             logger.i("role: ${role!.split(".").last}");
-            await FirebaseFunctions.instance.httpsCallable("add_user").call(
+            await FirebaseFunctions.instance.httpsCallable(functionName).call(
               {
+                if (shouldUpdate) "uid": widget.user!.uid,
                 "email": userEmail,
                 "displayName": displayName,
                 "masjidDocNames": masjidList,
-                "password": password,
+                if (password != null) "password": password,
                 "role": role!.split(".").last,
               },
             );

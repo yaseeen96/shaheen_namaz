@@ -13,19 +13,20 @@ class StudentData {
   final String age;
   final String studentClass;
   final String address;
+  final int clusterNumber;
 
-  StudentData({
-    required this.uid,
-    required this.name,
-    required this.streak,
-    required this.guardianNumber,
-    required this.masjid,
-    required this.streakLastModified,
-    required this.guardianName,
-    required this.age,
-    required this.studentClass,
-    required this.address,
-  });
+  StudentData(
+      {required this.uid,
+      required this.name,
+      required this.streak,
+      required this.guardianNumber,
+      required this.masjid,
+      required this.streakLastModified,
+      required this.guardianName,
+      required this.age,
+      required this.studentClass,
+      required this.address,
+      required this.clusterNumber});
 
   static Future<StudentData> getStudentDataFromFirestore(
       DocumentSnapshot doc) async {
@@ -42,6 +43,12 @@ class StudentData {
               return (doc.data() as Map<String, dynamic>)['name'];
             })
           : '',
+      clusterNumber: data['masjid'] != null
+          ? await (data['masjid'] as DocumentReference).get().then((doc) {
+              return (doc.data() as Map<String, dynamic>)['cluster_number']
+                  as int;
+            })
+          : 0,
       // streak_last_modified is timestamp in firestore. convert it to string
 // translate the streakLastModified to something. current format is 2024-05-20 12:00:00.000
 // I want it in format Thursday, 20 May 2024, 12:00 PM

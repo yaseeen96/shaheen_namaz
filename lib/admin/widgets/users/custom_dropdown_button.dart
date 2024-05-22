@@ -17,46 +17,51 @@ class CustomDropDown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownSearch<QueryDocumentSnapshot<Object?>>(
-      itemAsString: (item) => item.get("name"),
-      dropdownBuilder: (context, selectedItem) {
-        return const Text(
-          "Please select a masjid",
-          style: TextStyle(
-            color: Colors.grey,
-          ),
-        );
-      },
-      popupProps: PopupProps.menu(
-        showSearchBox: true,
-        searchFieldProps: const TextFieldProps(
-          decoration: InputDecoration(labelText: "Name"),
-        ),
-        itemBuilder: (context, item, isSelected) {
-          return ListTile(
-            title: Text(
-              item.get("name"),
-              style: const TextStyle(
-                color: Colors.black,
+    return SizedBox(
+      height: 30,
+      child: DropdownSearch<QueryDocumentSnapshot<Object?>>(
+        itemAsString: (item) => item.get("name"),
+        dropdownBuilder: (context, selectedItem) {
+          return const Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              "Please select a masjid",
+              style: TextStyle(
+                color: Colors.grey,
               ),
             ),
           );
         },
+        popupProps: PopupProps.menu(
+          showSearchBox: true,
+          searchFieldProps: const TextFieldProps(
+            decoration: InputDecoration(labelText: "Name"),
+          ),
+          itemBuilder: (context, item, isSelected) {
+            return ListTile(
+              title: Text(
+                item.get("name"),
+                style: const TextStyle(
+                  color: Colors.black,
+                ),
+              ),
+            );
+          },
+        ),
+        dropdownDecoratorProps: DropDownDecoratorProps(
+            baseStyle: TextStyle(
+          color: Colors.black,
+        )),
+        onChanged: (value) {
+          if (onChanged != null) {
+            onChanged!(value);
+          } else {
+            return;
+          }
+        },
+        items: menuItems,
+        selectedItem: (menuItems.isEmpty) ? null : menuItems[0],
       ),
-      dropdownDecoratorProps: DropDownDecoratorProps(
-          dropdownSearchDecoration: InputDecoration(fillColor: Colors.black),
-          baseStyle: TextStyle(
-            color: Colors.black,
-          )),
-      onChanged: (value) {
-        if (onChanged != null) {
-          onChanged!(value);
-        } else {
-          return;
-        }
-      },
-      items: menuItems,
-      selectedItem: (menuItems.isEmpty) ? null : menuItems[0],
     );
   }
 }

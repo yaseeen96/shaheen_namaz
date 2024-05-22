@@ -106,7 +106,6 @@ class _StudentDataTableState extends State<StudentDataTable> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // add a search field
               SizedBox(
                 height: MediaQuery.of(context).size.height * 0.1,
                 width: MediaQuery.of(context).size.width * 0.95,
@@ -184,6 +183,13 @@ class _StudentDataTableState extends State<StudentDataTable> {
                   )),
                   DataColumn(
                       label: Text(
+                    'Cluster No:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )),
+                  DataColumn(
+                      label: Text(
                     'Last Prayed',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
@@ -209,6 +215,7 @@ class _StudentDataTableState extends State<StudentDataTable> {
                     ),
                     DataCell(Text(student.address)),
                     DataCell(Text(student.masjid)),
+                    DataCell(Text(student.clusterNumber.toString())),
                     DataCell(Text(student.streakLastModified)),
                     DataCell(Text(student.streak.toString())),
                   ]);
