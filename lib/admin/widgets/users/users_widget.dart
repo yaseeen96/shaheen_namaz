@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shaheen_namaz/admin/models/all_users_response.dart';
 import 'package:shaheen_namaz/admin/providers/get_users_provider.dart';
 import 'package:shaheen_namaz/admin/widgets/users/custom_dropdown_button.dart';
 import 'package:shaheen_namaz/admin/widgets/users/subtitle_widget.dart';
+import 'package:shaheen_namaz/admin/widgets/users/tab_bar.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
@@ -50,117 +52,136 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
   @override
   Widget build(BuildContext context) {
     final users = ref.watch(getUsersProvider);
+    final filteredUsers = ref.watch(filteredUsersProvider);
     return users.when(
       data: (user) {
-        return ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  "All Users",
-                  style: TextStyle(fontSize: 40, fontWeight: FontWeight.w900),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return UserDetailsPopup(
-                          menuItems: menuItems,
-                        );
-                      },
-                    );
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text("Add New User"),
-                ),
-              ],
+        return Scaffold(
+          appBar: AppBar(
+            bottom: CustomTabBar(
+              onTabChange: (index) {
+                if (index == 0) {
+                  ref
+                      .read(filteredUsersProvider.notifier)
+                      .setFilteredToVolunteer(user.users!);
+                } else {
+                  ref
+                      .read(filteredUsersProvider.notifier)
+                      .setFilteredToTrustee(user.users!);
+                }
+              },
             ),
-            const Gap(6),
-            isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(),
-                  )
-                : ListView.builder(
-                    shrinkWrap: true,
-                    physics: const ScrollPhysics(),
-                    itemCount: user.users!.length,
-                    itemBuilder: (ctx, index) {
-                      return Container(
-                        margin: const EdgeInsets.symmetric(vertical: 3),
-                        height: 100,
-                        child: ListTile(
-                          key: ValueKey(user.users![index].uid),
-                          title: Text(user.users![index].email!),
-                          trailing: IconButton(
-                            icon: const Icon(
-                              Icons.delete,
-                              color: Colors.grey,
-                            ),
-                            onPressed:
-                                user.users![index].email!.contains("admin")
-                                    ? null
-                                    : () async {
-                                        setState(() {
-                                          isLoading = true;
-                                        });
-                                        await FirebaseFunctions.instance
-                                            .httpsCallable("delete_user")
-                                            .call(
-                                          {
-                                            "uid": user.users![index].uid!,
-                                          },
-                                        );
-                                        ref.invalidate(getUsersProvider);
-                                        setState(() {
-                                          isLoading = false;
-                                        });
-                                      },
-                          ),
-                          subtitle: Row(children: [
-                            ...user.users![index].masjidAllocated!
-                                .map((masjidId) {
-                              return SubtitleWidget(
-                                masjidId: masjidId,
-                                userId: user.users![index].uid!,
-                              );
-                            }),
-                            if (user.users![index].masjidAllocated!.isEmpty)
-                              SizedBox(
-                                width: 500,
-                                child: CustomDropDown(
-                                  ref: ref,
-                                  menuItems: menuItems,
-                                  onChanged: (value) async {
-                                    final DocumentReference masjidRef =
-                                        FirebaseFirestore.instance
-                                            .collection("Masjid")
-                                            .doc(value!.id);
-                                    await FirebaseFirestore.instance
-                                        .collection("Users")
-                                        .doc(user.users![index].uid!)
-                                        .update(
-                                      {
-                                        "masjid_allocated":
-                                            FieldValue.arrayUnion(
-                                          [masjidRef],
-                                        ),
-                                      },
-                                    );
-                                    ref.invalidate(getUsersProvider);
-                                  },
-                                ),
-                              )
-                          ]),
-                          tileColor: Colors.black87,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6)),
-                        ),
+          ),
+          body: ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "All Users",
+                    style: TextStyle(fontSize: 40, fontWeight: FontWeight.w900),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return UserDetailsPopup(
+                            menuItems: menuItems,
+                          );
+                        },
                       );
-                    }),
-          ],
+                    },
+                    icon: const Icon(Icons.add),
+                    label: const Text("Add New User"),
+                  ),
+                ],
+              ),
+              const Gap(6),
+              isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(),
+                    )
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      physics: const ScrollPhysics(),
+                      itemCount: filteredUsers!.length,
+                      itemBuilder: (ctx, index) {
+                        return Container(
+                          margin: const EdgeInsets.symmetric(vertical: 3),
+                          height: 100,
+                          child: ListTile(
+                            key: ValueKey(filteredUsers[index].uid),
+                            title: Text(filteredUsers[index].email!),
+                            trailing: IconButton(
+                              icon: const Icon(
+                                Icons.delete,
+                                color: Colors.grey,
+                              ),
+                              onPressed:
+                                  filteredUsers[index].email!.contains("admin")
+                                      ? null
+                                      : () async {
+                                          setState(() {
+                                            isLoading = true;
+                                          });
+                                          await FirebaseFunctions.instance
+                                              .httpsCallable("delete_user")
+                                              .call(
+                                            {
+                                              "uid": filteredUsers[index].uid!,
+                                            },
+                                          );
+                                          ref.invalidate(getUsersProvider);
+                                          setState(() {
+                                            isLoading = false;
+                                          });
+                                        },
+                            ),
+                            subtitle: Row(children: [
+                              ...filteredUsers[index]
+                                  .masjidAllocated!
+                                  .map((masjidId) {
+                                return SubtitleWidget(
+                                  masjidId: masjidId,
+                                  userId: filteredUsers[index].uid!,
+                                );
+                              }),
+                              if (filteredUsers[index].masjidAllocated!.isEmpty)
+                                SizedBox(
+                                  width: 500,
+                                  child: CustomDropDown(
+                                    ref: ref,
+                                    menuItems: menuItems,
+                                    onChanged: (value) async {
+                                      final DocumentReference masjidRef =
+                                          FirebaseFirestore.instance
+                                              .collection("Masjid")
+                                              .doc(value!.id);
+                                      await FirebaseFirestore.instance
+                                          .collection("Users")
+                                          .doc(filteredUsers[index].uid!)
+                                          .update(
+                                        {
+                                          "masjid_allocated":
+                                              FieldValue.arrayUnion(
+                                            [masjidRef],
+                                          ),
+                                        },
+                                      );
+                                      ref.invalidate(getUsersProvider);
+                                    },
+                                  ),
+                                )
+                            ]),
+                            tileColor: Colors.black87,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6)),
+                          ),
+                        );
+                      }),
+            ],
+          ),
         );
       },
       loading: () => const Center(

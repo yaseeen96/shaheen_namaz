@@ -1,3 +1,4 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:isolate';
 
 class AllUsersResponse {
@@ -20,10 +21,18 @@ class AllUsersResponse {
     }
     return data;
   }
+
+  AllUsersResponse copyWith({
+    List<Users>? users,
+  }) {
+    return AllUsersResponse(
+      users: users ?? this.users,
+    );
+  }
 }
 
 class Users {
-  dynamic displayName;
+  String? displayName;
   String? email;
   List<String>? masjidAllocated;
   String? uid;
@@ -54,14 +63,14 @@ class Users {
     if (json["uid"] is String) {
       uid = json["uid"];
     }
-    if (json["is_admin"] is bool) {
-      isAdmin = json["is_admin"];
+    if (json["isAdmin"] is String) {
+      isAdmin = json["isAdmin"];
     }
-    if (json["is_staff"] is bool) {
-      isStaff = json["is_staff"];
+    if (json["isStaff"] is bool) {
+      isStaff = json["isStaff"];
     }
-    if (json["is_trustee"] is bool) {
-      isTrustee = json["is_trustee"];
+    if (json["isTrustee"] is bool) {
+      isTrustee = json["isTrustee"];
     }
   }
 
@@ -77,5 +86,30 @@ class Users {
     data["is_staff"] = isStaff;
     data["is_trustee"] = isTrustee;
     return data;
+  }
+
+  Users copyWith({
+    dynamic? displayName,
+    String? email,
+    List<String>? masjidAllocated,
+    String? uid,
+    bool? isAdmin,
+    bool? isStaff,
+    bool? isTrustee,
+  }) {
+    return Users(
+      displayName: displayName ?? this.displayName,
+      email: email ?? this.email,
+      masjidAllocated: masjidAllocated ?? this.masjidAllocated,
+      uid: uid ?? this.uid,
+      isAdmin: isAdmin ?? this.isAdmin,
+      isStaff: isStaff ?? this.isStaff,
+      isTrustee: isTrustee ?? this.isTrustee,
+    );
+  }
+
+  @override
+  String toString() {
+    return 'Users(displayName: $displayName, email: $email, masjidAllocated: $masjidAllocated, uid: $uid, isAdmin: $isAdmin, isStaff: $isStaff, isTrustee: $isTrustee)';
   }
 }
