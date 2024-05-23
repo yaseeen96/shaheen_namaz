@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shaheen_namaz/staff/providers/providers.dart';
 
@@ -46,53 +47,71 @@ class _SideDrawerState extends ConsumerState<SideDrawer> {
         return Drawer(
           child: Column(
             children: [
-              DrawerHeader(
-                child: Column(
-                  children: [
-                    const Icon(
-                      Icons.account_circle_rounded,
-                      size: 100,
-                    ),
-                    Text(
-                      "Welcome ${FirebaseAuth.instance.currentUser!.displayName!}",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
+              Expanded(
+                flex: 4,
+                child: DrawerHeader(
+                  child: Column(
+                    children: [
+                      const Icon(
+                        Icons.account_circle_rounded,
+                        size: 100,
                       ),
-                    ),
+                      Text(
+                        "Welcome ${FirebaseAuth.instance.currentUser!.displayName!}",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 1,
+                child: Text(
+                  "Masjids",
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge!
+                      .copyWith(color: Theme.of(context).primaryColor),
+                ),
+              ),
+              Expanded(
+                flex: 8,
+                child: ListView(
+                  shrinkWrap: true,
+                  children: [
+                    ...masjids.map((masjidRef) {
+                      return Consumer(
+                        builder: (context, ref, _) {
+                          var selectedMasjid =
+                              ref.watch(selectedMasjidProvider);
+                          return RadioListTile<DocumentReference>(
+                            value: masjidRef,
+                            groupValue: selectedMasjid,
+                            onChanged: (newValue) {
+                              // Update the selectedMasjid state
+                              ref.read(selectedMasjidProvider.notifier).state =
+                                  newValue;
+                            },
+                            title: MasjidNameText(masjidRef: masjidRef),
+                          );
+                        },
+                      );
+                    }).toList(),
                   ],
                 ),
               ),
-              Text(
-                "Masjids",
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge!
-                    .copyWith(color: Theme.of(context).primaryColor),
-              ),
-              ...masjids.map((masjidRef) {
-                return Consumer(
-                  builder: (context, ref, _) {
-                    var selectedMasjid = ref.watch(selectedMasjidProvider);
-                    return RadioListTile<DocumentReference>(
-                      value: masjidRef,
-                      groupValue: selectedMasjid,
-                      onChanged: (newValue) {
-                        // Update the selectedMasjid state
-                        ref.read(selectedMasjidProvider.notifier).state =
-                            newValue;
-                      },
-                      title: MasjidNameText(masjidRef: masjidRef),
-                    );
-                  },
-                );
-              }).toList(),
               const Spacer(),
-              ElevatedButton.icon(
-                  onPressed: () {
-                    FirebaseAuth.instance.signOut();
-                  },
-                  icon: const Icon(Icons.logout),
-                  label: const Text("Logout"))
+              Expanded(
+                flex: 1,
+                child: ElevatedButton.icon(
+                    onPressed: () {
+                      FirebaseAuth.instance.signOut();
+                    },
+                    icon: const Icon(Icons.logout),
+                    label: const Text("Logout")),
+              )
             ],
           ),
         );
