@@ -32,7 +32,7 @@ class LoginScreen extends ConsumerWidget {
         return Container(
           margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor,
+            color: Colors.black,
             borderRadius: BorderRadius.circular(10),
           ),
           child: Image.asset(

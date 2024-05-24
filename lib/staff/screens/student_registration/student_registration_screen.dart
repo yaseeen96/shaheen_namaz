@@ -274,6 +274,16 @@ class _StudentRegistrationScreenState
                           if (dob == null) {
                             return "Please select a valid date";
                           } else {
+// check if age is between 10 and 20, if more than 20, return error
+                            // if less than 10, return error
+                            // value is of type string and is in the format yyyy-mm-dd
+                            // convert value to datetime first
+                            var dobDateTime = DateTime.parse(dob!);
+                            var age = DateTime.now().year - dobDateTime.year;
+                            if (age < 10 || age > 20) {
+                              return "Age must be between 10 and 20";
+                            }
+
                             return null;
                           }
                         },
@@ -285,7 +295,7 @@ class _StudentRegistrationScreenState
                       const Gap(10),
                       // add field for student address
                       TextFormField(
-                        maxLines: 4,
+                        maxLines: 3,
                         controller: studentAddressController,
                         decoration: formDecoration(label: "Address"),
                         validator: (value) {
@@ -398,12 +408,13 @@ class _StudentRegistrationScreenState
 
   InputDecoration formDecoration({required String label}) {
     return InputDecoration(
+      alignLabelWithHint: true,
       label: Text(
         label,
         style: TextStyle(fontSize: 12),
       ),
       border: const OutlineInputBorder(),
-      contentPadding: EdgeInsets.symmetric(horizontal: 10),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 10),
     );
   }
 }

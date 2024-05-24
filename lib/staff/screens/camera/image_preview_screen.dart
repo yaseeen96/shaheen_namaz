@@ -118,6 +118,22 @@ class VerificationPopup extends StatefulWidget {
 
 class _VerificationPopupState extends State<VerificationPopup> {
   bool isLoading = false;
+  final currentId = FirebaseAuth.instance.currentUser!.uid;
+  Map<String, dynamic>? userDetails;
+  Map<String, dynamic>? selectedMasjid;
+
+  void getUserDetails() async {
+    final userDoc = await FirebaseFirestore.instance
+        .collection("Users")
+        .doc(currentId)
+        .get();
+    final user = userDoc.data();
+    if (user == null) return;
+    setState(() {
+      userDetails = user;
+      selectedMasjid = userDetails!["masjid_details"][0];
+    });
+  }
 
   Future<bool> markAsPresent() async {
     setState(() {
@@ -140,7 +156,8 @@ class _VerificationPopupState extends State<VerificationPopup> {
           .doc(widget.faceId)
           .set({
         "name": widget.name,
-        "masjid": masjidAllocated[0],
+        "masjid": "/Masjid/${selectedMasjid!["masjidId"]}",
+        "masjid_details": selectedMasjid,
         "attendance_time": DateTime.now(),
       });
 
@@ -149,7 +166,8 @@ class _VerificationPopupState extends State<VerificationPopup> {
           .doc(widget.faceId)
           .update({
         "streak": FieldValue.increment(1),
-        "masjid": masjidAllocated[0],
+        "masjid": "/Masjid/${selectedMasjid!["masjidId"]}",
+        "masjid_details": selectedMasjid,
         "streak_last_modified": DateTime.now()
       });
       final String url =
@@ -175,6 +193,12 @@ class _VerificationPopupState extends State<VerificationPopup> {
   }
 
   @override
+  void initState() {
+    getUserDetails();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Match Found'),
@@ -184,6 +208,22 @@ class _VerificationPopupState extends State<VerificationPopup> {
             Text('Name: ${widget.name}'),
             Text('Streak: ${widget.streak}'),
             Text('Guardian Phone Number: ${widget.guardianNumber}'),
+            if (userDetails != null && userDetails!["isTrustee"] == true)
+              for (final masjid in userDetails!["masjid_details"])
+                if (masjid is Map<String, dynamic>)
+                  RadioListTile<Map<String, dynamic>>(
+                    value: masjid,
+                    groupValue: selectedMasjid,
+                    onChanged: (value) {
+                      setState(() {
+                        selectedMasjid = value;
+                      });
+                    },
+                    title: Text(
+                      masjid["masjidName"],
+                      style: const TextStyle(color: Colors.black, fontSize: 12),
+                    ),
+                  ),
           ],
         ),
       ),
@@ -217,7 +257,6 @@ class _VerificationPopupState extends State<VerificationPopup> {
                       ),
                     );
                   }
-                  Navigator.of(context).pop();
                   Navigator.of(context).pop();
                 },
           child: isLoading
