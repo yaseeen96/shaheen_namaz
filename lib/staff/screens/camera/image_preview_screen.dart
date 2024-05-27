@@ -143,22 +143,23 @@ class _VerificationPopupState extends State<VerificationPopup> {
     try {
       // get current user id
       final userId = FirebaseAuth.instance.currentUser!.uid;
-      // get details from users collection
-      final userDoc = await FirebaseFirestore.instance
-          .collection("Users")
-          .doc(userId)
-          .get();
-      final user = userDoc.data();
-      final masjidAllocated = user!["masjid_allocated"];
 
       await FirebaseFirestore.instance
           .collection("Attendance")
           .doc(widget.faceId)
-          .set({
-        "name": widget.name,
-        "masjid": "/Masjid/${selectedMasjid!["masjidId"]}",
-        "masjid_details": selectedMasjid,
-        "attendance_time": DateTime.now(),
+          .update({
+        "attendance_details": FieldValue.arrayUnion([
+          {
+            "name": widget.name,
+            "masjid": "/Masjid/${selectedMasjid!["masjidId"]}",
+            "masjid_details": selectedMasjid,
+            "attendance_time": DateTime.now(),
+            "tracked_by": {
+              "userId": userId,
+              "name": FirebaseAuth.instance.currentUser!.displayName,
+            }
+          }
+        ])
       });
 
       await FirebaseFirestore.instance
