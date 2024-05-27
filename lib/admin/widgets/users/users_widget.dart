@@ -11,6 +11,7 @@ import 'package:shaheen_namaz/admin/providers/get_users_provider.dart';
 import 'package:shaheen_namaz/admin/widgets/users/custom_dropdown_button.dart';
 import 'package:shaheen_namaz/admin/widgets/users/subtitle_widget.dart';
 import 'package:shaheen_namaz/admin/widgets/users/tab_bar.dart';
+import 'package:shaheen_namaz/providers/selected_items_provider.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
@@ -28,7 +29,6 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
   String? userEmail;
   String? password;
 
-  List<Map<String, String>> selectedItems = [];
   bool isLoading = false;
   List<QueryDocumentSnapshot<Object?>> menuItems = [];
 
@@ -39,6 +39,7 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
         menuItems = value;
       });
     });
+
     super.initState();
   }
 
@@ -52,6 +53,7 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final items = ref.watch(selectedItemsProvider);
     final users = ref.watch(getUsersProvider);
     final filteredUsers = ref.watch(filteredUsersProvider);
     return users.when(
@@ -177,18 +179,27 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                               }),
                               if (filteredUsers[index]
                                       .masjidAllocated!
-                                      .isEmpty ||
-                                  filteredUsers[index].isTrustee == true)
+                                      .isEmpty &&
+                                  filteredUsers[index].isStaff == true)
                                 SizedBox(
                                   width: 500,
                                   child: CustomDropDown(
                                     ref: ref,
                                     menuItems: menuItems,
                                     onChanged: (value) async {
+                                      ref
+                                          .read(selectedItemsProvider.notifier)
+                                          .state = [
+                                        ...ref.read(selectedItemsProvider),
+                                        {
+                                          "id": value!.id,
+                                          "name": value.get("name")
+                                        }
+                                      ];
                                       final DocumentReference masjidRef =
                                           FirebaseFirestore.instance
                                               .collection("Masjid")
-                                              .doc(value!.id);
+                                              .doc(value.id);
                                       await FirebaseFirestore.instance
                                           .collection("Users")
                                           .doc(filteredUsers[index].uid!)
@@ -203,7 +214,7 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                                             [
                                               {
                                                 "clusterNumber":
-                                                    value.get("clusterNumber"),
+                                                    value.get("cluster_number"),
                                                 "masjidId": value.id,
                                                 "masjidName": value.get("name"),
                                               }
@@ -212,6 +223,57 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                                         },
                                       );
                                       ref.invalidate(getUsersProvider);
+                                    },
+                                  ),
+                                ),
+                              if (filteredUsers[index].isTrustee == true)
+                                SizedBox(
+                                  width: 500,
+                                  child: CustomDropDown(
+                                    isMultiSelect: true,
+                                    ref: ref,
+                                    menuItems: menuItems,
+                                    onMultiSelectChanged: (value) async {
+                                      for (var value in value) {
+                                        ref
+                                            .read(
+                                                selectedItemsProvider.notifier)
+                                            .state = [
+                                          ...ref.read(selectedItemsProvider),
+                                          {
+                                            "id": value!.id,
+                                            "name": value.get("name")
+                                          }
+                                        ];
+                                        final DocumentReference masjidRef =
+                                            FirebaseFirestore.instance
+                                                .collection("Masjid")
+                                                .doc(value.id);
+                                        await FirebaseFirestore.instance
+                                            .collection("Users")
+                                            .doc(filteredUsers[index].uid!)
+                                            .update(
+                                          {
+                                            "masjid_allocated":
+                                                FieldValue.arrayUnion(
+                                              [masjidRef],
+                                            ),
+                                            "masjid_details":
+                                                FieldValue.arrayUnion(
+                                              [
+                                                {
+                                                  "clusterNumber": value
+                                                      .get("cluster_number"),
+                                                  "masjidId": value.id,
+                                                  "masjidName":
+                                                      value.get("name"),
+                                                }
+                                              ],
+                                            ),
+                                          },
+                                        );
+                                        ref.invalidate(getUsersProvider);
+                                      }
                                     },
                                   ),
                                 )
@@ -261,35 +323,61 @@ extension ParseToString on UserRoles {
 class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool isLoading = false;
-  List<Map<String, String>> selectedItems = [];
+
   String? role;
 
   String? displayName;
   String? userEmail;
   String? password;
+  final TextEditingController clusterController = TextEditingController();
+
+  Future<List<QueryDocumentSnapshot<Object?>>> getDocumentsByClusterNumber(
+      int clusterNumber) async {
+    final CollectionReference collectionReference =
+        FirebaseFirestore.instance.collection("Masjid");
+
+    final QuerySnapshot querySnapshot = await collectionReference
+        .where('cluster_number', isEqualTo: clusterNumber)
+        .get();
+
+    return querySnapshot.docs;
+  }
 
   void getSelectedItems() async {
+    final List<Map<String, String>> selectedItemsList = [];
     if (widget.user == null ||
         widget.user!.masjidDetails!.isEmpty ||
         widget.user?.masjidDetails == null) {
-      return;
+      ref.read(selectedItemsProvider.notifier).state = [];
     }
     for (var masjid in widget.user!.masjidDetails!) {
-      setState(() {
-        selectedItems.add({"id": masjid.masjidId!, "name": masjid.masjidName!});
-        logger.i("selected items: $selectedItems");
+      selectedItemsList.add({
+        "id": masjid.masjidId!,
+        "name": masjid.masjidName!,
       });
     }
+    ref.read(selectedItemsProvider.notifier).state = selectedItemsList;
   }
 
   @override
   void initState() {
+    role = widget.user?.isTrustee == true
+        ? "UserRoles.trustee"
+        : "UserRoles.volunteer";
     getSelectedItems();
+
     super.initState();
   }
 
   @override
+  void dispose() {
+    clusterController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final items = ref.watch(selectedItemsProvider);
     return AlertDialog(
       title: const Text('Enter User Details'),
       content: SingleChildScrollView(
@@ -376,6 +464,9 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                     ),
                   ],
                   onChanged: (value) {
+                    setState(() {
+                      role = value.toString();
+                    });
                     logger.i("value: $value");
                   },
                   onSaved: (newValue) => role = newValue.toString(),
@@ -397,21 +488,20 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                   constraints: const BoxConstraints(maxHeight: 300),
                   child: Wrap(
                     children: [
-                      for (Map<String, String> item in selectedItems)
+                      for (Map<String, String> item in items)
                         Container(
                           margin: const EdgeInsets.symmetric(horizontal: 5),
                           child: Chip(
                             label: Text(item["name"] ?? ""),
                             onDeleted: () async {
-                              setState(() {
-                                selectedItems.remove(item);
-                              });
+                              ref.read(selectedItemsProvider.notifier).state =
+                                  items.where((e) => e != item).toList();
+
                               // Assuming getMenuItems is an async function that fetches the menu items
                             },
                           ),
                         ),
-                      if (selectedItems.isEmpty ||
-                          widget.user!.isTrustee == true)
+                      if (items.isEmpty && role == "UserRoles.volunteer")
                         SizedBox(
                             height: 100,
                             width: 300,
@@ -419,15 +509,41 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                                 ref: ref,
                                 menuItems: widget.menuItems,
                                 onChanged: (e) {
-                                  if (e != null) {
-                                    setState(() {
-                                      selectedItems.add(
-                                          {"id": e.id, "name": e.get("name")});
+                                  ref
+                                      .read(selectedItemsProvider.notifier)
+                                      .state = [
+                                    ...ref.read(selectedItemsProvider),
+                                    {"id": e!.id, "name": e.get("name")}
+                                  ];
+                                })),
+                      if (widget.user?.isTrustee == true ||
+                          role == "UserRoles.trustee")
+                        SizedBox(
+                            height: 100,
+                            width: 300,
+                            child: CustomDropDown(
+                                isMultiSelect: true,
+                                ref: ref,
+                                menuItems: widget.menuItems.where((item) {
+                                  final masjidId = item.id;
+
+                                  return !items.any((selectedItem) =>
+                                      selectedItem['id'] == masjidId);
+                                }).toList(),
+                                onMultiSelectChanged: (e) {
+                                  if (e.isNotEmpty) {
+                                    for (var e in e) {
+                                      ref
+                                          .read(selectedItemsProvider.notifier)
+                                          .state = [
+                                        ...ref.read(selectedItemsProvider),
+                                        {"id": e!.id, "name": e.get("name")}
+                                      ];
+
                                       widget.menuItems.remove(e);
-                                    });
-                                    logger.i("selected items: $selectedItems");
+                                    }
                                   }
-                                }))
+                                })),
                     ],
                   ),
                 )
@@ -442,10 +558,10 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
               ? null
               : widget.user == null
                   ? () {
-                      addUser(shouldUpdate: false);
+                      addUser(shouldUpdate: false, ref: ref);
                     }
                   : () {
-                      addUser(shouldUpdate: true);
+                      addUser(shouldUpdate: true, ref: ref);
                     },
           child: isLoading
               ? const CircularProgressIndicator()
@@ -465,12 +581,13 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
     return allMasjids;
   }
 
-  void addUser({required bool shouldUpdate}) async {
+  void addUser({required bool shouldUpdate, required WidgetRef ref}) async {
     final String functionName =
         shouldUpdate ? "shaheen_update_user" : "add_user";
     if (_formKey.currentState != null) {
       if (_formKey.currentState!.validate()) {
         _formKey.currentState!.save();
+        final selectedItems = ref.read(selectedItemsProvider);
 
         final masjidList = selectedItems.map((data) => data["id"]).toList();
 

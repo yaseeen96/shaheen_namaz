@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:shaheen_namaz/admin/providers/admin_home_provider.dart';
 import 'package:shaheen_namaz/admin/widgets/masjid_widget.dart';
+import 'package:shaheen_namaz/admin/widgets/student_data_new.dart';
 import 'package:shaheen_namaz/admin/widgets/student_data_table.dart';
 import 'package:shaheen_namaz/admin/widgets/users/users_widget.dart';
 
@@ -80,17 +81,18 @@ class SideMenuDrawer extends ConsumerWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    foregroundColor: Colors.white,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.zero,
-                    )),
-                onPressed: () async {
-                  await FirebaseAuth.instance.signOut();
-                },
-                icon: const Icon(Icons.logout),
-                label: const Text("Logout")),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.zero,
+                  )),
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut();
+              },
+              icon: const Icon(Icons.logout),
+              label: const Text("Logout"),
+            ),
           )
         ],
       ),
@@ -105,13 +107,13 @@ Widget childWidget(int index, WidgetRef ref) {
     case 2:
       return const MasjidWidget();
     case 3:
-      // todo - add the onDataFetched function
-      return StudentDataTable(
-        onDataFetched: (value) {
-          ref.read(dataCountProvider.notifier).state = value;
-        },
-        isAdmin: true,
-      );
+      return StudentDataNew();
+    // return StudentDataTable(
+    //   onDataFetched: (value) {
+    //     ref.read(dataCountProvider.notifier).state = value;
+    //   },
+    //   isAdmin: true,
+    // );
 
     default:
       return Container(

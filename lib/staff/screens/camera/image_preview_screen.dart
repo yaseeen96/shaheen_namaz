@@ -151,7 +151,8 @@ class _VerificationPopupState extends State<VerificationPopup> {
         "attendance_details": FieldValue.arrayUnion([
           {
             "name": widget.name,
-            "masjid": "/Masjid/${selectedMasjid!["masjidId"]}",
+            "masjid": FirebaseFirestore.instance
+                .doc("/Masjid/${selectedMasjid!["masjidId"]}"),
             "masjid_details": selectedMasjid,
             "attendance_time": DateTime.now(),
             "tracked_by": {
@@ -167,7 +168,8 @@ class _VerificationPopupState extends State<VerificationPopup> {
           .doc(widget.faceId)
           .update({
         "streak": FieldValue.increment(1),
-        "masjid": "/Masjid/${selectedMasjid!["masjidId"]}",
+        "masjid": FirebaseFirestore.instance
+            .doc("/Masjid/${selectedMasjid!["masjidId"]}"),
         "masjid_details": selectedMasjid,
         "streak_last_modified": DateTime.now()
       });
