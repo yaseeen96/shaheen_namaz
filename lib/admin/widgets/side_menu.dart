@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:shaheen_namaz/admin/providers/admin_home_provider.dart';
+import 'package:shaheen_namaz/admin/widgets/change_password.dart';
 import 'package:shaheen_namaz/admin/widgets/masjid_widget.dart';
 import 'package:shaheen_namaz/admin/widgets/student_data_new.dart';
 import 'package:shaheen_namaz/admin/widgets/student_data_table.dart';
@@ -78,6 +79,23 @@ class SideMenuDrawer extends ConsumerWidget {
           const Spacer(),
           Image.asset("assets/logo.png"),
           const Gap(10),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                showDialog(
+                    context: context,
+                    builder: (ctx) => const ChangePasswordWidget());
+              },
+              child: Text("Change Password"),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.amber,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.zero,
+                  )),
+            ),
+          ),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
