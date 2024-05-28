@@ -86,7 +86,7 @@ class _CustomDropDownState extends State<CustomDropDown> {
             )
           // no multiselect starts from here
           : DropdownSearch<QueryDocumentSnapshot<Object?>>(
-              itemAsString: (item) => item.get("cluster_number").toString(),
+              itemAsString: (item) => item.get("name").toString(),
               dropdownBuilder: (context, selectedItem) {
                 return const Align(
                   alignment: Alignment.centerLeft,
@@ -101,13 +101,18 @@ class _CustomDropDownState extends State<CustomDropDown> {
               popupProps: PopupProps.menu(
                 showSearchBox: true,
                 searchFieldProps: const TextFieldProps(
-                  decoration:
-                      InputDecoration(labelText: "Search by cluster number"),
+                  decoration: InputDecoration(labelText: "Search by name"),
                 ),
                 itemBuilder: (context, item, isSelected) {
                   return ListTile(
                     title: Text(
                       item.get("name"),
+                      style: const TextStyle(
+                        color: Colors.black,
+                      ),
+                    ),
+                    subtitle: Text(
+                      item.get("cluster_number").toString(),
                       style: const TextStyle(
                         color: Colors.black,
                       ),

@@ -70,6 +70,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '154097110008',
     projectId: 'shaheen-namaz',
     storageBucket: 'shaheen-namaz.appspot.com',
-    iosBundleId: 'com.example.shaheenNamaz',
+    iosBundleId: 'com.shaheen.shaheenNamaz',
   );
 }
