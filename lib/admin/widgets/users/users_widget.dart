@@ -554,6 +554,11 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
       ),
       actions: [
         ElevatedButton(
+            onPressed: () {
+              context.pop();
+            },
+            child: const Text("Cancel")),
+        ElevatedButton(
           onPressed: isLoading
               ? null
               : widget.user == null
