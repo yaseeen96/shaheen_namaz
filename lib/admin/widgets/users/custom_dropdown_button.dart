@@ -13,11 +13,13 @@ class CustomDropDown extends StatefulWidget {
     this.selectedItems = const [],
     this.onMultiSelectChanged,
     this.isMultiSelect = false,
+    this.labelText = "Please select a masjid",
   });
 
   final WidgetRef ref;
   final List<QueryDocumentSnapshot<Object?>> menuItems;
   final List<QueryDocumentSnapshot<Object?>> selectedItems;
+  final String labelText;
 
   final Function(QueryDocumentSnapshot<Object?>?)? onChanged;
   final Function(List<QueryDocumentSnapshot<Object?>?>)? onMultiSelectChanged;
@@ -36,11 +38,11 @@ class _CustomDropDownState extends State<CustomDropDown> {
           ? DropdownSearch<QueryDocumentSnapshot<Object?>>.multiSelection(
               itemAsString: (item) => item.get("cluster_number").toString(),
               dropdownBuilder: (context, selectedItem) {
-                return const Align(
+                return Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    "Please select a masjid",
-                    style: TextStyle(
+                    widget.labelText,
+                    style: const TextStyle(
                       color: Colors.grey,
                     ),
                   ),

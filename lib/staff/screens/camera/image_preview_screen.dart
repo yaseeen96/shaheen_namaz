@@ -144,6 +144,33 @@ class _VerificationPopupState extends State<VerificationPopup> {
       // get current user id
       final userId = FirebaseAuth.instance.currentUser!.uid;
 
+      // check if doc exists
+      final doc = await FirebaseFirestore.instance
+          .collection("Attendance")
+          .doc(widget.faceId)
+          .get();
+      // check if doc exists
+      if (!doc.exists) {
+        await FirebaseFirestore.instance
+            .collection("Attendance")
+            .doc(widget.faceId)
+            .set({
+          "attendance_details": [
+            {
+              "name": widget.name,
+              "masjid": FirebaseFirestore.instance
+                  .doc("/Masjid/${selectedMasjid!["masjidId"]}"),
+              "masjid_details": selectedMasjid,
+              "attendance_time": DateTime.now(),
+              "tracked_by": {
+                "userId": userId,
+                "name": FirebaseAuth.instance.currentUser!.displayName,
+              }
+            },
+          ]
+        }, SetOptions(merge: true));
+      }
+
       await FirebaseFirestore.instance
           .collection("Attendance")
           .doc(widget.faceId)

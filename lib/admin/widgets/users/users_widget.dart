@@ -518,32 +518,32 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                                 })),
                       if (widget.user?.isTrustee == true ||
                           role == "UserRoles.trustee")
-                        SizedBox(
-                            height: 100,
-                            width: 300,
-                            child: CustomDropDown(
-                                isMultiSelect: true,
-                                ref: ref,
-                                menuItems: widget.menuItems.where((item) {
-                                  final masjidId = item.id;
+                        for (var i = 1; i <= 12; i++)
+                          SizedBox(
+                              height: 100,
+                              width: 300,
+                              child: CustomDropDown(
+                                  labelText: "Cluster $i",
+                                  isMultiSelect: true,
+                                  ref: ref,
+                                  menuItems: widget.menuItems.where((item) {
+                                    return item.get("cluster_number") == i;
+                                  }).toList(),
+                                  onMultiSelectChanged: (e) {
+                                    if (e.isNotEmpty) {
+                                      for (var e in e) {
+                                        ref
+                                            .read(
+                                                selectedItemsProvider.notifier)
+                                            .state = [
+                                          ...ref.read(selectedItemsProvider),
+                                          {"id": e!.id, "name": e.get("name")}
+                                        ];
 
-                                  return !items.any((selectedItem) =>
-                                      selectedItem['id'] == masjidId);
-                                }).toList(),
-                                onMultiSelectChanged: (e) {
-                                  if (e.isNotEmpty) {
-                                    for (var e in e) {
-                                      ref
-                                          .read(selectedItemsProvider.notifier)
-                                          .state = [
-                                        ...ref.read(selectedItemsProvider),
-                                        {"id": e!.id, "name": e.get("name")}
-                                      ];
-
-                                      widget.menuItems.remove(e);
+                                        widget.menuItems.remove(e);
+                                      }
                                     }
-                                  }
-                                })),
+                                  })),
                     ],
                   ),
                 )
