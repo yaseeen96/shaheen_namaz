@@ -10,6 +10,7 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
 import 'package:shaheen_namaz/staff/providers/providers.dart';
+import 'package:shaheen_namaz/staff/screens/student_registration/masjids_widget.dart';
 import 'package:shaheen_namaz/staff/widgets/app_bar.dart';
 import 'package:shaheen_namaz/staff/widgets/image_preview.dart';
 import 'package:shaheen_namaz/staff/widgets/side_drawer.dart';
@@ -46,6 +47,7 @@ class _StudentRegistrationScreenState
   final TextEditingController studentClassController = TextEditingController();
   final TextEditingController studentAddressController =
       TextEditingController();
+  // ignore: avoid_init_to_null
 
   void onRegister() async {
     final currentState = formkey.currentState;
@@ -71,8 +73,7 @@ class _StudentRegistrationScreenState
         final bytes = await widget.image!.readAsBytes();
         final base64Image = base64Encode(bytes);
         // Read the selected masjid from the provider
-        final DocumentReference? selectedMasjidRef =
-            ref.read(selectedMasjidProvider);
+        final String? selectedMasjidRef = ref.read(selectedMasjidProvider);
         if (selectedMasjidRef == null) {
           // Handle the case where no masjid is selected, if necessary
           if (!context.mounted) return;
@@ -89,7 +90,7 @@ class _StudentRegistrationScreenState
           "image_data": base64Image,
           "name": name,
           "guardianNumber": guardianNumber,
-          "masjidId": selectedMasjidRef.id, //add id if not working
+          "masjidId": selectedMasjidRef, //add id if not working
           "guardianName": guardianName,
           "dob": dob,
           "class": studentClass,
@@ -178,6 +179,7 @@ class _StudentRegistrationScreenState
         studentDetails["studentClass"] as String? ?? "";
     studentAddressController.text =
         studentDetails["studentAddress"] as String? ?? "";
+
     super.initState();
   }
 
@@ -187,222 +189,191 @@ class _StudentRegistrationScreenState
         .collection("Users")
         .doc(FirebaseAuth.instance.currentUser!.uid);
     return Scaffold(
-        appBar: const CustomAppbar(),
-        body: StreamBuilder(
-            stream: collection.snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              } else if (snapshot.hasError) {
-                logger.e("Error: ${snapshot.error}");
-                return const Center(
-                  child: Text("Something went Wrong"),
-                );
-              }
-              var userDoc = snapshot.data!;
-              var masjids = userDoc["masjid_allocated"] as List<dynamic>;
-              return Form(
-                key: formkey,
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(10),
-                  child: Column(
-                    children: [
-                      Gap(MediaQuery.of(context).size.height * 0.05),
-                      Align(
-                        alignment: Alignment.center,
-                        child: ImagePreview(
-                          onTap: onAddImage,
-                          image: widget.image,
-                        ),
-                      ),
-                      Gap(MediaQuery.of(context).size.height * 0.05),
-                      TextFormField(
-                        controller: nameController,
-                        decoration: formDecoration(label: "Name"),
-                        validator: (value) {
-                          if (value == null ||
-                              value.length < 2 ||
-                              value.trim().isEmpty) {
-                            return "Please enter a valid name";
-                          } else {
-                            return null;
-                          }
-                        },
-                        onSaved: (currentVal) {
-                          name = currentVal;
-                        },
-                      ),
-                      const Gap(10),
-                      // add dropdown list for studentClass. keep options 1-10
-                      TextFormField(
-                        controller: studentClassController,
-                        decoration: formDecoration(label: "Class"),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return "Please enter a valid class";
-                          } else {
-                            return null;
-                          }
-                        },
-                        onSaved: (currentVal) {
-                          studentClass = currentVal;
-                        },
-                      ),
-
-                      const Gap(10),
-
-                      TextFormField(
-                        initialValue: dob,
-                        decoration: formDecoration(label: "Date of Birth"),
-                        readOnly: true,
-                        onTap: () async {
-                          final selectedDate = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime(1900),
-                            lastDate: DateTime.now(),
-                          );
-                          if (selectedDate != null) {
-                            setState(() {
-                              dob = selectedDate.toString().split(" ")[0];
-                            });
-                          }
-                        },
-                        validator: (value) {
-                          if (dob == null) {
-                            return "Please select a valid date";
-                          } else {
-// check if age is between 10 and 20, if more than 20, return error
-                            // if less than 10, return error
-                            // value is of type string and is in the format yyyy-mm-dd
-                            // convert value to datetime first
-                            var dobDateTime = DateTime.parse(dob!);
-                            var age = DateTime.now().year - dobDateTime.year;
-                            if (age < 10 || age > 20) {
-                              return "Age must be between 10 and 20";
-                            }
-
-                            return null;
-                          }
-                        },
-                        onSaved: (value) {
-                          logger.i("saved value: $value");
-                          dob = value;
-                        },
-                      ),
-                      const Gap(10),
-                      // add field for student address
-                      TextFormField(
-                        maxLines: 3,
-                        controller: studentAddressController,
-                        decoration: formDecoration(label: "Address"),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return "Please enter a valid address";
-                          } else {
-                            return null;
-                          }
-                        },
-                        onSaved: (currentVal) {
-                          studentAddress = currentVal;
-                        },
-                      ),
-                      const Gap(10),
-                      TextFormField(
-                        controller: guardianNameController,
-                        decoration: formDecoration(label: "Guardian Name"),
-                        validator: (value) {
-                          if (value == null ||
-                              value.length < 2 ||
-                              value.trim().isEmpty) {
-                            return "Please enter a valid name";
-                          } else {
-                            return null;
-                          }
-                        },
-                        onSaved: (currentVal) {
-                          guardianName = currentVal;
-                        },
-                      ),
-                      const Gap(10),
-                      TextFormField(
-                        controller: guardianNumberController,
-                        maxLength: 10,
-                        keyboardType: TextInputType.number,
-                        decoration: formDecoration(label: "Guardian Number"),
-                        validator: (value) {
-                          if (value == null ||
-                              value.length < 10 ||
-                              value.trim().isEmpty) {
-                            return "Please enter a valid number";
-                          } else {
-                            return null;
-                          }
-                        },
-                        onSaved: (currentVal) {
-                          guardianNumber = currentVal;
-                        },
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            "Masjids",
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge!
-                                .copyWith(
-                                  color: Theme.of(context).primaryColor,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                          ),
-                        ),
-                      ),
-                      ...masjids.map((masjidRef) {
-                        return Consumer(
-                          builder: (context, ref, _) {
-                            var selectedMasjid =
-                                ref.watch(selectedMasjidProvider);
-                            return RadioListTile<DocumentReference>(
-                              value: masjidRef,
-                              groupValue: selectedMasjid,
-                              onChanged: (newValue) {
-                                // Update the selectedMasjid state
-                                ref
-                                    .read(selectedMasjidProvider.notifier)
-                                    .state = newValue;
-                              },
-                              title: MasjidNameText(masjidRef: masjidRef),
-                            );
-                          },
-                        );
-                      }).toList(),
-                      const Gap(30),
-                      ElevatedButton(
-                        style: buttonStyle(),
-                        onPressed: isLoading ? null : onRegister,
-                        child: isLoading
-                            ? const CircularProgressIndicator()
-                            : const Text("Register"),
-                      ),
-                    ],
-                  ),
-                ),
+      appBar: const CustomAppbar(),
+      body: StreamBuilder(
+          stream: collection.snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(),
               );
-            }));
-  }
+            } else if (snapshot.hasError) {
+              logger.e("Error: ${snapshot.error}");
+              return const Center(
+                child: Text("Something went Wrong"),
+              );
+            }
 
-  ButtonStyle buttonStyle() {
-    return ElevatedButton.styleFrom(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
+            return Form(
+              key: formkey,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  children: [
+                    Gap(MediaQuery.of(context).size.height * 0.05),
+                    Align(
+                      alignment: Alignment.center,
+                      child: ImagePreview(
+                        onTap: onAddImage,
+                        image: widget.image,
+                      ),
+                    ),
+                    Gap(MediaQuery.of(context).size.height * 0.05),
+                    TextFormField(
+                      controller: nameController,
+                      decoration: formDecoration(label: "Name"),
+                      validator: (value) {
+                        if (value == null ||
+                            value.length < 2 ||
+                            value.trim().isEmpty) {
+                          return "Please enter a valid name";
+                        } else {
+                          return null;
+                        }
+                      },
+                      onSaved: (currentVal) {
+                        name = currentVal;
+                      },
+                    ),
+                    const Gap(10),
+                    // add dropdown list for studentClass. keep options 1-10
+                    TextFormField(
+                      controller: studentClassController,
+                      decoration: formDecoration(label: "Class"),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return "Please enter a valid class";
+                        } else {
+                          return null;
+                        }
+                      },
+                      onSaved: (currentVal) {
+                        studentClass = currentVal;
+                      },
+                    ),
+
+                    const Gap(10),
+
+                    TextFormField(
+                      initialValue: dob,
+                      decoration: formDecoration(label: "Date of Birth"),
+                      readOnly: true,
+                      onTap: () async {
+                        final selectedDate = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(1900),
+                          lastDate: DateTime.now(),
+                        );
+                        if (selectedDate != null) {
+                          setState(() {
+                            dob = selectedDate.toString().split(" ")[0];
+                          });
+                        }
+                      },
+                      validator: (value) {
+                        if (dob == null) {
+                          return "Please select a valid date";
+                        } else {
+// check if age is between 10 and 20, if more than 20, return error
+                          // if less than 10, return error
+                          // value is of type string and is in the format yyyy-mm-dd
+                          // convert value to datetime first
+                          var dobDateTime = DateTime.parse(dob!);
+                          var age = DateTime.now().year - dobDateTime.year;
+                          if (age < 10 || age > 20) {
+                            return "Age must be between 10 and 20";
+                          }
+
+                          return null;
+                        }
+                      },
+                      onSaved: (value) {
+                        logger.i("saved value: $value");
+                        dob = value;
+                      },
+                    ),
+                    const Gap(10),
+                    // add field for student address
+                    TextFormField(
+                      maxLines: 3,
+                      controller: studentAddressController,
+                      decoration: formDecoration(label: "Address"),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return "Please enter a valid address";
+                        } else {
+                          return null;
+                        }
+                      },
+                      onSaved: (currentVal) {
+                        studentAddress = currentVal;
+                      },
+                    ),
+                    const Gap(10),
+                    TextFormField(
+                      controller: guardianNameController,
+                      decoration: formDecoration(label: "Guardian Name"),
+                      validator: (value) {
+                        if (value == null ||
+                            value.length < 2 ||
+                            value.trim().isEmpty) {
+                          return "Please enter a valid name";
+                        } else {
+                          return null;
+                        }
+                      },
+                      onSaved: (currentVal) {
+                        guardianName = currentVal;
+                      },
+                    ),
+                    const Gap(10),
+                    TextFormField(
+                      controller: guardianNumberController,
+                      maxLength: 10,
+                      keyboardType: TextInputType.number,
+                      decoration: formDecoration(label: "Guardian Number"),
+                      validator: (value) {
+                        if (value == null ||
+                            value.length < 10 ||
+                            value.trim().isEmpty) {
+                          return "Please enter a valid number";
+                        } else {
+                          return null;
+                        }
+                      },
+                      onSaved: (currentVal) {
+                        guardianNumber = currentVal;
+                      },
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Masjids",
+                          style:
+                              Theme.of(context).textTheme.titleLarge!.copyWith(
+                                    color: Theme.of(context).primaryColor,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                        ),
+                      ),
+                    ),
+
+                    const MasjidSearchWidget(),
+                  ],
+                ),
+              ),
+            );
+          }),
+      floatingActionButton: FloatingActionButton(
+        onPressed: onRegister,
+        child: isLoading
+            ? const CircularProgressIndicator()
+            : const Icon(Icons.keyboard_arrow_right_rounded),
       ),
-      backgroundColor: Colors.red,
-      foregroundColor: Colors.white,
     );
   }
 

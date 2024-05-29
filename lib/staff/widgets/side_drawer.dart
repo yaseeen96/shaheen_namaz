@@ -33,22 +33,21 @@ class _SideDrawerState extends ConsumerState<SideDrawer> {
             child: Text("Something went Wrong"),
           );
         }
-        var userDoc = snapshot.data!;
-        var masjids = userDoc["masjid_allocated"] as List<dynamic>;
+
         // Automatically select the first masjid if none is selected yet
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (masjids.isNotEmpty) {
-            final currentSelected = ref.read(selectedMasjidProvider);
-            if (currentSelected == null) {
-              ref.read(selectedMasjidProvider.notifier).state = masjids.first;
-            }
-          }
-        });
+        // WidgetsBinding.instance.addPostFrameCallback((_) {
+        //   if (masjids.isNotEmpty) {
+        //     final currentSelected = ref.read(selectedMasjidProvider);
+        //     if (currentSelected == null) {
+        //       ref.read(selectedMasjidProvider.notifier).state = masjids.first;
+        //     }
+        //   }
+        // });
         return Drawer(
           child: Column(
             children: [
               Expanded(
-                flex: 4,
+                flex: 10,
                 child: DrawerHeader(
                   child: Column(
                     children: [
@@ -66,43 +65,43 @@ class _SideDrawerState extends ConsumerState<SideDrawer> {
                   ),
                 ),
               ),
-              Expanded(
-                flex: 1,
-                child: Text(
-                  "Masjids",
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge!
-                      .copyWith(color: Theme.of(context).primaryColor),
-                ),
-              ),
-              Expanded(
-                flex: 8,
-                child: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    ...masjids.map((masjidRef) {
-                      return Consumer(
-                        builder: (context, ref, _) {
-                          var selectedMasjid =
-                              ref.watch(selectedMasjidProvider);
-                          return RadioListTile<DocumentReference>(
-                            value: masjidRef,
-                            groupValue: selectedMasjid,
-                            onChanged: (newValue) {
-                              // Update the selectedMasjid state
-                              ref.read(selectedMasjidProvider.notifier).state =
-                                  newValue;
-                            },
-                            title: MasjidNameText(masjidRef: masjidRef),
-                          );
-                        },
-                      );
-                    }).toList(),
-                  ],
-                ),
-              ),
-              const Spacer(),
+              // Expanded(
+              //   flex: 1,
+              //   child: Text(
+              //     "Masjids",
+              //     style: Theme.of(context)
+              //         .textTheme
+              //         .titleLarge!
+              //         .copyWith(color: Theme.of(context).primaryColor),
+              //   ),
+              // ),
+              // Expanded(
+              //   flex: 8,
+              //   child: ListView(
+              //     shrinkWrap: true,
+              //     children: [
+              //       ...masjids.map((masjidRef) {
+              //         return Consumer(
+              //           builder: (context, ref, _) {
+              //             var selectedMasjid =
+              //                 ref.watch(selectedMasjidProvider);
+              //             return RadioListTile<DocumentReference>(
+              //               value: masjidRef,
+              //               groupValue: selectedMasjid,
+              //               onChanged: (newValue) {
+              //                 // Update the selectedMasjid state
+              //                 ref.read(selectedMasjidProvider.notifier).state =
+              //                     newValue;
+              //               },
+              //               title: MasjidNameText(masjidRef: masjidRef),
+              //             );
+              //           },
+              //         );
+              //       }).toList(),
+              //     ],
+              //   ),
+              // ),
+              // const Spacer(),
               Expanded(
                 flex: 1,
                 child: ElevatedButton.icon(
