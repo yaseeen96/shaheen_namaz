@@ -56,7 +56,7 @@ class _SideDrawerState extends ConsumerState<SideDrawer> {
                         size: 100,
                       ),
                       Text(
-                        "Welcome ${FirebaseAuth.instance.currentUser!.displayName!}",
+                        "Welcome ${FirebaseAuth.instance.currentUser!.displayName ?? "User"}",
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                         ),

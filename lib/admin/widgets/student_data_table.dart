@@ -27,18 +27,6 @@ class _StudentDataTableState extends State<StudentDataTable> {
 
     List<Future<StudentData>> studentFutures = snapshot.docs.map((doc) async {
       logger.i("doc data ${doc.data()}");
-      var data = doc.data();
-      String masjidName = '';
-
-      // Fetch masjid document reference
-      if (data['masjid'] is DocumentReference) {
-        DocumentSnapshot masjidSnapshot =
-            await (data['masjid'] as DocumentReference).get();
-        // Assuming the masjid document has a 'name' field
-        var masjidData = masjidSnapshot.data() as Map<String, dynamic>?;
-        // Use the casted map to access fields
-        masjidName = masjidData?['name'] ?? 'Unknown';
-      }
 
       final studentData = StudentData.getStudentDataFromFirestore(doc);
       logger.i(studentData);
@@ -64,19 +52,11 @@ class _StudentDataTableState extends State<StudentDataTable> {
       return;
     } else {
 // get user's masjid reference
-      final DocumentReference userMasjidRef =
-          await user.get("masjid_allocated")[0];
-      // get masjid document
-      DocumentSnapshot masjidSnapshot = await (userMasjidRef).get();
-      // Assuming the masjid document has a 'name' field
-      var masjidData = masjidSnapshot.data() as Map<String, dynamic>?;
-      // Use the casted map to access fields
-      final String userMasjidName = masjidData?['name'] ?? 'Unknown';
-      logger.i("user's masjid name: $userMasjidName");
+
       setState(() {
         _students = students.where((student) {
           logger.i("masjid name: ${student.name == "abdullah"}");
-          return student.masjid == userMasjidName;
+          return student.masjid == user['masjid_allocated'];
         }).toList();
         _filteredStudents = _students;
         widget.onDataFetched(_students.length);

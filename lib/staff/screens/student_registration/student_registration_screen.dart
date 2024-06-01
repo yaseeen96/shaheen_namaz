@@ -95,6 +95,8 @@ class _StudentRegistrationScreenState
           "dob": dob,
           "class": studentClass,
           "address": studentAddress,
+          "volunteer_name": FirebaseAuth.instance.currentUser!.displayName,
+          "volunteer_id": FirebaseAuth.instance.currentUser!.uid,
         });
 
         final jsonResponse = response.data;
@@ -361,7 +363,6 @@ class _StudentRegistrationScreenState
                         ),
                       ),
                     ),
-
                     const MasjidSearchWidget(),
                   ],
                 ),

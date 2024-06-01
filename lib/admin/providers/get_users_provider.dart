@@ -1,45 +1,46 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shaheen_namaz/admin/models/all_users_response.dart';
 import 'package:shaheen_namaz/admin/services/get_users.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
 
-final getUsersProvider = FutureProvider<AllUsersResponse>((ref) async {
-  final response = await getUsers();
+final getUsersProvider = StreamProvider<AllUsersResponse>((ref) async* {
+  await for (final response in getUsers()) {
+    ref
+        .read(filteredUsersProvider.notifier)
+        .setFilteredToVolunteer(response.users);
 
-  ref
-      .read(filteredUsersProvider.notifier)
-      .setFilteredToVolunteer(response.users!);
-
-  return response;
+    yield response;
+  }
 });
 
-class filteredUsersNotifier extends StateNotifier<List<Users>> {
-  filteredUsersNotifier() : super([]);
+class FilteredUsersNotifier extends StateNotifier<List<User>> {
+  FilteredUsersNotifier() : super([]);
 
-  void setFilteredToVolunteer(List<Users> users) {
+  void setFilteredToVolunteer(List<User> users) {
     state = users.where((user) => user.isStaff == true).toList();
   }
 
-  void setFilteredToTrustee(List<Users> users) {
+  void setFilteredToTrustee(List<User> users) {
     state = users.where((user) => user.isTrustee == true).toList();
   }
 
-  void searchUsers(List<Users> users, String query) {
-    // on backspace it should clear all values
+  void searchUsers(List<User> users, String query) {
     if (query.trim().isEmpty) {
       state = users;
-      return;
     } else {
-      state = users
-          .where((user) =>
-              user.displayName!.toLowerCase().contains(query.toLowerCase()))
-          .toList();
+      try {
+        state = state
+            .where((user) =>
+                user.displayName!.toLowerCase().contains(query.toLowerCase()))
+            .toList();
+      } catch (e) {
+        logger.e("Error in searchUsers: $e");
+      }
     }
   }
 }
 
 final filteredUsersProvider =
-    StateNotifierProvider<filteredUsersNotifier, List<Users>>((ref) {
-  return filteredUsersNotifier();
+    StateNotifierProvider<FilteredUsersNotifier, List<User>>((ref) {
+  return FilteredUsersNotifier();
 });

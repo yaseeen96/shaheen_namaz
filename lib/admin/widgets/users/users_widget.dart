@@ -13,6 +13,7 @@ import 'package:shaheen_namaz/admin/widgets/users/subtitle_widget.dart';
 import 'package:shaheen_namaz/admin/widgets/users/tab_bar.dart';
 import 'package:shaheen_namaz/providers/selected_items_provider.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
+import 'package:shaheen_namaz/utils/constants/constants.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
@@ -26,7 +27,6 @@ class UsersWidget extends ConsumerStatefulWidget {
 class _UsersWidgetState extends ConsumerState<UsersWidget> {
   final _formKey = GlobalKey<FormState>();
   String? displayName;
-  String? userEmail;
   String? password;
 
   bool isLoading = false;
@@ -39,7 +39,6 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
         menuItems = value;
       });
     });
-
     super.initState();
   }
 
@@ -54,10 +53,10 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
   @override
   Widget build(BuildContext context) {
     final items = ref.watch(selectedItemsProvider);
-    final users = ref.watch(getUsersProvider);
+    final usersAsyncValue = ref.watch(getUsersProvider);
     final filteredUsers = ref.watch(filteredUsersProvider);
-    return users.when(
-      data: (user) {
+    return usersAsyncValue.when(
+      data: (userResponse) {
         return Scaffold(
           appBar: AppBar(
             bottom: CustomTabBar(
@@ -65,11 +64,11 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                 if (index == 0) {
                   ref
                       .read(filteredUsersProvider.notifier)
-                      .setFilteredToVolunteer(user.users!);
+                      .setFilteredToVolunteer(userResponse.users);
                 } else {
                   ref
                       .read(filteredUsersProvider.notifier)
-                      .setFilteredToTrustee(user.users!);
+                      .setFilteredToTrustee(userResponse.users);
                 }
               },
             ),
@@ -77,7 +76,7 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
           body: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             children: [
-              // add search bar to search for users
+              // Search bar to search for users
               TextFormField(
                 decoration: const InputDecoration(
                   hintText: "Search for a user",
@@ -86,12 +85,10 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                 onChanged: (value) {
                   ref
                       .read(filteredUsersProvider.notifier)
-                      .searchUsers(user.users!, value);
+                      .searchUsers(userResponse.users, value);
                 },
               ),
-
               const Gap(20),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -117,124 +114,68 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
               ),
               const Gap(6),
               isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(),
-                    )
+                  ? const Center(child: CircularProgressIndicator())
                   : ListView.builder(
                       shrinkWrap: true,
-                      physics: const ScrollPhysics(),
+                      physics: const NeverScrollableScrollPhysics(),
                       itemCount: filteredUsers.length,
                       itemBuilder: (ctx, index) {
+                        final user = filteredUsers[index];
                         return Container(
                           margin: const EdgeInsets.symmetric(vertical: 3),
                           width: MediaQuery.of(context).size.width * 0.6,
-                          constraints: BoxConstraints(
-                            maxHeight: 300,
-                          ),
+                          constraints: const BoxConstraints(maxHeight: 300),
                           child: ListTile(
-                            key: ValueKey(filteredUsers[index].uid),
-                            title: Text(filteredUsers[index].displayName!),
+                            key: ValueKey(user.uid),
+                            title: Text(user.displayName ?? user.email),
                             onTap: () {
                               showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    return UserDetailsPopup(
-                                        menuItems: menuItems,
-                                        user: filteredUsers[index]);
-                                  });
+                                context: context,
+                                builder: (context) {
+                                  return UserDetailsPopup(
+                                    menuItems: menuItems,
+                                    user: user,
+                                  );
+                                },
+                              );
                             },
                             trailing: IconButton(
                               icon: const Icon(
                                 Icons.delete,
                                 color: Colors.grey,
                               ),
-                              onPressed:
-                                  filteredUsers[index].email!.contains("admin")
-                                      ? null
-                                      : () async {
-                                          setState(() {
-                                            isLoading = true;
-                                          });
-                                          await FirebaseFunctions.instance
-                                              .httpsCallable("delete_user")
-                                              .call(
-                                            {
-                                              "uid": filteredUsers[index].uid!,
-                                            },
-                                          );
-                                          ref.invalidate(getUsersProvider);
-                                          setState(() {
-                                            isLoading = false;
-                                          });
-                                        },
-                            ),
-                            subtitle: Wrap(runSpacing: 10, children: [
-                              ...filteredUsers[index]
-                                  .masjidAllocated!
-                                  .map((masjidId) {
-                                return SubtitleWidget(
-                                  masjidId: masjidId,
-                                  userId: filteredUsers[index].uid!,
-                                );
-                              }),
-                              if (filteredUsers[index]
-                                      .masjidAllocated!
-                                      .isEmpty &&
-                                  filteredUsers[index].isStaff == true)
-                                SizedBox(
-                                  width: 500,
-                                  child: CustomDropDown(
-                                    ref: ref,
-                                    menuItems: menuItems,
-                                    onChanged: (value) async {
-                                      ref
-                                          .read(selectedItemsProvider.notifier)
-                                          .state = [
-                                        ...ref.read(selectedItemsProvider),
-                                        {
-                                          "id": value!.id,
-                                          "name": value.get("name")
-                                        }
-                                      ];
-                                      final DocumentReference masjidRef =
-                                          FirebaseFirestore.instance
-                                              .collection("Masjid")
-                                              .doc(value.id);
-                                      await FirebaseFirestore.instance
-                                          .collection("Users")
-                                          .doc(filteredUsers[index].uid!)
-                                          .update(
-                                        {
-                                          "masjid_allocated":
-                                              FieldValue.arrayUnion(
-                                            [masjidRef],
-                                          ),
-                                          "masjid_details":
-                                              FieldValue.arrayUnion(
-                                            [
-                                              {
-                                                "clusterNumber":
-                                                    value.get("cluster_number"),
-                                                "masjidId": value.id,
-                                                "masjidName": value.get("name"),
-                                              }
-                                            ],
-                                          ),
-                                        },
-                                      );
+                              onPressed: (user.email == "admin@shaheen.org")
+                                  ? null
+                                  : () async {
+                                      setState(() {
+                                        isLoading = true;
+                                      });
+                                      await FirebaseFunctions.instance
+                                          .httpsCallable("delete_user")
+                                          .call({"uid": user.uid});
                                       ref.invalidate(getUsersProvider);
+                                      setState(() {
+                                        isLoading = false;
+                                      });
                                     },
-                                  ),
-                                ),
-                              if (filteredUsers[index].isTrustee == true)
-                                SizedBox(
-                                  width: 500,
-                                  child: CustomDropDown(
-                                    isMultiSelect: true,
-                                    ref: ref,
-                                    menuItems: menuItems,
-                                    onMultiSelectChanged: (value) async {
-                                      for (var value in value) {
+                            ),
+                            subtitle: Wrap(
+                              runSpacing: 10,
+                              children: [
+                                ...user.masjidDetails.map((masjid) {
+                                  return SubtitleWidget(
+                                    masjidId: masjid.masjidId,
+                                    userId: user.uid,
+                                  );
+                                }),
+                                if (user.masjidAllocated.isEmpty &&
+                                    user.isStaff)
+                                  SizedBox(
+                                    width: 500,
+                                    child: CustomDropDown(
+                                      ref: ref,
+                                      menuItems: menuItems,
+                                      onChanged: (value) async {
                                         ref
                                             .read(
                                                 selectedItemsProvider.notifier)
@@ -251,49 +192,87 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                                                 .doc(value.id);
                                         await FirebaseFirestore.instance
                                             .collection("Users")
-                                            .doc(filteredUsers[index].uid!)
-                                            .update(
-                                          {
+                                            .doc(user.uid)
+                                            .update({
+                                          "masjid_allocated":
+                                              FieldValue.arrayUnion(
+                                                  [masjidRef]),
+                                          "masjid_details":
+                                              FieldValue.arrayUnion([
+                                            {
+                                              "clusterNumber":
+                                                  value.get("cluster_number"),
+                                              "masjidId": value.id,
+                                              "masjidName": value.get("name"),
+                                            }
+                                          ]),
+                                        });
+                                        ref.invalidate(getUsersProvider);
+                                      },
+                                    ),
+                                  ),
+                                if (user.isTrustee)
+                                  SizedBox(
+                                    width: 500,
+                                    child: CustomDropDown(
+                                      isMultiSelect: true,
+                                      ref: ref,
+                                      menuItems: menuItems,
+                                      onMultiSelectChanged: (value) async {
+                                        for (var val in value) {
+                                          ref
+                                              .read(selectedItemsProvider
+                                                  .notifier)
+                                              .state = [
+                                            ...ref.read(selectedItemsProvider),
+                                            {
+                                              "id": val!.id,
+                                              "name": val.get("name")
+                                            }
+                                          ];
+                                          final DocumentReference masjidRef =
+                                              FirebaseFirestore.instance
+                                                  .collection("Masjid")
+                                                  .doc(val.id);
+                                          await FirebaseFirestore.instance
+                                              .collection("Users")
+                                              .doc(user.uid)
+                                              .update({
                                             "masjid_allocated":
                                                 FieldValue.arrayUnion(
-                                              [masjidRef],
-                                            ),
+                                                    [masjidRef]),
                                             "masjid_details":
-                                                FieldValue.arrayUnion(
-                                              [
-                                                {
-                                                  "clusterNumber": value
-                                                      .get("cluster_number"),
-                                                  "masjidId": value.id,
-                                                  "masjidName":
-                                                      value.get("name"),
-                                                }
-                                              ],
-                                            ),
-                                          },
-                                        );
-                                        ref.invalidate(getUsersProvider);
-                                      }
-                                    },
-                                  ),
-                                )
-                            ]),
+                                                FieldValue.arrayUnion([
+                                              {
+                                                "clusterNumber":
+                                                    val.get("cluster_number"),
+                                                "masjidId": val.id,
+                                                "masjidName": val.get("name"),
+                                              }
+                                            ]),
+                                          });
+                                          ref.invalidate(getUsersProvider);
+                                        }
+                                      },
+                                    ),
+                                  )
+                              ],
+                            ),
                             tileColor: Colors.black87,
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(6)),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
                           ),
                         );
-                      }),
+                      },
+                    ),
             ],
           ),
         );
       },
-      loading: () => const Center(
-        child: CircularProgressIndicator(),
-      ),
-      error: (err, stk) => Center(
-        child: Text("An Error Occurred. Error: $err"),
-      ),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, stk) =>
+          Center(child: Text("An Error Occurred. Error: $err")),
     );
   }
 }
@@ -306,7 +285,7 @@ class UserDetailsPopup extends ConsumerStatefulWidget {
   });
 
   final List<QueryDocumentSnapshot<Object?>> menuItems;
-  final Users? user;
+  final User? user;
 
   @override
   _UserDetailsPopupState createState() => _UserDetailsPopupState();
@@ -325,10 +304,11 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
   bool isLoading = false;
 
   String? role;
-
-  String? displayName;
-  String? userEmail;
+  String? jamaatName;
   String? password;
+  String? displayName;
+  String? phoneNumber;
+
   final TextEditingController clusterController = TextEditingController();
 
   Future<List<QueryDocumentSnapshot<Object?>>> getDocumentsByClusterNumber(
@@ -346,14 +326,14 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
   void getSelectedItems() async {
     final List<Map<String, String>> selectedItemsList = [];
     if (widget.user == null ||
-        widget.user!.masjidDetails!.isEmpty ||
+        widget.user!.masjidDetails.isEmpty ||
         widget.user?.masjidDetails == null) {
       ref.read(selectedItemsProvider.notifier).state = [];
     }
-    for (var masjid in widget.user!.masjidDetails!) {
+    for (var masjid in widget.user!.masjidDetails) {
       selectedItemsList.add({
-        "id": masjid.masjidId!,
-        "name": masjid.masjidName!,
+        "id": masjid.masjidId,
+        "name": masjid.masjidName,
       });
     }
     ref.read(selectedItemsProvider.notifier).state = selectedItemsList;
@@ -364,8 +344,10 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
     role = widget.user?.isTrustee == true
         ? "UserRoles.trustee"
         : "UserRoles.volunteer";
+    setState(() {
+      jamaatName = widget.user?.jamaatName;
+    });
     getSelectedItems();
-
     super.initState();
   }
 
@@ -407,21 +389,20 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                   },
                 ),
                 TextFormField(
-                  initialValue: widget.user?.email,
+                  initialValue: widget.user?.phoneNumber,
                   decoration: const InputDecoration(
-                    label: Text("User's email"),
+                    label: Text("User's phone number"),
                   ),
                   validator: (value) {
                     if (value == null ||
                         value.trim().isEmpty ||
-                        value.length < 8 ||
-                        !value.contains("@")) {
-                      return "Please enter a valid email";
+                        value.length != 10) {
+                      return "Please enter a valid phone Number";
                     }
                     return null;
                   },
                   onSaved: (newValue) {
-                    userEmail = newValue;
+                    phoneNumber = newValue;
                   },
                 ),
                 TextFormField(
@@ -431,16 +412,6 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                   onSaved: (newValue) {
                     password = newValue;
                   },
-                  validator: (widget.user == null)
-                      ? (value) {
-                          if (value == null ||
-                              value.trim().isEmpty ||
-                              value.length < 6) {
-                            return "Password must be at least 6 characters long";
-                          }
-                          return null;
-                        }
-                      : null,
                 ),
                 const Gap(20),
                 const Text(
@@ -479,6 +450,52 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                 ),
                 const Gap(20),
                 const Text(
+                  "NGO or Jamth associated with",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const Gap(20),
+                DropdownSearch<String>(
+                  dropdownBuilder: (context, selectedItem) {
+                    return Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        jamaatName ??
+                            "Please select NGO or Jamth associated with",
+                        style: const TextStyle(
+                          color: Colors.grey,
+                        ),
+                      ),
+                    );
+                  },
+                  items: Constants.jamaatList,
+                  onChanged: (value) {
+                    jamaatName = value;
+                  },
+                  selectedItem: jamaatName,
+                  dropdownDecoratorProps: const DropDownDecoratorProps(
+                    baseStyle: TextStyle(
+                      color: Colors.black,
+                    ),
+                  ),
+                  popupProps: PopupProps.menu(
+                    showSearchBox: true,
+                    searchFieldProps: const TextFieldProps(
+                      decoration: InputDecoration(labelText: "Search by name"),
+                    ),
+                    itemBuilder: (context, item, isSelected) {
+                      return ListTile(
+                        title: Text(
+                          item,
+                          style: const TextStyle(
+                            color: Colors.black,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const Gap(20),
+                const Text(
                   "Masjids Allocated",
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
@@ -496,54 +513,52 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                             onDeleted: () async {
                               ref.read(selectedItemsProvider.notifier).state =
                                   items.where((e) => e != item).toList();
-
-                              // Assuming getMenuItems is an async function that fetches the menu items
                             },
                           ),
                         ),
                       if (items.isEmpty && role == "UserRoles.volunteer")
                         SizedBox(
-                            height: 100,
-                            width: 300,
-                            child: CustomDropDown(
-                                ref: ref,
-                                menuItems: widget.menuItems,
-                                onChanged: (e) {
-                                  ref
-                                      .read(selectedItemsProvider.notifier)
-                                      .state = [
-                                    ...ref.read(selectedItemsProvider),
-                                    {"id": e!.id, "name": e.get("name")}
-                                  ];
-                                })),
+                          height: 100,
+                          width: 300,
+                          child: CustomDropDown(
+                            ref: ref,
+                            menuItems: widget.menuItems,
+                            onChanged: (e) {
+                              ref.read(selectedItemsProvider.notifier).state = [
+                                ...ref.read(selectedItemsProvider),
+                                {"id": e!.id, "name": e.get("name")}
+                              ];
+                            },
+                          ),
+                        ),
                       if (widget.user?.isTrustee == true ||
                           role == "UserRoles.trustee")
                         for (var i = 1; i <= 12; i++)
                           SizedBox(
-                              height: 100,
-                              width: 300,
-                              child: CustomDropDown(
-                                  labelText: "Cluster $i",
-                                  isMultiSelect: true,
-                                  ref: ref,
-                                  menuItems: widget.menuItems.where((item) {
-                                    return item.get("cluster_number") == i;
-                                  }).toList(),
-                                  onMultiSelectChanged: (e) {
-                                    if (e.isNotEmpty) {
-                                      for (var e in e) {
-                                        ref
-                                            .read(
-                                                selectedItemsProvider.notifier)
-                                            .state = [
-                                          ...ref.read(selectedItemsProvider),
-                                          {"id": e!.id, "name": e.get("name")}
-                                        ];
-
-                                        widget.menuItems.remove(e);
-                                      }
-                                    }
-                                  })),
+                            height: 100,
+                            width: 300,
+                            child: CustomDropDown(
+                              labelText: "Cluster $i",
+                              isMultiSelect: true,
+                              ref: ref,
+                              menuItems: widget.menuItems.where((item) {
+                                return item.get("cluster_number") == i;
+                              }).toList(),
+                              onMultiSelectChanged: (e) {
+                                if (e.isNotEmpty) {
+                                  for (var val in e) {
+                                    ref
+                                        .read(selectedItemsProvider.notifier)
+                                        .state = [
+                                      ...ref.read(selectedItemsProvider),
+                                      {"id": val!.id, "name": val.get("name")}
+                                    ];
+                                    widget.menuItems.remove(val);
+                                  }
+                                }
+                              },
+                            ),
+                          ),
                     ],
                   ),
                 )
@@ -554,10 +569,11 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
       ),
       actions: [
         ElevatedButton(
-            onPressed: () {
-              context.pop();
-            },
-            child: const Text("Cancel")),
+          onPressed: () {
+            context.pop();
+          },
+          child: const Text("Cancel"),
+        ),
         ElevatedButton(
           onPressed: isLoading
               ? null
@@ -578,15 +594,8 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
     );
   }
 
-  Future<List<QueryDocumentSnapshot<Object?>>> getMenuItems() async {
-    final CollectionReference collectionReference =
-        FirebaseFirestore.instance.collection("Masjid");
-    final QuerySnapshot querySnapshot = await collectionReference.get();
-    final allMasjids = querySnapshot.docs.map((e) => e).toList();
-    return allMasjids;
-  }
-
-  void addUser({required bool shouldUpdate, required WidgetRef ref}) async {
+  Future<void> addUser(
+      {required bool shouldUpdate, required WidgetRef ref}) async {
     final String functionName =
         shouldUpdate ? "shaheen_update_user" : "add_user";
     if (_formKey.currentState != null) {
@@ -606,11 +615,12 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
             await FirebaseFunctions.instance.httpsCallable(functionName).call(
               {
                 if (shouldUpdate) "uid": widget.user!.uid,
-                "email": userEmail,
+                "phoneNumber": "+91$phoneNumber",
                 "displayName": displayName,
+                "password": password ?? "",
                 "masjidDocNames": masjidList,
-                if (password != null) "password": password,
                 "role": role!.split(".").last,
+                "jamaatName": jamaatName ?? "Not Associated with any Jamaat",
               },
             );
             if (!mounted) return;
@@ -619,10 +629,12 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
             if (e.code == "aborted") {
               if (!mounted) return;
               showTopSnackBar(
-                  Overlay.of(context),
-                  const CustomSnackBar.error(
-                      message:
-                          "Uh Ohh. An Error Occurred. Try with different data."));
+                Overlay.of(context),
+                const CustomSnackBar.error(
+                  message:
+                      "Uh Ohh. An Error Occurred. Try with different data.",
+                ),
+              );
             }
             logger.e("error code: ${e.message}");
           } finally {

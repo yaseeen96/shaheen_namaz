@@ -58,7 +58,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAOWRJE_hFUQaldZ32zwwbIb8uywqSktkM',
-    appId: '1:154097110008:android:19178f10a415db9237240d',
+    appId: '1:154097110008:android:a40f622c85a360f137240d',
     messagingSenderId: '154097110008',
     projectId: 'shaheen-namaz',
     storageBucket: 'shaheen-namaz.appspot.com',
@@ -66,10 +66,11 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyA701Bcgw70LHnREU3o44TOBLHRG4br6rs',
-    appId: '1:154097110008:ios:1884e939fb06d2ca37240d',
+    appId: '1:154097110008:ios:367d4837dd21dced37240d',
     messagingSenderId: '154097110008',
     projectId: 'shaheen-namaz',
     storageBucket: 'shaheen-namaz.appspot.com',
     iosBundleId: 'com.shaheen.shaheenNamaz',
   );
+
 }

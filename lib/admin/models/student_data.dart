@@ -38,16 +38,9 @@ class StudentData {
       streak: data['streak'] ?? 0,
       guardianNumber: data['guardianNumber'] ?? '',
       // data['masjid'] is  a DocumentReference. get the name from the document
-      masjid: data['masjid'] != null
-          ? await (data['masjid'] as DocumentReference).get().then((doc) {
-              return (doc.data() as Map<String, dynamic>)['name'];
-            })
-          : '',
-      clusterNumber: data['masjid'] != null
-          ? await (data['masjid'] as DocumentReference).get().then((doc) {
-              return (doc.data() as Map<String, dynamic>)['cluster_number']
-                  as int;
-            })
+      masjid: data["masjid_details"]["masjidName"],
+      clusterNumber: data['masjid_details'] != null
+          ? data["masjid_details"]["clusterNumber"]
           : 0,
       // streak_last_modified is timestamp in firestore. convert it to string
 // translate the streakLastModified to something. current format is 2024-05-20 12:00:00.000

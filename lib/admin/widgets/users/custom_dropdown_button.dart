@@ -71,10 +71,11 @@ class _CustomDropDownState extends State<CustomDropDown> {
                   );
                 },
               ),
-              dropdownDecoratorProps: DropDownDecoratorProps(
-                  baseStyle: TextStyle(
-                color: Colors.black,
-              )),
+              dropdownDecoratorProps: const DropDownDecoratorProps(
+                baseStyle: TextStyle(
+                  color: Colors.black,
+                ),
+              ),
               onChanged: (value) {
                 if (widget.onMultiSelectChanged != null) {
                   logger.i(value);

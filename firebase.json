@@ -1,13 +1,1 @@
-{
-  "hosting": {
-    "source": ".",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "frameworksBackend": {
-      "region": "us-central1"
-    }
-  }
-}
+{"hosting":{"source":".","ignore":["firebase.json","**/.*","**/node_modules/**"],"frameworksBackend":{"region":"us-central1"}},"flutter":{"platforms":{"android":{"default":{"projectId":"shaheen-namaz","appId":"1:154097110008:android:a40f622c85a360f137240d","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"shaheen-namaz","configurations":{"android":"1:154097110008:android:a40f622c85a360f137240d","ios":"1:154097110008:ios:367d4837dd21dced37240d","web":"1:154097110008:web:901eb172c624b8b637240d"}}}}}}

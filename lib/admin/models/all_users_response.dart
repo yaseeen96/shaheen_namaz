@@ -1,134 +1,107 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class AllUsersResponse {
-  List<Users>? users;
+  List<User> users;
 
-  AllUsersResponse({this.users});
+  AllUsersResponse({required this.users});
 
-  AllUsersResponse.fromJson(Map<String, dynamic> json) {
-    if (json["users"] is List) {
-      users = json["users"] == null
-          ? null
-          : (json["users"] as List).map((e) => Users.fromJson(e)).toList();
-    }
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    if (users != null) {
-      data["users"] = users?.map((e) => e.toJson()).toList();
-    }
-    return data;
-  }
-
-  AllUsersResponse copyWith({
-    List<Users>? users,
-  }) {
-    return AllUsersResponse(
-      users: users ?? this.users,
-    );
+  factory AllUsersResponse.fromSnapshot(QuerySnapshot snapshot) {
+    List<User> userList = snapshot.docs
+        .map((doc) => User.fromJson(doc.id, doc.data() as Map<String, dynamic>))
+        .toList();
+    return AllUsersResponse(users: userList);
   }
 }
 
-class Users {
+class User {
+  String uid;
+  String email;
+  String? phoneNumber;
   String? displayName;
-  String? email;
-  List<String>? masjidAllocated;
-  String? uid;
-  bool? isAdmin;
-  bool? isStaff;
-  bool? isTrustee;
-  List<MasjidDetails>? masjidDetails;
+  bool isAdmin;
+  bool isStaff;
+  bool isTrustee;
+  String jamaatName;
+  List<String> masjidAllocated; // Changed to List<String>
+  List<MasjidDetails> masjidDetails;
 
-  Users({
+  User({
+    required this.uid,
+    required this.email,
+    this.phoneNumber,
     this.displayName,
-    this.email,
-    this.masjidAllocated,
-    this.uid,
-    this.isAdmin,
-    this.isStaff,
-    this.isTrustee,
-    this.masjidDetails,
+    required this.isAdmin,
+    required this.isStaff,
+    required this.isTrustee,
+    required this.jamaatName,
+    required this.masjidAllocated,
+    required this.masjidDetails,
   });
 
-  Users.fromJson(Map<String, dynamic> json) {
-    displayName = json["display_name"];
-    email = json["email"];
-    masjidAllocated = json["masjid_allocated"] == null
-        ? null
-        : List<String>.from(json["masjid_allocated"]);
-    uid = json["uid"];
-    isAdmin = json["isAdmin"];
-    isStaff = json["isStaff"];
-    isTrustee = json["isTrustee"];
-    if (json["masjid_details"] != null) {
-      masjidDetails = (json["masjid_details"] as List)
-          .map((e) => MasjidDetails.fromJson(e))
-          .toList();
-    }
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data["display_name"] = displayName;
-    data["email"] = email;
-    if (masjidAllocated != null) {
-      data["masjid_allocated"] = masjidAllocated;
-    }
-    data["uid"] = uid;
-    data["is_admin"] = isAdmin;
-    data["is_staff"] = isStaff;
-    data["is_trustee"] = isTrustee;
-    if (masjidDetails != null) {
-      data["masjid_details"] = masjidDetails?.map((e) => e.toJson()).toList();
-    }
-    return data;
-  }
-
-  Users copyWith({
-    String? displayName,
-    String? email,
-    List<String>? masjidAllocated,
-    String? uid,
-    bool? isAdmin,
-    bool? isStaff,
-    bool? isTrustee,
-    List<MasjidDetails>? masjidDetails,
-  }) {
-    return Users(
-      displayName: displayName ?? this.displayName,
-      email: email ?? this.email,
-      masjidAllocated: masjidAllocated ?? this.masjidAllocated,
-      uid: uid ?? this.uid,
-      isAdmin: isAdmin ?? this.isAdmin,
-      isStaff: isStaff ?? this.isStaff,
-      isTrustee: isTrustee ?? this.isTrustee,
-      masjidDetails: masjidDetails ?? this.masjidDetails,
+  factory User.fromJson(String uid, Map<String, dynamic> json) {
+    return User(
+      uid: uid,
+      email: json['email'] ?? '',
+      phoneNumber: json['phone_number'].toString(),
+      displayName: json['name'] as String?,
+      isAdmin: json['isAdmin'] ?? false,
+      isStaff: json['isStaff'] ?? false,
+      isTrustee: json['isTrustee'] ?? false,
+      jamaatName: json['jamaat_name'] ?? '',
+      masjidAllocated: (json['masjid_allocated'] is List<dynamic>?)
+          ? (json['masjid_allocated'] as List<dynamic>?)
+                  ?.map((item) => item.toString())
+                  .toList() ??
+              []
+          : [json['masjid_allocated']], // Changed to handle list of strings
+      masjidDetails: (json['masjid_details'] as List<dynamic>?)
+              ?.map((item) =>
+                  MasjidDetails.fromJson(item as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 
-  @override
-  String toString() {
-    return 'Users(displayName: $displayName, email: $email, masjidAllocated: $masjidAllocated, uid: $uid, isAdmin: $isAdmin, isStaff: $isStaff, isTrustee: $isTrustee, masjidDetails: $masjidDetails)';
+  Map<String, dynamic> toJson() {
+    return {
+      'uid': uid,
+      'email': email,
+      'phone_number': phoneNumber,
+      'display_name': displayName,
+      'isAdmin': isAdmin,
+      'isStaff': isStaff,
+      'isTrustee': isTrustee,
+      'jamaat_name': jamaatName,
+      'masjid_allocated': masjidAllocated,
+      'masjid_details': masjidDetails.map((masjid) => masjid.toJson()).toList(),
+    };
   }
 }
 
 class MasjidDetails {
-  int? clusterNumber;
-  String? masjidId;
-  String? masjidName;
+  int clusterNumber;
+  String masjidId;
+  String masjidName;
 
-  MasjidDetails({this.clusterNumber, this.masjidId, this.masjidName});
+  MasjidDetails({
+    required this.clusterNumber,
+    required this.masjidId,
+    required this.masjidName,
+  });
 
-  MasjidDetails.fromJson(Map<String, dynamic> json) {
-    clusterNumber = json['clusterNumber'];
-    masjidId = json['masjidId'];
-    masjidName = json['masjidName'];
+  factory MasjidDetails.fromJson(Map<String, dynamic> json) {
+    return MasjidDetails(
+      clusterNumber: json['clusterNumber'] ?? 0,
+      masjidId: json['masjidId'] ?? '',
+      masjidName: json['masjidName'] ?? '',
+    );
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = <String, dynamic>{};
-    data['clusterNumber'] = clusterNumber;
-    data['masjidId'] = masjidId;
-    data['masjidName'] = masjidName;
-    return data;
+    return {
+      'clusterNumber': clusterNumber,
+      'masjidId': masjidId,
+      'masjidName': masjidName,
+    };
   }
 }

@@ -1,22 +1,20 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:shaheen_namaz/admin/models/all_users_response.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
 
-Future<AllUsersResponse> getUsers() async {
-  try {
-    final jsonResponse =
-        await FirebaseFunctions.instance.httpsCallable('get_all_users').call();
-    logger.i("response ${jsonResponse.data}");
-
-    final response =
-        AllUsersResponse.fromJson(jsonResponse.data as Map<String, dynamic>);
-    return response;
-  } catch (err) {
-    if (err is FirebaseFunctionsException) {
-      logger.e("Firebase Exception: ${err.message}");
-    } else {
-      logger.e("Error from getUsers in services: $err");
-    }
-    throw Exception("Server Error. Contact Developer for more info.");
-  }
+Stream<AllUsersResponse> getUsers() {
+  return FirebaseFirestore.instance
+      .collection('Users')
+      .snapshots()
+      .map((snapshot) {
+    logger.i("Snapshot received with ${snapshot.docs.length} users");
+    snapshot.docs.forEach((doc) {
+      // logger.i("User ID: ${doc.id}, Data: ${doc.data()}");
+    });
+    return AllUsersResponse.fromSnapshot(snapshot);
+  }).handleError((err) {
+    logger.e("Error from getUsers in services: $err");
+    throw Exception("Error retrieving users from Firestore.");
+  });
 }

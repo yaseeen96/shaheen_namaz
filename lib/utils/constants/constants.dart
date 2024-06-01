@@ -1,0 +1,27 @@
+class Constants {
+  static List<String> jamaatList = [
+    'Tablighi Jamath',
+    'Jamiyath-e-Ulmaye Hind',
+    'Rabtay-e-Milath',
+    'Dawoodo Allah ki Taraf',
+    'MRF',
+    'SIO',
+    'Jamiyath Ahl-e-Hadees',
+    'Safa Baitul Mall',
+    'Jamiyath Ahl-e-Sunathul Jamath',
+    'Rifah Chaimber of Commerce',
+    'Al-Falah Trust',
+    'Samjhota Committee',
+    'SYM',
+    'Shoeba-e-Islahe Mashera Jamate Islami Hind',
+    'Helping Hand Society',
+    'Moment of Justice',
+    'youth of Bidar',
+    'Bidar Betterment Foundation',
+    "Other",
+    'Shaheen Staff',
+    'Shaheen Alumni',
+    'BBF Staff',
+    'Not Assosciated with any Jamaat',
+  ];
+}
