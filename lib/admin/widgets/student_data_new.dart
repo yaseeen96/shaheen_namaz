@@ -16,9 +16,9 @@ class _StudentDataNewState extends ConsumerState<StudentDataNew> {
         .where("masjid", isEqualTo: "Masjid")
         .get()
         .then((value) {
-      value.docs.forEach((element) {
+      for (var element in value.docs) {
         print(element.data());
-      });
+      }
     });
   }
 

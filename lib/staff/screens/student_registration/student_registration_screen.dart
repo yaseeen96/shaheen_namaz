@@ -13,7 +13,6 @@ import 'package:shaheen_namaz/staff/providers/providers.dart';
 import 'package:shaheen_namaz/staff/screens/student_registration/masjids_widget.dart';
 import 'package:shaheen_namaz/staff/widgets/app_bar.dart';
 import 'package:shaheen_namaz/staff/widgets/image_preview.dart';
-import 'package:shaheen_namaz/staff/widgets/side_drawer.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
@@ -383,7 +382,7 @@ class _StudentRegistrationScreenState
       alignLabelWithHint: true,
       label: Text(
         label,
-        style: TextStyle(fontSize: 12),
+        style: const TextStyle(fontSize: 12),
       ),
       border: const OutlineInputBorder(),
       contentPadding: const EdgeInsets.symmetric(horizontal: 10),

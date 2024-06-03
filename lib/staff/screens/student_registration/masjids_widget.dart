@@ -12,7 +12,7 @@ class MasjidSearchWidget extends ConsumerStatefulWidget {
 }
 
 class _MasjidSearchWidgetState extends ConsumerState<MasjidSearchWidget> {
-  late QuerySnapshot<Map<String, dynamic>>? masjids = null;
+  late QuerySnapshot<Map<String, dynamic>>? masjids;
   late List<QueryDocumentSnapshot<Map<String, dynamic>>>? filteredMasjids;
 
   void getMasjids() async {

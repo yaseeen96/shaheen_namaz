@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:shaheen_namaz/admin/providers/admin_home_provider.dart';
 import 'package:shaheen_namaz/admin/widgets/change_password.dart';
+import 'package:shaheen_namaz/admin/widgets/dashboard/dashboard.dart';
 import 'package:shaheen_namaz/admin/widgets/masjid_widget.dart';
 import 'package:shaheen_namaz/admin/widgets/student_data_new.dart';
-import 'package:shaheen_namaz/admin/widgets/student_data_table.dart';
 import 'package:shaheen_namaz/admin/widgets/users/users_widget.dart';
 
 class SideMenuDrawer extends ConsumerWidget {
@@ -39,7 +39,7 @@ class SideMenuDrawer extends ConsumerWidget {
           ),
           ListTile(
             title: const Text(
-              "Users",
+              "Dashboard",
             ),
             onTap: () {
               operations.updateSelectedIndex(1);
@@ -47,13 +47,23 @@ class SideMenuDrawer extends ConsumerWidget {
             selected: homeState.selectedIndex == 1,
             selectedTileColor: Theme.of(context).primaryColor,
           ),
-          const Gap(5),
           ListTile(
-            title: const Text("Masjids"),
+            title: const Text(
+              "Users",
+            ),
             onTap: () {
               operations.updateSelectedIndex(2);
             },
             selected: homeState.selectedIndex == 2,
+            selectedTileColor: Theme.of(context).primaryColor,
+          ),
+          const Gap(5),
+          ListTile(
+            title: const Text("Masjids"),
+            onTap: () {
+              operations.updateSelectedIndex(3);
+            },
+            selected: homeState.selectedIndex == 3,
             selectedTileColor: Theme.of(context).primaryColor,
           ),
           const Gap(5),
@@ -64,16 +74,16 @@ class SideMenuDrawer extends ConsumerWidget {
                 : Container(
                     margin: const EdgeInsets.only(right: 10),
                     padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.red,
                     ),
                     child: Text("$dataCount"),
                   ),
             onTap: () {
-              operations.updateSelectedIndex(3);
+              operations.updateSelectedIndex(4);
             },
-            selected: homeState.selectedIndex == 3,
+            selected: homeState.selectedIndex == 4,
             selectedTileColor: Theme.of(context).primaryColor,
           ),
           const Spacer(),
@@ -87,13 +97,13 @@ class SideMenuDrawer extends ConsumerWidget {
                     context: context,
                     builder: (ctx) => const ChangePasswordWidget());
               },
-              child: Text("Change Password"),
               style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.amber,
                   foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(
+                  shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.zero,
                   )),
+              child: const Text("Change Password"),
             ),
           ),
           SizedBox(
@@ -121,11 +131,13 @@ class SideMenuDrawer extends ConsumerWidget {
 Widget childWidget(int index, WidgetRef ref) {
   switch (index) {
     case 1:
-      return const UsersWidget();
+      return const ShaheenDashboard();
     case 2:
-      return const MasjidWidget();
+      return const UsersWidget();
     case 3:
-      return StudentDataNew();
+      return const MasjidWidget();
+    case 4:
+      return const StudentDataNew();
     // return StudentDataTable(
     //   onDataFetched: (value) {
     //     ref.read(dataCountProvider.notifier).state = value;

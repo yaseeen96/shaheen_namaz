@@ -151,7 +151,7 @@ class _ChangePasswordWidgetState extends State<ChangePasswordWidget> {
             onPressed: () {
               context.pop();
             },
-            child: Text("Cancel"))
+            child: const Text("Cancel"))
       ],
     );
   }

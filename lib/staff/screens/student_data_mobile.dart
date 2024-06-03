@@ -16,9 +16,9 @@ class _StudentDataMobileState extends State<StudentDataMobile> {
       appBar: AppBar(
         actions: [
           Container(
-            margin: EdgeInsets.only(right: 10),
-            padding: EdgeInsets.all(10),
-            decoration: BoxDecoration(
+            margin: const EdgeInsets.only(right: 10),
+            padding: const EdgeInsets.all(10),
+            decoration: const BoxDecoration(
               shape: BoxShape.circle,
               color: Colors.blue,
             ),

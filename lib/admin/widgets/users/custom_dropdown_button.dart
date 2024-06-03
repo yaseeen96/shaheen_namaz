@@ -123,7 +123,7 @@ class _CustomDropDownState extends State<CustomDropDown> {
                   );
                 },
               ),
-              dropdownDecoratorProps: DropDownDecoratorProps(
+              dropdownDecoratorProps: const DropDownDecoratorProps(
                   baseStyle: TextStyle(
                 color: Colors.black,
               )),

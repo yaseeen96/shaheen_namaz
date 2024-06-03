@@ -1,10 +1,10 @@
-import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shaheen_namaz/admin/screens/admin_screen.dart';
+import 'package:shaheen_namaz/admin/screens/masjid_data_screen.dart';
+import 'package:shaheen_namaz/admin/screens/volunteers_data_screen.dart';
 import 'package:shaheen_namaz/staff/screens/camera/camera_preview_screen.dart';
 import 'package:shaheen_namaz/staff/screens/camera/image_preview_screen.dart';
 import 'package:shaheen_namaz/staff/screens/parent_screen.dart';
@@ -25,9 +25,18 @@ final routes = GoRouter(
       },
     ),
     GoRoute(
-      path: "/admin",
-      builder: (ctx, state) => const AdminScreen(),
-    ),
+        path: "/admin",
+        builder: (ctx, state) => const AdminScreen(),
+        routes: [
+          GoRoute(
+            path: "volunteer",
+            builder: (context, state) => const VolunteersDataScreen(),
+          ),
+          GoRoute(
+            path: "masjid",
+            builder: (context, state) => const MasjidDataScreen(),
+          )
+        ]),
     GoRoute(
       path: "/user",
       builder: (ctx, state) => const ParentScreen(),

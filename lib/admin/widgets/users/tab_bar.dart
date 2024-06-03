@@ -5,7 +5,7 @@ class CustomTabBar extends StatefulWidget implements PreferredSizeWidget {
   final void Function(int)? onTabChange;
 
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
   @override
   State<CustomTabBar> createState() => _CustomTabBarState();

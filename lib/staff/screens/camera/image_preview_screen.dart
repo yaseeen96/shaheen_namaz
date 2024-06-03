@@ -105,7 +105,7 @@ class VerificationPopup extends StatefulWidget {
   final String guardianNumber;
   final String faceId;
 
-  VerificationPopup({
+  const VerificationPopup({super.key, 
     required this.name,
     required this.streak,
     required this.guardianNumber,
