@@ -306,6 +306,7 @@ class _VerificationPopupState extends State<VerificationPopup> {
                         message: result["message"],
                       ),
                     );
+                    Navigator.of(context).pop();
                   } else {
                     if (!context.mounted) return;
 
