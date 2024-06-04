@@ -105,7 +105,8 @@ class VerificationPopup extends StatefulWidget {
   final String guardianNumber;
   final String faceId;
 
-  const VerificationPopup({super.key, 
+  const VerificationPopup({
+    super.key,
     required this.name,
     required this.streak,
     required this.guardianNumber,
@@ -135,7 +136,7 @@ class _VerificationPopupState extends State<VerificationPopup> {
     });
   }
 
-  Future<bool> markAsPresent() async {
+  Future<Map<String, dynamic>> markAsPresent() async {
     setState(() {
       isLoading = true;
     });
@@ -143,6 +144,25 @@ class _VerificationPopupState extends State<VerificationPopup> {
     try {
       // get current user id
       final userId = FirebaseAuth.instance.currentUser!.uid;
+
+      logger.i("Selected Masjid: $selectedMasjid");
+
+      final student = await FirebaseFirestore.instance
+          .collection("students")
+          .doc(widget.faceId)
+          .get();
+      final studentData = student.data();
+      logger.i("Student Details: $studentData");
+
+      // check if the student registered to the masjid is the same masjid as the masjid allocated to the volunteer
+      if (selectedMasjid!["masjidId"] !=
+          studentData?["masjid_details"]["masjidId"]) {
+        return {
+          "isSuccess": false,
+          "message":
+              "Student is registered in ${studentData?["masjid_details"]["masjidName"]}."
+        };
+      }
 
       // check if doc exists
       final doc = await FirebaseFirestore.instance
@@ -206,13 +226,22 @@ class _VerificationPopupState extends State<VerificationPopup> {
 
       if (response.statusCode == 200) {
         // If the server returns a 200 OK response, then return true.
-        return true;
+        return {
+          "isSuccess": true,
+          "message": "Student marked as present",
+        };
       } else {
         // If the server returns an error response, then throw an exception.
-        throw Exception('Failed to send SMS');
+        return {
+          "isSuccess": false,
+          "message": "SMS quota exceeded. Please recharge your account",
+        };
       }
     } catch (error) {
-      return false;
+      return {
+        "isSuccess": false,
+        "message": error.toString(),
+      };
     } finally {
       if (mounted) {
         setState(() {
@@ -268,13 +297,13 @@ class _VerificationPopupState extends State<VerificationPopup> {
           onPressed: isLoading
               ? null
               : () async {
-                  final isSuccess = await markAsPresent();
-                  if (isSuccess) {
+                  final result = await markAsPresent();
+                  if (result["isSuccess"]) {
                     if (!context.mounted) return;
                     showTopSnackBar(
                       Overlay.of(context),
-                      const CustomSnackBar.success(
-                        message: "Student marked as present",
+                      CustomSnackBar.success(
+                        message: result["message"],
                       ),
                     );
                   } else {
@@ -282,8 +311,8 @@ class _VerificationPopupState extends State<VerificationPopup> {
 
                     showTopSnackBar(
                       Overlay.of(context),
-                      const CustomSnackBar.error(
-                        message: "Failed to mark student as present",
+                      CustomSnackBar.error(
+                        message: result["message"],
                       ),
                     );
                   }

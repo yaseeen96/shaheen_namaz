@@ -51,7 +51,7 @@ class _VolunteersDataScreenState extends ConsumerState<VolunteersDataScreen> {
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(40),
-        child: ListView(
+        child: Column(
           children: [
             Text(
               "Number of Students Registered by Volunteers",
@@ -85,10 +85,8 @@ class _VolunteersDataScreenState extends ConsumerState<VolunteersDataScreen> {
                   if (snapshot.data == null) {
                     return const Center(child: Text("No data found"));
                   }
-                  final volunteers =
-                      snapshot.data![0];
-                  final students =
-                      snapshot.data![1];
+                  final volunteers = snapshot.data![0];
+                  final students = snapshot.data![1];
 
                   // Calculate the registration count for each volunteer
                   final List<Map<String, dynamic>> volunteersWithCount =

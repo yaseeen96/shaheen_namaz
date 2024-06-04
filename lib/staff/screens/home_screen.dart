@@ -33,11 +33,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Expanded(
+          Expanded(
             child: MenuButton(
               foregroundColor: Colors.white,
               backgroundColor: Colors.black,
-              onTap: null,
+              onTap: onTrackAttendance,
               imagePath: "assets/camera_icon.png",
               title: "Track Attendance",
             ),

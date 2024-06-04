@@ -23,5 +23,7 @@ class Constants {
     'Shaheen Alumni',
     'BBF Staff',
     'Not Assosciated with any Jamaat',
+    'Education Dept',
+    'Shaheen Staff (Female)'
   ];
 }

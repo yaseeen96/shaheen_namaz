@@ -107372,7 +107372,7 @@ $0(){this.a.x=!1},
 $S:0}
 A.VS.prototype={
 F(a){var s=A.Ke(null,A.b8J(B.ac,B.Fe),B.JJ,!0)
-return new A.yJ($.b6H(),"Shaheen Namaz App",s,null)}}
+return new A.yJ($.b6H(),"Aao Namaz Padhe",s,null)}}
 A.aPu.prototype={
 $1(a){var s=$.az,r=(s==null?$.az=$.bK():s).bS(0,"[DEFAULT]")
 A.b7(r,$.bM(),!0)
