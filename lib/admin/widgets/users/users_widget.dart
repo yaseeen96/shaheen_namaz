@@ -388,7 +388,7 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                   },
                 ),
                 TextFormField(
-                  initialValue: widget.user?.phoneNumber,
+                  initialValue: widget.user?.phoneNumber?.substring(3),
                   decoration: const InputDecoration(
                     label: Text("User's phone number"),
                   ),
