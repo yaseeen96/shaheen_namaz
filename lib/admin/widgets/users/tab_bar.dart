@@ -28,15 +28,16 @@ class _CustomTabBarState extends State<CustomTabBar>
   @override
   Widget build(BuildContext context) {
     return TabBar(
-        controller: _tabController,
-        onTap: widget.onTabChange,
-        tabs: const [
-          Tab(
-            text: 'Volunteers',
-          ),
-          Tab(
-            text: 'Trustees',
-          ),
-        ]);
+      controller: _tabController,
+      onTap: widget.onTabChange,
+      tabs: const [
+        Tab(
+          text: 'Volunteers',
+        ),
+        Tab(
+          text: 'Trustees',
+        ),
+      ],
+    );
   }
 }

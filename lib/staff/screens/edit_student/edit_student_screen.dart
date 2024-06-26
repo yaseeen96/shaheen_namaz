@@ -1,36 +1,46 @@
-import 'dart:convert';
-
 import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
+import 'package:shaheen_namaz/admin/providers/imam_provider.dart';
 import 'package:shaheen_namaz/staff/providers/providers.dart';
 import 'package:shaheen_namaz/staff/screens/student_registration/masjids_widget.dart';
-import 'package:shaheen_namaz/staff/widgets/app_bar.dart';
-import 'package:shaheen_namaz/staff/widgets/image_preview.dart';
-import 'package:shaheen_namaz/utils/config/logger.dart';
+import 'package:shaheen_namaz/utils/conversions/conversions.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
+import 'package:shaheen_namaz/staff/widgets/app_bar.dart';
+import 'package:shaheen_namaz/utils/config/logger.dart';
 
-class StudentRegistrationScreen extends ConsumerStatefulWidget {
-  const StudentRegistrationScreen(
-      {super.key, this.image, this.name, this.guardianNumber});
+class EditStudentScreen extends ConsumerStatefulWidget {
+  const EditStudentScreen({
+    required this.faceId,
+    super.key,
+    this.image,
+    this.name,
+    this.guardianNumber,
+    this.className,
+    this.address,
+    this.dob,
+    this.guardianName,
+  });
+  final String faceId;
   final XFile? image;
   final String? name;
   final String? guardianNumber;
+  final String? className;
+  final String? address;
+  final String? dob;
+  final String? guardianName;
 
   @override
-  ConsumerState<StudentRegistrationScreen> createState() =>
-      _StudentRegistrationScreenState();
+  ConsumerState<EditStudentScreen> createState() => _EditStudentScreenState();
 }
 
-class _StudentRegistrationScreenState
-    extends ConsumerState<StudentRegistrationScreen> {
+class _EditStudentScreenState extends ConsumerState<EditStudentScreen> {
   final formkey = GlobalKey<FormState>();
   String? name;
   String? guardianNumber;
@@ -38,7 +48,6 @@ class _StudentRegistrationScreenState
   String? studentClass;
   String? studentAddress;
   String? dob;
-  String? selectedGender;
   bool isLoading = false;
   final TextEditingController nameController = TextEditingController();
   final TextEditingController guardianNumberController =
@@ -48,7 +57,26 @@ class _StudentRegistrationScreenState
   final TextEditingController studentAddressController =
       TextEditingController();
 
-  void onRegister() async {
+  @override
+  void initState() {
+    super.initState();
+    nameController.text = widget.name ?? "";
+    guardianNumberController.text = widget.guardianNumber ?? "";
+    guardianNameController.text = widget.guardianName ?? "";
+    dob = widget.dob ?? "";
+    studentClassController.text = widget.className ?? "";
+    studentAddressController.text = widget.address ?? "";
+  }
+
+  void onUpdate() async {
+    final masjidId = ref.read(selectedMasjidProvider);
+    final imamDetails = ref.watch(imamProvider);
+
+    final masjid = await FirebaseFirestore.instance
+        .collection("Masjid")
+        .doc(masjidId)
+        .get();
+    final masjidData = masjid.data();
     final currentState = formkey.currentState;
     logger.i(currentState == null);
     if (currentState == null) return;
@@ -59,74 +87,42 @@ class _StudentRegistrationScreenState
         setState(() {
           isLoading = true;
         });
-        if (widget.image == null) {
-          if (!context.mounted) return;
-          showTopSnackBar(
-            Overlay.of(context),
-            const CustomSnackBar.error(
-                message: "Please select an image before registering."),
-          );
-          return;
-        }
-
-        final bytes = await widget.image!.readAsBytes();
-        final base64Image = base64Encode(bytes);
-        // Read the selected masjid from the provider
-        final String? selectedMasjidRef = ref.read(selectedMasjidProvider);
-        if (selectedMasjidRef == null) {
-          // Handle the case where no masjid is selected, if necessary
-          if (!context.mounted) return;
-          showTopSnackBar(
-            Overlay.of(context),
-            const CustomSnackBar.error(
-                message: "Please select a masjid before registering."),
-          );
-          return;
-        }
-        final response = await FirebaseFunctions.instance
-            .httpsCallable('register_student')
-            .call({
-          "image_data": base64Image,
+        await FirebaseFirestore.instance
+            .collection("students")
+            .doc(widget.faceId)
+            .update({
           "name": name,
           "guardianNumber": guardianNumber,
-          "masjidId": selectedMasjidRef, //add id if not working
           "guardianName": guardianName,
-          "dob": dob,
-          "class": studentClass,
+          "className": studentClass,
           "address": studentAddress,
-          "volunteer_name": FirebaseAuth.instance.currentUser!.displayName,
-          "volunteer_id": FirebaseAuth.instance.currentUser!.uid,
+          "dob": Conversions.convertDateStringToTimestamp(dob ?? "2001-05-28"),
+          "masjid_details": {
+            "masjidId": masjidId,
+            "masjidName": masjidData?["name"],
+            "clusterNumber": masjidData?["cluster_number"],
+          },
+          "imam_details": imamDetails == {} ? null : imamDetails
         });
-
-        final jsonResponse = response.data;
-        if (jsonResponse["faceId"] != null) {
-          logger.i("Success");
-          if (!mounted) return;
-          showTopSnackBar(
-            Overlay.of(context),
-            const CustomSnackBar.success(
-                message: "Yayyy!! Successfully Registered"),
-          );
-          ref.read(studentDetailsProvider.notifier).state = {};
-          context.go("/user");
-        } else {
-          if (!context.mounted) return;
-          showTopSnackBar(
-              Overlay.of(context),
-              CustomSnackBar.error(
-                  message:
-                      "An Error Occurred: ${jsonResponse["error"] ?? ''}"));
-        }
-
-        logger.i("Response: $jsonResponse");
-      } catch (err) {
-        logger.e("Error: $err");
         if (!mounted) return;
         showTopSnackBar(
             Overlay.of(context),
-            const CustomSnackBar.error(
-                message: "Server Error. Please Come Back Later."));
+            const CustomSnackBar.success(
+              message: "Student updated successfully",
+            ));
+        context.pop();
+        context.pop();
+      } catch (e) {
+        logger.e("Error: $e");
+        if (!mounted) return;
+        showTopSnackBar(
+          Overlay.of(context),
+          const CustomSnackBar.error(
+            message: "An error occurred. Please try again later",
+          ),
+        );
       } finally {
+        if (!mounted) return;
         setState(() {
           isLoading = false;
         });
@@ -141,54 +137,7 @@ class _StudentRegistrationScreenState
     guardianNameController.dispose();
     studentClassController.dispose();
     studentAddressController.dispose();
-
     super.dispose();
-  }
-
-  void onAddImage() async {
-    ref.read(studentDetailsProvider.notifier).state = {
-      "name": nameController.text,
-      "guardianNumber": guardianNumberController.text,
-      "guardianName": guardianNameController.text,
-      "dob": dob,
-      "gender": selectedGender,
-      "studentClass": studentClassController.text,
-      "studentAddress": studentAddressController.text,
-    };
-    final cameras = await availableCameras();
-
-    final firstCamera = cameras.first;
-    if (!mounted) return;
-
-    Logger().e("name: ${nameController.text == ""}");
-
-    context.pushNamed(
-      "camera_preview",
-      extra: firstCamera,
-      pathParameters: {
-        "isAttendenceTracking": "false",
-        "isEdit": "false",
-        "isManual": "false"
-      },
-    );
-  }
-
-  @override
-  void initState() {
-    final studentDetails = ref.read(studentDetailsProvider);
-    nameController.text = studentDetails["name"] as String? ?? "";
-    guardianNumberController.text =
-        studentDetails["guardianNumber"] as String? ?? "";
-    guardianNameController.text =
-        studentDetails["guardianName"] as String? ?? "";
-    dob = studentDetails["dob"] as String? ?? "";
-    studentClassController.text =
-        studentDetails["studentClass"] as String? ?? "";
-    studentAddressController.text =
-        studentDetails["studentAddress"] as String? ?? "";
-    selectedGender = studentDetails["gender"] as String? ?? null;
-
-    super.initState();
   }
 
   @override
@@ -219,14 +168,6 @@ class _StudentRegistrationScreenState
                 child: Column(
                   children: [
                     Gap(MediaQuery.of(context).size.height * 0.05),
-                    Align(
-                      alignment: Alignment.center,
-                      child: ImagePreview(
-                        onTap: onAddImage,
-                        image: widget.image,
-                      ),
-                    ),
-                    Gap(MediaQuery.of(context).size.height * 0.05),
                     TextFormField(
                       controller: nameController,
                       decoration: formDecoration(label: "Name"),
@@ -244,7 +185,6 @@ class _StudentRegistrationScreenState
                       },
                     ),
                     const Gap(10),
-                    // add dropdown list for studentClass. keep options 1-10
                     TextFormField(
                       controller: studentClassController,
                       decoration: formDecoration(label: "Class"),
@@ -259,9 +199,7 @@ class _StudentRegistrationScreenState
                         studentClass = currentVal;
                       },
                     ),
-
                     const Gap(10),
-
                     TextFormField(
                       initialValue: dob,
                       decoration: formDecoration(label: "Date of Birth"),
@@ -283,16 +221,11 @@ class _StudentRegistrationScreenState
                         if (dob == null) {
                           return "Please select a valid date";
                         } else {
-// check if age is between 10 and 25, if more than 25, return error
-                          // if less than 10, return error
-                          // value is of type string and is in the format yyyy-mm-dd
-                          // convert value to datetime first
                           var dobDateTime = DateTime.parse(dob!);
                           var age = DateTime.now().year - dobDateTime.year;
                           if (age < 10 || age > 25) {
                             return "Age must be between 10 and 25";
                           }
-
                           return null;
                         }
                       },
@@ -302,31 +235,6 @@ class _StudentRegistrationScreenState
                       },
                     ),
                     const Gap(10),
-
-                    DropdownButtonFormField<String>(
-                      decoration: InputDecoration(
-                        labelText: 'Gender',
-                        border: OutlineInputBorder(),
-                      ),
-                      value: selectedGender,
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          selectedGender = newValue;
-                        });
-                      },
-                      validator: (value) =>
-                          value == null ? 'Please select a gender' : null,
-                      items: ['Male', 'Female']
-                          .map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                    ),
-                    const Gap(10),
-
-                    // add field for student address
                     TextFormField(
                       maxLines: 3,
                       controller: studentAddressController,
@@ -400,23 +308,23 @@ class _StudentRegistrationScreenState
             );
           }),
       floatingActionButton: FloatingActionButton(
-        onPressed: onRegister,
+        onPressed: onUpdate,
         child: isLoading
             ? const CircularProgressIndicator()
             : const Icon(Icons.keyboard_arrow_right_rounded),
       ),
     );
   }
+}
 
-  InputDecoration formDecoration({required String label}) {
-    return InputDecoration(
-      alignLabelWithHint: true,
-      label: Text(
-        label,
-        style: const TextStyle(fontSize: 12),
-      ),
-      border: const OutlineInputBorder(),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 10),
-    );
-  }
+InputDecoration formDecoration({required String label}) {
+  return InputDecoration(
+    alignLabelWithHint: true,
+    label: Text(
+      label,
+      style: const TextStyle(fontSize: 12),
+    ),
+    border: const OutlineInputBorder(),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+  );
 }

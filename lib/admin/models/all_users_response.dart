@@ -6,9 +6,8 @@ class AllUsersResponse {
   AllUsersResponse({required this.users});
 
   factory AllUsersResponse.fromSnapshot(QuerySnapshot snapshot) {
-    List<User> userList = snapshot.docs
-        .map((doc) => User.fromJson(doc.id, doc.data() as Map<String, dynamic>))
-        .toList();
+    List<User> userList =
+        snapshot.docs.map((doc) => User.fromFirestore(doc)).toList();
     return AllUsersResponse(users: userList);
   }
 }
@@ -22,8 +21,9 @@ class User {
   bool isStaff;
   bool isTrustee;
   String jamaatName;
-  List<String> masjidAllocated; // Changed to List<String>
+  List<String> masjidAllocated;
   List<MasjidDetails> masjidDetails;
+  Map<String, dynamic>? imamDetails; // Optional field
 
   User({
     required this.uid,
@@ -36,13 +36,14 @@ class User {
     required this.jamaatName,
     required this.masjidAllocated,
     required this.masjidDetails,
+    this.imamDetails,
   });
 
   factory User.fromJson(String uid, Map<String, dynamic> json) {
     return User(
       uid: uid,
       email: json['email'] ?? '',
-      phoneNumber: json['phone_number'].toString(),
+      phoneNumber: json['phone_number']?.toString(),
       displayName: json['name'] as String?,
       isAdmin: json['isAdmin'] ?? false,
       isStaff: json['isStaff'] ?? false,
@@ -53,13 +54,19 @@ class User {
                   ?.map((item) => item.toString())
                   .toList() ??
               []
-          : [json['masjid_allocated']], // Changed to handle list of strings
+          : [json['masjid_allocated']],
       masjidDetails: (json['masjid_details'] as List<dynamic>?)
               ?.map((item) =>
                   MasjidDetails.fromJson(item as Map<String, dynamic>))
               .toList() ??
           [],
+      imamDetails: json['imam_details'] as Map<String, dynamic>?,
     );
+  }
+
+  factory User.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return User.fromJson(doc.id, data);
   }
 
   Map<String, dynamic> toJson() {
@@ -74,6 +81,7 @@ class User {
       'jamaat_name': jamaatName,
       'masjid_allocated': masjidAllocated,
       'masjid_details': masjidDetails.map((masjid) => masjid.toJson()).toList(),
+      if (imamDetails != null) 'imam_details': imamDetails,
     };
   }
 }

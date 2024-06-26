@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gap/gap.dart';
 
 class VolunteersDataScreen extends ConsumerStatefulWidget {
   const VolunteersDataScreen({super.key});
@@ -133,15 +134,27 @@ class _VolunteersDataScreenState extends ConsumerState<VolunteersDataScreen> {
                             volunteer["name"],
                             style: const TextStyle(color: Colors.black),
                           ),
-                          trailing: Container(
-                            alignment: Alignment.center,
-                            width: 30,
-                            height: 30,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.grey[900],
+                          trailing: SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.35,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  volunteer["jamaat_name"],
+                                  style: const TextStyle(color: Colors.black),
+                                ),
+                                Container(
+                                  alignment: Alignment.center,
+                                  width: 30,
+                                  height: 30,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.grey[900],
+                                  ),
+                                  child: Text(count.toString()),
+                                ),
+                              ],
                             ),
-                            child: Text(count.toString()),
                           ),
                         ),
                       );

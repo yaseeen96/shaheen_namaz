@@ -26,5 +26,14 @@ class Constants {
     'Education Dept',
     'Shaheen Staff (Female)',
     'Madarsa Plus',
+    'IMAM MASJID',
+    'Trustee',
+    'GIO',
+    'shoeba-e-Khawateen jamat-e-islami hind',
+    'AITA',
+    'majlis-ul-maulimath tehreek-e-islami hind',
+    'Shoeba-e-khawateen jamat-e-ahle hadees',
+    'Sunni ( ladies )',
+    'Tabligi ( ladies )',
   ];
 }

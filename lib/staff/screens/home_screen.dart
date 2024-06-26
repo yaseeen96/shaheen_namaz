@@ -22,7 +22,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     context.pushNamed(
       "camera_preview",
       extra: firstCamera,
-      pathParameters: {"isAttendenceTracking": "true"},
+      pathParameters: {
+        "isAttendenceTracking": "true",
+        "isEdit": "false",
+        "isManual": "false"
+      },
     );
   }
 

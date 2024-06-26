@@ -55,6 +55,8 @@ dependencies:
   
 
   intl: any
+  url_launcher: ^6.3.0
+  firebase_pagination: ^3.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

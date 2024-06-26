@@ -9,10 +9,14 @@ class TakePictureScreen extends StatefulWidget {
     super.key,
     required this.camera,
     this.isAttendenceTracking = false,
+    this.isEdit = false,
+    this.isManual = false,
   });
 
   final CameraDescription camera;
   final bool isAttendenceTracking;
+  final bool isEdit;
+  final bool isManual;
 
   @override
   TakePictureScreenState createState() => TakePictureScreenState();
@@ -46,7 +50,19 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       if (widget.isAttendenceTracking) {
         logger.i("inside isAttendenceTracking");
         if (!mounted) return;
-        context.push("/image_preview", extra: image);
+        context.pushNamed("image_preview",
+            pathParameters: {"isEdit": "false", "isManual": "false"},
+            extra: image);
+      } else if (widget.isEdit) {
+        if (!mounted) return;
+        context.pushNamed("image_preview",
+            pathParameters: {"isEdit": "true", "isManual": "false"},
+            extra: image);
+      } else if (widget.isManual) {
+        if (!mounted) return;
+        context.pushNamed("image_preview",
+            pathParameters: {"isEdit": "false", "isManual": "true"},
+            extra: image);
       } else {
         if (!mounted) return;
         context.goNamed(

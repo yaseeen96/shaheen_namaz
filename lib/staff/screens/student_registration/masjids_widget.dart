@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shaheen_namaz/staff/providers/providers.dart';
 
+// updates the new value in the provider
+
 class MasjidSearchWidget extends ConsumerStatefulWidget {
   const MasjidSearchWidget({super.key});
 
@@ -56,19 +58,24 @@ class _MasjidSearchWidgetState extends ConsumerState<MasjidSearchWidget> {
         if (masjids != null && masjids!.docs.isNotEmpty)
           ...filteredMasjids!.map((masjidRef) {
             return RadioListTile<String>(
-              value: masjidRef.id,
-              groupValue: selectedMasjid,
-              onChanged: (newValue) {
-                // Update the selectedMasjid state
-                ref.read(selectedMasjidProvider.notifier).state = newValue;
-              },
-              title: Text(
-                masjidRef.get("name") as String,
-                style: const TextStyle(
-                  color: Colors.black,
+                value: masjidRef.id,
+                groupValue: selectedMasjid,
+                onChanged: (newValue) {
+                  // Update the selectedMasjid state
+                  ref.read(selectedMasjidProvider.notifier).state = newValue;
+                },
+                title: Text(
+                  masjidRef.get("name") as String,
+                  style: const TextStyle(
+                    color: Colors.black,
+                  ),
                 ),
-              ),
-            );
+                subtitle: Text(
+                  masjidRef.get("cluster_number").toString(),
+                  style: const TextStyle(
+                    color: Colors.black,
+                  ),
+                ));
           })
       ],
     );

@@ -5,7 +5,7 @@ import 'package:gap/gap.dart';
 import 'package:shaheen_namaz/admin/providers/admin_home_provider.dart';
 import 'package:shaheen_namaz/admin/widgets/change_password.dart';
 import 'package:shaheen_namaz/admin/widgets/dashboard/dashboard.dart';
-import 'package:shaheen_namaz/admin/widgets/masjid_widget.dart';
+import 'package:shaheen_namaz/admin/widgets/masjids/masjid_widget.dart';
 import 'package:shaheen_namaz/admin/widgets/student_data_new.dart';
 import 'package:shaheen_namaz/admin/widgets/users/users_widget.dart';
 
@@ -128,27 +128,28 @@ class SideMenuDrawer extends ConsumerWidget {
   }
 }
 
-Widget childWidget(int index, WidgetRef ref) {
-  switch (index) {
-    case 1:
-      return const ShaheenDashboard();
-    case 2:
-      return const UsersWidget();
-    case 3:
-      return const MasjidWidget();
-    case 4:
-      return const StudentDataNew();
-    // return StudentDataTable(
-    //   onDataFetched: (value) {
-    //     ref.read(dataCountProvider.notifier).state = value;
-    //   },
-    //   isAdmin: true,
-    // );
+class ChildWidget extends ConsumerStatefulWidget {
+  const ChildWidget({super.key});
 
-    default:
-      return Container(
-        alignment: Alignment.center,
-        child: const Text("Please Select a view from menu"),
-      );
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() => _ChildWidgetState();
+}
+
+class _ChildWidgetState extends ConsumerState<ChildWidget> {
+  @override
+  Widget build(BuildContext context) {
+    final homeState = ref.watch(adminNotifierProvider);
+    return Container(
+      alignment: Alignment.center,
+      child: homeState.selectedIndex == 1
+          ? const ShaheenDashboard()
+          : homeState.selectedIndex == 2
+              ? const UsersWidget()
+              : homeState.selectedIndex == 3
+                  ? const MasjidWidget()
+                  : homeState.selectedIndex == 4
+                      ? const StudentDataNew()
+                      : const Text("Please Select a view from menu"),
+    );
   }
 }

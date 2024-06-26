@@ -14,6 +14,7 @@ class StudentData {
   final String studentClass;
   final String address;
   final int clusterNumber;
+  final String masjidId;
 
   StudentData(
       {required this.uid,
@@ -26,7 +27,8 @@ class StudentData {
       required this.age,
       required this.studentClass,
       required this.address,
-      required this.clusterNumber});
+      required this.clusterNumber,
+      required this.masjidId});
 
   static Future<StudentData> getStudentDataFromFirestore(
       DocumentSnapshot doc) async {
@@ -37,24 +39,23 @@ class StudentData {
       name: data['name'] ?? '',
       streak: data['streak'] ?? 0,
       guardianNumber: data['guardianNumber'] ?? '',
-      // data['masjid'] is  a DocumentReference. get the name from the document
+      // data['masjid'] is a DocumentReference. get the name from the document
       masjid: data["masjid_details"]["masjidName"],
+      masjidId: data['masjid_details'] != null
+          ? data["masjid_details"]["masjidId"]
+          : "",
       clusterNumber: data['masjid_details'] != null
           ? data["masjid_details"]["clusterNumber"]
           : 0,
-      // streak_last_modified is timestamp in firestore. convert it to string
-// translate the streakLastModified to something. current format is 2024-05-20 12:00:00.000
-// I want it in format Thursday, 20 May 2024, 12:00 PM
+      // streak_last_modified is timestamp in Firestore. convert it to string
+      // translate the streakLastModified to something. current format is 2024-05-20 12:00:00.000
+      // I want it in format Thursday, 20 May 2024, 12:00 PM
       streakLastModified: data['streak_last_modified'] != null
           ? formatDateTime((data['streak_last_modified'] as Timestamp).toDate())
           : '',
       guardianName: data['guardianName'] ?? '',
-      // we have dob as timestamp in firestore. calculate age from it
-      age: data['dob'] != null
-          ? ((DateTime.now().difference(data['dob'].toDate()).inDays) / 365)
-              .floor()
-              .toString()
-          : '',
+      // We have dob as timestamp or string in Firestore. Calculate age from it
+      age: data['dob'] != null ? calculateAge(data['dob']) : '',
       studentClass: data['class'] ?? '',
       address: data['address'] ?? '',
     );
@@ -71,4 +72,21 @@ String formatDateTime(DateTime dateTime) {
   DateFormat formatter = DateFormat('EEEE, dd MMMM yyyy, hh:mm a');
   // Format the given DateTime object
   return formatter.format(dateTime);
+}
+
+String calculateAge(dynamic dob) {
+  DateTime dobDateTime;
+  if (dob is Timestamp) {
+    dobDateTime = dob.toDate();
+  } else if (dob is String) {
+    dobDateTime = DateTime.parse(dob);
+  } else {
+    return '';
+  }
+  int age = DateTime.now().year - dobDateTime.year;
+  if (DateTime.now().isBefore(
+      DateTime(DateTime.now().year, dobDateTime.month, dobDateTime.day))) {
+    age--;
+  }
+  return age.toString();
 }

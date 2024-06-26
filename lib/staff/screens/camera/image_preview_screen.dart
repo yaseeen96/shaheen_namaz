@@ -8,14 +8,24 @@ import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:shaheen_namaz/staff/providers/providers.dart';
 import 'package:shaheen_namaz/staff/widgets/app_bar.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
+import 'package:shaheen_namaz/utils/conversions/conversions.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
 class ImagePreviewScreen extends ConsumerStatefulWidget {
-  const ImagePreviewScreen({super.key, this.image});
+  const ImagePreviewScreen({
+    super.key,
+    this.image,
+    this.isEdit = false,
+    this.isManual = false,
+  });
   final XFile? image;
+  final bool isEdit;
+  final bool isManual;
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() =>
@@ -24,6 +34,71 @@ class ImagePreviewScreen extends ConsumerStatefulWidget {
 
 class _ImagePreviewScreenState extends ConsumerState<ImagePreviewScreen> {
   bool isLoading = false;
+
+  void onEdit() async {
+    setState(() {
+      isLoading = true;
+    });
+    final bytes = await widget.image!.readAsBytes();
+    final base64Image = base64Encode(bytes);
+
+    try {
+      final response = await FirebaseFunctions.instance
+          .httpsCallable('verify_face_edit')
+          .call({
+        "image_data": base64Image,
+      });
+      final jsonResponse = response.data;
+      if (jsonResponse["faceId"] != null) {
+        final student = await FirebaseFirestore.instance
+            .collection("students")
+            .doc(jsonResponse["faceId"])
+            .get();
+        final studentData = student.data();
+        ref.read(selectedMasjidProvider.notifier).state =
+            studentData?["masjid_details"]["masjidId"];
+        if (!mounted) return;
+        context.pushNamed("edit_student", pathParameters: {
+          "faceId": jsonResponse["faceId"],
+          "name": studentData?["name"],
+          "dob": (studentData?["dob"] is String)
+              ? studentData!["dob"]
+              : Conversions.firestoreTimestampToDateString(studentData?["dob"]),
+          "guardianName": studentData?["guardianName"],
+          "guardianNumber": studentData?["guardianNumber"],
+          "address": studentData?["address"],
+          "className": studentData?["class"],
+        });
+      } else {
+        if (jsonResponse["error"] != null) {
+          if (!mounted) return;
+          showTopSnackBar(
+            Overlay.of(context),
+            const CustomSnackBar.error(
+              message: "No Student found with face",
+            ),
+          );
+        }
+      }
+
+      logger.i("Response: $jsonResponse");
+    } on FirebaseFunctionsException catch (err, _) {
+      if (!mounted) return;
+      showTopSnackBar(
+        Overlay.of(context),
+        CustomSnackBar.error(
+          message: err.message ?? "Uh Ohh. Try Again",
+        ),
+      );
+      logger.e("error response: ${err.message}");
+
+      // logger.e("Errrorrrr from onVerify", error: err, stackTrace: stk);
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   void onVerify() async {
     setState(() {
@@ -76,6 +151,25 @@ class _ImagePreviewScreenState extends ConsumerState<ImagePreviewScreen> {
     }
   }
 
+  void onManualVerify() async {
+    setState(() {
+      isLoading = true;
+    });
+    final bytes = await widget.image!.readAsBytes();
+    final base64Image = base64Encode(bytes);
+    final selectedFaceId = ref.read(selectedFaceIdProvider);
+    final response =
+        await FirebaseFunctions.instance.httpsCallable("verify_face_id").call({
+      "face_id": selectedFaceId,
+      "image_data": base64Image,
+    });
+    final jsonResponse = response.data;
+    logger.i("response: ${jsonResponse}");
+    setState(() {
+      isLoading = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -89,11 +183,17 @@ class _ImagePreviewScreenState extends ConsumerState<ImagePreviewScreen> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: ElevatedButton.icon(
-        onPressed: isLoading ? null : onVerify,
+        onPressed: isLoading
+            ? null
+            : widget.isEdit
+                ? onEdit
+                : widget.isManual
+                    ? onManualVerify
+                    : onVerify,
         icon: const Icon(Icons.face),
         label: isLoading
             ? const CircularProgressIndicator()
-            : const Text("Track Attendance"),
+            : Text(widget.isEdit ? "Edit Student Details" : "Track Attendance"),
       ),
     );
   }
@@ -132,7 +232,13 @@ class _VerificationPopupState extends State<VerificationPopup> {
     if (user == null) return;
     setState(() {
       userDetails = user;
-      selectedMasjid = userDetails!["masjid_details"][0];
+      if (userDetails?["imam_details"] != null) {
+        selectedMasjid = userDetails!["imam_details"];
+      } else {
+        selectedMasjid = (userDetails!["masjid_details"] is List)
+            ? userDetails!["masjid_details"][0]
+            : userDetails!["masjid_details"];
+      }
     });
   }
 
@@ -155,13 +261,16 @@ class _VerificationPopupState extends State<VerificationPopup> {
       logger.i("Student Details: $studentData");
 
       // check if the student registered to the masjid is the same masjid as the masjid allocated to the volunteer
-      if (selectedMasjid!["masjidId"] !=
-          studentData?["masjid_details"]["masjidId"]) {
-        return {
-          "isSuccess": false,
-          "message":
-              "Student is registered in ${studentData?["masjid_details"]["masjidName"]}."
-        };
+      if (userDetails?["imam_details"] == null ||
+          !userDetails!.containsKey("imam_details")) {
+        if (selectedMasjid!["masjidId"] !=
+            studentData?["masjid_details"]["masjidId"]) {
+          return {
+            "isSuccess": false,
+            "message":
+                "Student is registered in ${studentData?["masjid_details"]["masjidName"]}."
+          };
+        }
       }
 
       // check if doc exists
@@ -189,26 +298,26 @@ class _VerificationPopupState extends State<VerificationPopup> {
             },
           ]
         }, SetOptions(merge: true));
-      }
-
-      await FirebaseFirestore.instance
-          .collection("Attendance")
-          .doc(widget.faceId)
-          .update({
-        "attendance_details": FieldValue.arrayUnion([
-          {
-            "name": widget.name,
-            "masjid": FirebaseFirestore.instance
-                .doc("/Masjid/${selectedMasjid!["masjidId"]}"),
-            "masjid_details": selectedMasjid,
-            "attendance_time": DateTime.now(),
-            "tracked_by": {
-              "userId": userId,
-              "name": FirebaseAuth.instance.currentUser!.displayName,
+      } else {
+        await FirebaseFirestore.instance
+            .collection("Attendance")
+            .doc(widget.faceId)
+            .update({
+          "attendance_details": FieldValue.arrayUnion([
+            {
+              "name": widget.name,
+              "masjid": FirebaseFirestore.instance
+                  .doc("/Masjid/${selectedMasjid!["masjidId"]}"),
+              "masjid_details": selectedMasjid,
+              "attendance_time": DateTime.now(),
+              "tracked_by": {
+                "userId": userId,
+                "name": FirebaseAuth.instance.currentUser!.displayName,
+              }
             }
-          }
-        ])
-      });
+          ])
+        });
+      }
 
       await FirebaseFirestore.instance
           .collection("students")
@@ -267,7 +376,10 @@ class _VerificationPopupState extends State<VerificationPopup> {
             Text('Name: ${widget.name}'),
             Text('Streak: ${widget.streak}'),
             Text('Guardian Phone Number: ${widget.guardianNumber}'),
-            if (userDetails != null && userDetails!["isTrustee"] == true)
+            if (userDetails != null &&
+                userDetails!["isTrustee"] == true &&
+                (userDetails!["imam_details"] == null ||
+                    !userDetails!.containsKey("imam_details")))
               for (final masjid in userDetails!["masjid_details"])
                 if (masjid is Map<String, dynamic>)
                   RadioListTile<Map<String, dynamic>>(

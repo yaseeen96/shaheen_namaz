@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:shaheen_namaz/admin/models/student_data.dart';
+import 'package:shaheen_namaz/admin/models/attendance_data_model.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
 
 class StudentDataTable extends StatefulWidget {
@@ -16,53 +16,54 @@ class StudentDataTable extends StatefulWidget {
 
 class _StudentDataTableState extends State<StudentDataTable> {
   bool isLoading = false;
-  List<StudentData> _students = [];
-  List<StudentData> _filteredStudents = [];
+  List<AttendanceDataModel> _attendance = [];
+  List<AttendanceDataModel> _filteredAttendance = [];
+
   Future<void> _fetchStudents() async {
     setState(() {
       isLoading = true;
     });
-    var snapshot =
-        await FirebaseFirestore.instance.collection('students').get();
 
-    List<Future<StudentData>> studentFutures = snapshot.docs.map((doc) async {
-      logger.i("doc data ${doc.data()}");
+    // Fetch today's attendance
+    List<AttendanceDataModel> todaysAttendance = await getTodayAttendance();
 
-      final studentData = StudentData.getStudentDataFromFirestore(doc);
-      logger.i(studentData);
-
-      return studentData;
-    }).toList();
-
-    // Wait for all futures to complete
-    var students = await Future.wait(studentFutures);
-    // get current user id
+    // Get current user id
     final userId = FirebaseAuth.instance.currentUser!.uid;
     final user =
         await FirebaseFirestore.instance.collection('Users').doc(userId).get();
 
     if (widget.isAdmin) {
       setState(() {
-        _students = students;
-        _filteredStudents = _students;
+        _attendance = todaysAttendance;
+        _filteredAttendance = _attendance;
         isLoading = false;
       });
-      widget.onDataFetched(_students.length);
-      logger.i("Students: $_students");
+      widget.onDataFetched(_attendance.length);
       return;
     } else {
-// get user's masjid reference
+      // Get user's masjid references and handle both cases
+      var userMasjidDetails = user.data()?["masjid_details"];
+      List<String> userMasjidIds;
+
+      if (userMasjidDetails is List) {
+        userMasjidIds = userMasjidDetails
+            .map((masjid) => masjid["masjidId"] as String)
+            .toList();
+      } else if (userMasjidDetails is Map) {
+        userMasjidIds = [(userMasjidDetails["masjidId"] as String)];
+      } else {
+        userMasjidIds = [];
+      }
 
       setState(() {
-        _students = students.where((student) {
-          logger.i("masjid name: ${student.name == "abdullah"}");
-          return student.masjid == user['masjid_allocated'];
+        _attendance = todaysAttendance.where((singleAttendance) {
+          return userId == singleAttendance.trackedByUserId;
         }).toList();
-        _filteredStudents = _students;
-        widget.onDataFetched(_students.length);
+        _filteredAttendance = _attendance;
+        widget.onDataFetched(_attendance.length);
         isLoading = false;
       });
-      logger.i("Students: $_students");
+      logger.i("Attendance: $_attendance");
     }
   }
 
@@ -96,7 +97,7 @@ class _StudentDataTableState extends State<StudentDataTable> {
                   ),
                   onChanged: (value) {
                     setState(() {
-                      _filteredStudents = _students
+                      _filteredAttendance = _attendance
                           .where((student) =>
                               student.name.toLowerCase().contains(value))
                           .toList();
@@ -118,21 +119,21 @@ class _StudentDataTableState extends State<StudentDataTable> {
                   )),
                   DataColumn(
                       label: Text(
-                    'Class',
+                    'Masjid Name',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                     ),
                   )),
                   DataColumn(
                       label: Text(
-                    'Age',
+                    'Masjid Id',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                     ),
                   )),
                   DataColumn(
                     label: Text(
-                      'Guardian name',
+                      'Cluster Number',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                       ),
@@ -140,7 +141,7 @@ class _StudentDataTableState extends State<StudentDataTable> {
                   ),
                   DataColumn(
                       label: Text(
-                        'Guardian Number',
+                        'Attendance Time',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                         ),
@@ -148,7 +149,7 @@ class _StudentDataTableState extends State<StudentDataTable> {
                       numeric: true),
                   DataColumn(
                     label: Text(
-                      'Student Address',
+                      'Tracked By',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                       ),
@@ -156,50 +157,28 @@ class _StudentDataTableState extends State<StudentDataTable> {
                   ),
                   DataColumn(
                       label: Text(
-                    'Masjid',
+                    'User Id',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                     ),
                   )),
-                  DataColumn(
-                      label: Text(
-                    'Cluster No:',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  )),
-                  DataColumn(
-                      label: Text(
-                    'Last Prayed',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  )),
-                  DataColumn(
-                      label: Text(
-                        'Streak',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      numeric: true),
                 ],
-                rows: _filteredStudents.map((StudentData student) {
-                  return DataRow(cells: [
-                    DataCell(Text(student.name)),
-                    DataCell(Text(student.studentClass)),
-                    DataCell(Text(student.age)),
-                    DataCell(Text(student.guardianName)),
-                    DataCell(
-                      Text(student.guardianNumber),
-                    ),
-                    DataCell(Text(student.address)),
-                    DataCell(Text(student.masjid)),
-                    DataCell(Text(student.clusterNumber.toString())),
-                    DataCell(Text(student.streakLastModified)),
-                    DataCell(Text(student.streak.toString())),
-                  ]);
-                }).toList(),
+                rows: _filteredAttendance
+                    .map((AttendanceDataModel attendance) {
+                      return DataRow(cells: [
+                        DataCell(Text(attendance.name)),
+                        DataCell(Text(attendance.masjidName)),
+                        DataCell(Text(attendance.masjidId)),
+                        DataCell(Text(attendance.clusterNumber.toString())),
+                        DataCell(
+                          Text(attendance.attendanceTime.toString()),
+                        ),
+                        DataCell(Text(attendance.trackedByName)),
+                        DataCell(Text(attendance.trackedByUserId)),
+                      ]);
+                    })
+                    .toList()
+                    .cast<DataRow>(),
               ),
             ],
           ),
