@@ -1,0 +1,152 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_pagination/firebase_pagination.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shaheen_namaz/admin/widgets/attendance/single_student_card.dart';
+import 'package:shaheen_namaz/utils/config/logger.dart';
+
+class AttendanceList extends ConsumerStatefulWidget {
+  const AttendanceList({super.key});
+
+  @override
+  ConsumerState<ConsumerStatefulWidget> createState() => _AttendanceListState();
+}
+
+class _AttendanceListState extends ConsumerState<AttendanceList> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchText = "";
+  int _selectedCluster = 0;
+
+  Query _getQuery() {
+    Query query = FirebaseFirestore.instance.collection('students');
+
+    if (_searchText.isNotEmpty) {
+      query = query.where('guardianNumber', isEqualTo: _searchText);
+      logger.i("Query with search text: $_searchText");
+    }
+
+    if (_selectedCluster != 0) {
+      query = query.where('masjid_details.clusterNumber',
+          isEqualTo: _selectedCluster);
+      logger.i("Query with cluster number: $_selectedCluster");
+    }
+
+    return query;
+  }
+
+  void _onSearch() {
+    setState(() {
+      _searchText = _searchController.text;
+      logger.i("Search text: $_searchText");
+    });
+  }
+
+  void _onChipSelected(int clusterNumber) {
+    setState(() {
+      _selectedCluster = clusterNumber;
+      logger.i("Selected cluster: $_selectedCluster");
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Student Attendance"),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(120.0),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    labelText: 'Search by Guardian Number',
+                    suffixIcon: IconButton(
+                      icon: Icon(Icons.search),
+                      onPressed: _onSearch,
+                    ),
+                  ),
+                  onChanged: (value) {
+                    _onSearch();
+                  },
+                ),
+              ),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: List.generate(12, (index) {
+                    final clusterNumber = index + 1;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: ChoiceChip(
+                        label: Text('Cluster $clusterNumber'),
+                        selected: _selectedCluster == clusterNumber,
+                        onSelected: (selected) {
+                          _onChipSelected(selected ? clusterNumber : 0);
+                        },
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      body: FutureBuilder(
+        future: _getQuery().get(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            logger.e("Error: ${snapshot.error}");
+            return const Center(child: Text('An error occurred'));
+          } else if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('No students found'));
+          } else {
+            return FirestorePagination(
+              key: ValueKey('$_searchText-$_selectedCluster'),
+              padding: const EdgeInsets.all(20),
+              viewType: ViewType.grid,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                childAspectRatio: 1.6,
+              ),
+              isLive: true,
+              query: _getQuery(),
+              itemBuilder: (context, docs, index) {
+                try {
+                  final data = docs.data() as Map<String, dynamic>;
+                  logger.i("Item $index: $data");
+                  return SingleStudentCard(
+                    clusterNumber:
+                        data["masjid_details"]["clusterNumber"].toString(),
+                    guardianNumber: data["guardianNumber"].toString(),
+                    masjidName: data["masjid_details"]["masjidName"],
+                    name: data["name"],
+                    streak: data["streak"].toString(),
+                  );
+                } catch (e, stackTrace) {
+                  logger.e("Error in itemBuilder: $e\n$stackTrace");
+                  return Center(
+                      child: Text('An error occurred with this item'));
+                }
+              },
+              onEmpty: Center(child: Text('No students found')),
+            );
+          }
+        },
+      ),
+    );
+  }
+}

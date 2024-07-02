@@ -3,18 +3,14 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_pagination/firebase_pagination.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:shaheen_namaz/admin/models/all_users_response.dart';
 import 'package:shaheen_namaz/admin/providers/get_users_provider.dart';
 import 'package:shaheen_namaz/admin/providers/imam_provider.dart';
-import 'package:shaheen_namaz/admin/widgets/users/custom_dropdown_button.dart';
-import 'package:shaheen_namaz/admin/widgets/users/subtitle_widget.dart';
+import 'package:shaheen_namaz/admin/providers/menu_items_provider.dart';
 import 'package:shaheen_namaz/admin/widgets/users/tab_bar.dart';
 import 'package:shaheen_namaz/admin/widgets/users/users_popup.dart';
 import 'package:shaheen_namaz/providers/selected_items_provider.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
-import 'package:top_snackbar_flutter/custom_snack_bar.dart';
-import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
 class UsersWidget extends ConsumerStatefulWidget {
   const UsersWidget({super.key});
@@ -28,27 +24,13 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
   String? password;
   int currentIndex = 0;
   bool isLoading = false;
-  List<QueryDocumentSnapshot<Object?>> menuItems = [];
   final TextEditingController searchController = TextEditingController();
   String searchQuery = '';
   String activeLetter = '';
 
   @override
   void initState() {
-    getMenuItems().then((value) {
-      setState(() {
-        menuItems = value;
-      });
-    });
     super.initState();
-  }
-
-  Future<List<QueryDocumentSnapshot<Object?>>> getMenuItems() async {
-    final CollectionReference collectionReference =
-        FirebaseFirestore.instance.collection("Masjid");
-    final QuerySnapshot querySnapshot = await collectionReference.get();
-    final allMasjids = querySnapshot.docs.map((e) => e).toList();
-    return allMasjids;
   }
 
   Query<Object?> getQuery() {
@@ -81,6 +63,42 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
     });
   }
 
+  void getSelectedItems(DocumentSnapshot<Object?>? doc) {
+    final data = doc?.data() as Map<String, dynamic>? ?? {};
+    final List<Map<String, dynamic>> selectedItemsList = [];
+    List<MasjidDetails> masjidDetailsList = [];
+    if (doc != null) {
+      if (data["masjid_details"] is Map<String, dynamic>) {
+        var masjid = data["masjid_details"] as Map<String, dynamic>;
+        masjidDetailsList.add(
+          MasjidDetails(
+              clusterNumber: masjid["clusterNumber"],
+              masjidId: masjid["masjidId"],
+              masjidName: masjid["masjidName"]),
+        );
+      } else if (data["masjid_details"] is List) {
+        masjidDetailsList = (data["masjid_details"] as List<dynamic>)
+            .map((e) => MasjidDetails(
+                  clusterNumber: e["clusterNumber"],
+                  masjidId: e["masjidId"],
+                  masjidName: e["masjidName"],
+                ))
+            .toList();
+      }
+    }
+    if (masjidDetailsList.isEmpty || data["masjid_details"] == null) {
+      ref.read(selectedItemsProvider.notifier).state = [];
+    }
+    for (var masjid in masjidDetailsList) {
+      selectedItemsList.add({
+        "masjidId": masjid.masjidId,
+        "masjidName": masjid.masjidName,
+        "clusterNumber": masjid.clusterNumber,
+      });
+    }
+    ref.read(selectedItemsProvider.notifier).state = selectedItemsList;
+  }
+
   void onLetterChanged(String letter) {
     setState(() {
       activeLetter = letter;
@@ -104,13 +122,15 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final menuItems = ref.watch(menuItemsProvider);
+
     return Scaffold(
       appBar: AppBar(
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () {
-              showEditPopup(context, null);
+              showEditPopup(context, null, menuItems);
             },
           ),
         ],
@@ -206,7 +226,11 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
               key: ValueKey(docs.id),
               title: Text(data["name"] ?? data["email"]),
               onTap: () {
-                showEditPopup(context, docs);
+                ref.read(imamProvider.notifier).state =
+                    data["imam_details"] ?? {};
+                logger.i("menu items length: ${menuItems.length}");
+                getSelectedItems(docs);
+                showEditPopup(context, docs, menuItems);
               },
               trailing: IconButton(
                   icon: const Icon(
@@ -230,7 +254,9 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
   }
 
   Future<dynamic> showEditPopup(
-      BuildContext context, DocumentSnapshot<Object?>? docs) {
+      BuildContext context,
+      DocumentSnapshot<Object?>? docs,
+      List<QueryDocumentSnapshot<Object?>> currentMenuItems) {
     final data = docs?.data() as Map<String, dynamic>?;
     return showDialog(
       context: context,
@@ -257,12 +283,11 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
         }
 
         return UserDetailsPopup(
-          menuItems: menuItems,
           user: (docs == null)
               ? null
               : User(
                   displayName: data?["name"],
-                  phoneNumber: data?["phone_number"],
+                  phoneNumber: data?["phone_number"].toString(),
                   uid: docs.id,
                   email: data?["email"],
                   isAdmin: data?["isAdmin"],

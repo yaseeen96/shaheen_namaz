@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shaheen_namaz/admin/models/all_users_response.dart';
 import 'package:shaheen_namaz/admin/providers/get_users_provider.dart';
 import 'package:shaheen_namaz/admin/providers/imam_provider.dart';
+import 'package:shaheen_namaz/admin/providers/menu_items_provider.dart';
 import 'package:shaheen_namaz/admin/widgets/users/custom_dropdown_button.dart';
 import 'package:shaheen_namaz/providers/selected_items_provider.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
@@ -16,26 +17,24 @@ import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 import '../../../utils/extensions.dart';
 
-class UserDetailsPopup extends ConsumerStatefulWidget {
-  const UserDetailsPopup({
-    super.key,
-    required this.menuItems,
-    this.user,
-  });
-
-  final List<QueryDocumentSnapshot<Object?>> menuItems;
-  final User? user;
-
-  @override
-  _UserDetailsPopupState createState() => _UserDetailsPopupState();
-}
-
 enum UserRoles { trustee, volunteer }
 
 extension ParseToString on UserRoles {
   String toShortString() {
     return toString().split('.').last;
   }
+}
+
+class UserDetailsPopup extends ConsumerStatefulWidget {
+  const UserDetailsPopup({
+    super.key,
+    this.user,
+  });
+
+  final User? user;
+
+  @override
+  _UserDetailsPopupState createState() => _UserDetailsPopupState();
 }
 
 class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
@@ -62,24 +61,6 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
     return querySnapshot.docs;
   }
 
-  void getSelectedItems() async {
-    final List<Map<String, dynamic>> selectedItemsList = [];
-    if (widget.user == null ||
-        widget.user!.masjidDetails.isEmpty ||
-        widget.user?.masjidDetails == null) {
-      ref.read(selectedItemsProvider.notifier).state = [];
-    }
-    for (var masjid in widget.user!.masjidDetails) {
-      selectedItemsList.add({
-        "masjidId": masjid.masjidId,
-        "masjidName": masjid.masjidName,
-        "clusterNumber": masjid.clusterNumber,
-      });
-    }
-    ref.read(selectedItemsProvider.notifier).state = selectedItemsList;
-    ref.read(imamProvider.notifier).state = widget.user?.imamDetails ?? {};
-  }
-
   @override
   void initState() {
     role = widget.user?.isTrustee == true
@@ -89,7 +70,6 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
       jamaatName = widget.user?.jamaatName;
     });
 
-    getSelectedItems();
     super.initState();
   }
 
@@ -101,8 +81,11 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
 
   @override
   Widget build(BuildContext context) {
+    final menuItems = ref.watch(menuItemsProvider);
     final items = ref.watch(selectedItemsProvider);
     final imamSelectedMasjid = ref.watch(imamProvider);
+    logger.i("imamSelectedMasjid: $imamSelectedMasjid");
+
     return AlertDialog(
       title: const Text('Enter User Details'),
       content: Form(
@@ -268,7 +251,7 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                   margin: const EdgeInsets.all(10),
                   child: CustomDropDown(
                     ref: ref,
-                    menuItems: widget.menuItems,
+                    menuItems: menuItems,
                     labelText: "Select Masjid",
                     onChanged: (masjid) {
                       ref.read(imamProvider.notifier).state = {
@@ -303,7 +286,7 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                       width: 300,
                       child: CustomDropDown(
                         ref: ref,
-                        menuItems: widget.menuItems,
+                        menuItems: menuItems,
                         onChanged: (e) {
                           ref.read(selectedItemsProvider.notifier).state = [
                             ...ref.read(selectedItemsProvider),
@@ -319,10 +302,6 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                   if (widget.user?.isTrustee == true ||
                       role == "UserRoles.trustee")
                     for (var i = 1; i <= 12; i++)
-                      // todo - add an if statement to check whether all elements in the cluster dropdown are selected
-                      // todo - if they are selected, then don't show the dropdown
-                      // todo - if they are not selected, then show the dropdown
-
                       Container(
                         height: 100,
                         width: 300,
@@ -331,7 +310,7 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                           labelText: "Cluster $i",
                           isMultiSelect: true,
                           ref: ref,
-                          menuItems: widget.menuItems.where((item) {
+                          menuItems: menuItems.where((item) {
                             return item.get("cluster_number") == i;
                           }).toList(),
                           onMultiSelectChanged: (e) {
@@ -346,8 +325,11 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                                     "clusterNumber": val.get("cluster_number")
                                   }
                                 ];
-                                widget.menuItems.remove(val);
+                                menuItems.remove(val); // Remove locally
                               }
+                              ref
+                                  .read(menuItemsProvider.notifier)
+                                  .loadMenuItems(); // Reload menu items
                             }
                           },
                         ),
@@ -401,6 +383,7 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
         try {
           logger.i("role: ${role!.split(".").last}");
           final imamDetails = ref.read(imamProvider);
+          logger.i("role: ${role!.split(".").last})");
           await FirebaseFunctions.instance.httpsCallable(functionName).call(
             {
               if (shouldUpdate) "uid": widget.user!.uid,
@@ -410,9 +393,13 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
               "masjidDetails": selectedItems,
               "role": role!.split(".").last,
               "jamaatName": jamaatName ?? "Not Associated with any Jamaat",
-              "imamDetails": imamDetails.isEmpty ? "" : imamDetails,
+              "imamDetails":
+                  (imamDetails.isEmpty || role?.split(".").last != "trustee")
+                      ? ""
+                      : imamDetails,
             },
           );
+
           if (!mounted) return;
           context.pop();
         } on FirebaseFunctionsException catch (e) {
@@ -430,7 +417,7 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
           setState(() {
             isLoading = false;
           });
-
+          ref.read(imamProvider.notifier).state = {};
           ref.invalidate(getUsersProvider);
         }
       }

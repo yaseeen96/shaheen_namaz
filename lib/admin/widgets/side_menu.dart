@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:shaheen_namaz/admin/providers/admin_home_provider.dart';
+import 'package:shaheen_namaz/admin/widgets/attendance/attendance_list.dart';
 import 'package:shaheen_namaz/admin/widgets/change_password.dart';
 import 'package:shaheen_namaz/admin/widgets/dashboard/dashboard.dart';
 import 'package:shaheen_namaz/admin/widgets/masjids/masjid_widget.dart';
@@ -148,7 +149,7 @@ class _ChildWidgetState extends ConsumerState<ChildWidget> {
               : homeState.selectedIndex == 3
                   ? const MasjidWidget()
                   : homeState.selectedIndex == 4
-                      ? const StudentDataNew()
+                      ? const AttendanceList()
                       : const Text("Please Select a view from menu"),
     );
   }

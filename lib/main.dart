@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shaheen_namaz/utils/config/route_config.dart';
+import 'package:upgrader/upgrader.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -33,6 +34,12 @@ class MyApp extends StatelessWidget {
         ),
       ),
       routerConfig: routes,
+      builder: (context, child) {
+        return UpgradeAlert(
+          navigatorKey: routes.routerDelegate.navigatorKey,
+          child: child ?? const SizedBox(),
+        );
+      },
     );
   }
 }

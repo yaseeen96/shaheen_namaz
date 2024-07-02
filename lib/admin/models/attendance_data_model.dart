@@ -30,7 +30,9 @@ class AttendanceDataModel {
       masjid: data['masjid'],
       masjidName: data['masjid_details']?['masjidName'] ?? '',
       masjidId: data['masjid_details']?['masjidId'] ?? '',
-      clusterNumber: data['masjid_details']?['clusterNumber'] ?? 0,
+      clusterNumber: (data['masjid_details']?['clusterNumber'] is String)
+          ? int.parse(data['masjid_details']?['clusterNumber'])
+          : data['masjid_details']?['clusterNumber'] ?? 0,
       name: data['name'] ?? '',
       trackedByName: data['tracked_by']?['name'] ?? '',
       trackedByUserId: data['tracked_by']?['userId'] ?? '',

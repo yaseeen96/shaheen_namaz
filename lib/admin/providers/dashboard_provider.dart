@@ -19,8 +19,8 @@ class DashboardNotifier extends StateNotifier<void> {
     // Format current date to only consider the date part (ignoring time)
     String todayDateStr = DateFormat('yyyy-MM-dd').format(now);
 
-    // Initialize a set to track unique names for today's attendance
-    Set<String> uniqueNames = {};
+    // Initialize a counter for today's attendance
+    int todayAttendanceCount = 0;
 
     // Loop through each attendance document
     for (var doc in attendanceDocs) {
@@ -38,14 +38,14 @@ class DashboardNotifier extends StateNotifier<void> {
 
           // Compare attendance date with today's date
           if (attendanceDateStr == todayDateStr) {
-            uniqueNames.add(detail['name']);
+            todayAttendanceCount++;
           }
         }
       }
     }
 
-    // Return the total count of unique names for today's attendance
-    return uniqueNames.length;
+    // Return the total count of today's attendance
+    return todayAttendanceCount;
   }
 
   Future<int> getTotalStudents() async {
@@ -85,21 +85,20 @@ class DashboardNotifier extends StateNotifier<void> {
   }
 
   int getClusterData(
-      List<QueryDocumentSnapshot> studentDocs, int clusterNumber) {
+      List<QueryDocumentSnapshot> studentDocs, dynamic clusterNumber) {
     final clusterData = studentDocs.where((student) {
       var masjidDetails = student["masjid_details"];
 
       if (masjidDetails is List) {
         for (var detail in masjidDetails) {
-          if (detail['clusterNumber'] is String) {}
-          if (detail['clusterNumber'] == clusterNumber) {
+          if (detail['clusterNumber'].toString() == clusterNumber.toString()) {
             return true;
           }
         }
         return false;
       } else if (masjidDetails is Map) {
-        if (masjidDetails['clusterNumber'] is String) {}
-        return masjidDetails['clusterNumber'] == clusterNumber;
+        return masjidDetails['clusterNumber'].toString() ==
+            clusterNumber.toString();
       }
       return false;
     }).length;
