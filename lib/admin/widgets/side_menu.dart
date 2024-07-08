@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,9 +8,12 @@ import 'package:shaheen_namaz/admin/providers/admin_home_provider.dart';
 import 'package:shaheen_namaz/admin/widgets/attendance/attendance_list.dart';
 import 'package:shaheen_namaz/admin/widgets/change_password.dart';
 import 'package:shaheen_namaz/admin/widgets/dashboard/dashboard.dart';
+import 'package:shaheen_namaz/admin/widgets/statistics/statistics.dart';
+import 'package:shaheen_namaz/admin/widgets/masjid_dropdown.dart';
 import 'package:shaheen_namaz/admin/widgets/masjids/masjid_widget.dart';
 import 'package:shaheen_namaz/admin/widgets/student_data_new.dart';
 import 'package:shaheen_namaz/admin/widgets/users/users_widget.dart';
+import 'package:shaheen_namaz/utils/config/logger.dart';
 
 class SideMenuDrawer extends ConsumerWidget {
   const SideMenuDrawer({
@@ -142,15 +147,28 @@ class _ChildWidgetState extends ConsumerState<ChildWidget> {
     final homeState = ref.watch(adminNotifierProvider);
     return Container(
       alignment: Alignment.center,
-      child: homeState.selectedIndex == 1
-          ? const ShaheenDashboard()
-          : homeState.selectedIndex == 2
-              ? const UsersWidget()
-              : homeState.selectedIndex == 3
-                  ? const MasjidWidget()
-                  : homeState.selectedIndex == 4
-                      ? const AttendanceList()
-                      : const Text("Please Select a view from menu"),
+      child: homeState.selectedIndex == 0
+          ? const ShaheenStatistics()
+          : homeState.selectedIndex == 1
+              ? const ShaheenDashboard()
+              : homeState.selectedIndex == 2
+                  ? const UsersWidget()
+                  : homeState.selectedIndex == 3
+                      ? const MasjidWidget()
+                      : homeState.selectedIndex == 4
+                          ? const AttendanceList()
+                          // ? Center(
+                          //     child: MasjidDropdownWidget(
+                          //     initialValue: {
+                          //       'masjidId': '13F62rkjL28061lNvPMm',
+                          //       'masjidName': 'Masjid-e-Ismail',
+                          //       'clusterNumber': 11,
+                          //     },
+                          //     onSelected: (selectedMasjid) {
+                          //       logger.i("Selected Masjid: $selectedMasjid");
+                          //     },
+                          //   ))
+                          : const Text("Please Select a view from menu"),
     );
   }
 }

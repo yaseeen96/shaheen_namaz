@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shaheen_namaz/admin/models/admin_home_model.dart';
 
 class AdminHomeNotifier extends StateNotifier<AdminHomeModel> {
-  AdminHomeNotifier() : super(AdminHomeModel());
+  AdminHomeNotifier() : super(AdminHomeModel(selectedIndex: 0));
 
   void updateSelectedIndex(int index) {
     state = state.copyWith(selectedIndex: index);

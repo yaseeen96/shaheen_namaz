@@ -59,6 +59,12 @@ dependencies:
   firebase_pagination: ^3.1.0
   upgrader: ^10.3.0
   badges: ^3.1.2
+  sidebarx: ^0.17.1
+  google_fonts: ^6.2.1
+  shimmer: ^3.0.0
+  fl_chart: ^0.68.0
+  percent_indicator: ^4.2.3
+  loading_indicator: ^3.1.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

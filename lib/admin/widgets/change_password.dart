@@ -136,17 +136,16 @@ class _ChangePasswordWidgetState extends State<ChangePasswordWidget> {
                     confirmPassword = newValue;
                   },
                 ),
-                const Gap(20),
-                ElevatedButton(
-                  onPressed: isLoading ? null : updatePasswordHandler,
-                  child: isLoading
-                      ? const CircularProgressIndicator()
-                      : const Text("Change Password"),
-                )
               ],
             ),
           )),
       actions: [
+        ElevatedButton(
+          onPressed: isLoading ? null : updatePasswordHandler,
+          child: isLoading
+              ? const CircularProgressIndicator()
+              : const Text("Change Password"),
+        ),
         ElevatedButton(
             onPressed: () {
               context.pop();

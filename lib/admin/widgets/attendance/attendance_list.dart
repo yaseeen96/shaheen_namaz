@@ -3,6 +3,7 @@ import 'package:firebase_pagination/firebase_pagination.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shaheen_namaz/admin/widgets/attendance/single_student_card.dart';
+import 'package:shaheen_namaz/common/widgets/loading_indicator.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
 
 class AttendanceList extends ConsumerStatefulWidget {
@@ -18,7 +19,10 @@ class _AttendanceListState extends ConsumerState<AttendanceList> {
   int _selectedCluster = 0;
 
   Query _getQuery() {
-    Query query = FirebaseFirestore.instance.collection('students');
+    Query query = FirebaseFirestore.instance.collection('students').orderBy(
+          "streak",
+          descending: true,
+        );
 
     if (_searchText.isNotEmpty) {
       query = query.where('guardianNumber', isEqualTo: _searchText);
@@ -70,7 +74,7 @@ class _AttendanceListState extends ConsumerState<AttendanceList> {
                   decoration: InputDecoration(
                     labelText: 'Search by Guardian Number',
                     suffixIcon: IconButton(
-                      icon: Icon(Icons.search),
+                      icon: const Icon(Icons.search),
                       onPressed: _onSearch,
                     ),
                   ),
@@ -105,7 +109,7 @@ class _AttendanceListState extends ConsumerState<AttendanceList> {
         future: _getQuery().get(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return CustomLoadingIndicator();
           } else if (snapshot.hasError) {
             logger.e("Error: ${snapshot.error}");
             return const Center(child: Text('An error occurred'));
@@ -129,12 +133,8 @@ class _AttendanceListState extends ConsumerState<AttendanceList> {
                   final data = docs.data() as Map<String, dynamic>;
                   logger.i("Item $index: $data");
                   return SingleStudentCard(
-                    clusterNumber:
-                        data["masjid_details"]["clusterNumber"].toString(),
-                    guardianNumber: data["guardianNumber"].toString(),
-                    masjidName: data["masjid_details"]["masjidName"],
-                    name: data["name"],
-                    streak: data["streak"].toString(),
+                    studentId: docs.id,
+                    data: data,
                   );
                 } catch (e, stackTrace) {
                   logger.e("Error in itemBuilder: $e\n$stackTrace");

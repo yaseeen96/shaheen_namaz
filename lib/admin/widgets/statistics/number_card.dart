@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gap/gap.dart';
+import 'package:shaheen_namaz/utils/constants/constants.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
-// ignore: avoid_web_libraries_in_flutter
 
 class NumberCard extends ConsumerWidget {
   const NumberCard({
@@ -26,21 +28,20 @@ class NumberCard extends ConsumerWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(30),
               decoration: BoxDecoration(
-                color: Colors.grey[900],
+                color: Constants.secondaryColor,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Column(
                 children: [
                   Text(
                     title,
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineSmall!
-                        .copyWith(color: Colors.white),
+                    style: TextStyle(color: Colors.white, fontSize: 16),
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    "$data",
+                    (data is Map<String, int>)
+                        ? "${data["todayAttendance"]} / ${data["totalStudents"]}"
+                        : "$data",
                     style: Theme.of(context).textTheme.headlineLarge!.copyWith(
                           color: Colors.white,
                         ),
@@ -54,7 +55,7 @@ class NumberCard extends ConsumerWidget {
                 child: IconButton(
                   icon: const Icon(
                     Icons.download,
-                    color: Colors.blue,
+                    color: Colors.white54,
                   ),
                   onPressed: () async {
                     if (downloadUrl != null) {
@@ -71,11 +72,57 @@ class NumberCard extends ConsumerWidget {
           ],
         );
       },
-      loading: () => const Center(
-        child: CircularProgressIndicator(),
+      loading: () => const ShimmerLoadingWidget(),
+      error: (error, stackTrace) => Center(
+        child: Text("Error: ${error}"),
       ),
-      error: (error, stackTrace) => const Center(
-        child: Text("Error"),
+    );
+  }
+}
+
+class ShimmerLoadingWidget extends StatelessWidget {
+  const ShimmerLoadingWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade300.withOpacity(0.1),
+      highlightColor: Colors.grey.shade100.withOpacity(0.1),
+      child: Stack(
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(30),
+            decoration: BoxDecoration(
+              color: Constants.secondaryColor,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  width: 100,
+                  height: 16,
+                  color: Colors.grey,
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  width: double.infinity,
+                  height: 30,
+                  color: Colors.grey,
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            top: 0,
+            right: 0,
+            child: Container(
+              width: 24,
+              height: 24,
+              color: Colors.grey,
+            ),
+          ),
+        ],
       ),
     );
   }

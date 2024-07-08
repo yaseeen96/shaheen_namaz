@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shaheen_namaz/admin/models/attendance_data_model.dart';
+import 'package:shaheen_namaz/common/widgets/loading_indicator.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
 
 class StudentDataTable extends StatefulWidget {
@@ -76,7 +77,7 @@ class _StudentDataTableState extends State<StudentDataTable> {
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) return const Center(child: CircularProgressIndicator());
+    if (isLoading) return CustomLoadingIndicator();
     return SizedBox(
       width: double.infinity,
       height: double.infinity,

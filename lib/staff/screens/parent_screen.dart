@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shaheen_namaz/common/widgets/loading_indicator.dart';
 import 'package:shaheen_namaz/providers/auth_provider.dart';
 import 'package:shaheen_namaz/staff/screens/home_screen.dart';
 import 'package:shaheen_namaz/staff/screens/login_screen.dart';
@@ -23,10 +24,6 @@ class ParentScreen extends ConsumerWidget {
                 child: Text("An Error Occurred $error"),
               ),
             ),
-        loading: () => const Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
-            ));
+        loading: () => Scaffold(body: CustomLoadingIndicator()));
   }
 }

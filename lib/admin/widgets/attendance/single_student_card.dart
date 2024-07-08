@@ -1,27 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:gap/gap.dart';
+import 'package:shaheen_namaz/admin/widgets/attendance/edit_student_dialog.dart';
 
-class SingleStudentCard extends StatelessWidget {
-  const SingleStudentCard(
-      {super.key,
-      required this.clusterNumber,
-      required this.guardianNumber,
-      required this.masjidName,
-      required this.name,
-      required this.streak});
-  final String name;
-  final String guardianNumber;
-  final String masjidName;
-  final String clusterNumber;
-  final String streak;
+class SingleStudentCard extends StatefulWidget {
+  const SingleStudentCard({
+    super.key,
+    required this.data,
+    required this.studentId,
+  });
+
+  final Map<String, dynamic> data;
+  final String studentId;
+
+  @override
+  State<SingleStudentCard> createState() => _SingleStudentCardState();
+}
+
+class _SingleStudentCardState extends State<SingleStudentCard> {
+  void handleEditStudent() {
+    showDialog(
+      context: context,
+      builder: (context) => EditStudentDialog(
+        data: widget.data,
+        studentId: widget.studentId,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
         badges.Badge(
-          badgeContent: Text("Cluster $clusterNumber"),
+          badgeContent: Text(
+              "Cluster ${widget.data["masjid_details"]["clusterNumber"].toString()}"),
           position: badges.BadgePosition.topStart(),
           badgeAnimation: const badges.BadgeAnimation.slide(
             animationDuration: Duration(seconds: 1),
@@ -48,11 +61,11 @@ class SingleStudentCard extends StatelessWidget {
                   children: [
                     Icon(Icons.account_circle, size: 50),
                     Text(
-                      name,
+                      widget.data["name"],
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    Text(guardianNumber),
-                    Text(masjidName),
+                    Text(widget.data["guardianNumber"].toString()),
+                    Text(widget.data["masjid_details"]["masjidName"]),
                     const Spacer(),
                     ElevatedButton.icon(
                         onPressed: () {},
@@ -60,7 +73,7 @@ class SingleStudentCard extends StatelessWidget {
                         label: Text("Check Attendance")),
                     const Gap(10),
                     ElevatedButton.icon(
-                        onPressed: () {},
+                        onPressed: handleEditStudent,
                         icon: Icon(Icons.details),
                         label: Text("Show More Details")),
                     const Gap(10),
@@ -82,7 +95,7 @@ class SingleStudentCard extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: Text(
-                streak,
+                widget.data["streak"].toString(),
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                 ),

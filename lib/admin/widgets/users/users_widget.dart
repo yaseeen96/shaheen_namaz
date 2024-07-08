@@ -217,7 +217,7 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
         query: getQuery(),
         itemBuilder: (context, docs, index) {
           final data = docs.data() as Map<String, dynamic>;
-          logger.i(index);
+
           return Container(
             margin: const EdgeInsets.symmetric(vertical: 3),
             width: MediaQuery.of(context).size.width * 0.6,
