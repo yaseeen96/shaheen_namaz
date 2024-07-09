@@ -108,13 +108,9 @@ class _ShaheenStatisticsState extends ConsumerState<ShaheenStatistics> {
                         borderRadius: BorderRadius.circular(10),
                         color: Constants.secondaryColor,
                       ),
-                      child: Center(
+                      child: const Center(
                         child: Text(
                           "Volunteers Data",
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium!
-                              .copyWith(color: Colors.white),
                         ),
                       ),
                     ),
@@ -150,13 +146,9 @@ class _ShaheenStatisticsState extends ConsumerState<ShaheenStatistics> {
                         borderRadius: BorderRadius.circular(10),
                         color: Constants.secondaryColor,
                       ),
-                      child: Center(
+                      child: const Center(
                         child: Text(
                           "Masjid Data",
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium!
-                              .copyWith(color: Colors.white),
                         ),
                       ),
                     ),
@@ -193,13 +185,9 @@ class _ShaheenStatisticsState extends ConsumerState<ShaheenStatistics> {
                         borderRadius: BorderRadius.circular(10),
                         color: Constants.secondaryColor,
                       ),
-                      child: Center(
+                      child: const Center(
                         child: Text(
                           "Jamaat Data",
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium!
-                              .copyWith(color: Colors.white),
                         ),
                       ),
                     ),

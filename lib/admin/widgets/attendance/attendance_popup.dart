@@ -237,7 +237,7 @@ class _AttendancePopupState extends State<AttendancePopup> {
                             key: ValueKey(index),
                             leading: const Icon(Icons.verified_user),
                             title: Text(
-                                "Attendance Time: ${data["attendance_time"].toDate().toString()}"),
+                                "Attendance Time: ${DateFormat('MMMM dd, yyyy – hh:mm a').format(data["attendance_time"].toDate())}"),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [

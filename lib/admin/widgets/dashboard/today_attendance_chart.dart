@@ -24,7 +24,7 @@ class _TodayAttendanceChartState extends State<TodayAttendanceChart> {
 
     return [
       PieChartSectionData(
-        color: const Color(0xFF00FF00), // Green for present
+        color: Colors.green, // Green for present
         value: presentPercentage,
         title: '${presentPercentage.toStringAsFixed(1)}%',
         radius: touchedIndex == 0 ? 180.0 : 170.0,
@@ -55,7 +55,7 @@ class _TodayAttendanceChartState extends State<TodayAttendanceChart> {
         badgePositionPercentageOffset: .98,
       ),
       PieChartSectionData(
-        color: const Color(0xFFFF0000), // Red for absent
+        color: Colors.red, // Red for absent
         value: absentPercentage,
         title: '${absentPercentage.toStringAsFixed(1)}%',
         radius: touchedIndex == 1 ? 180.0 : 170.0,
@@ -106,7 +106,7 @@ class _TodayAttendanceChartState extends State<TodayAttendanceChart> {
               Container(
                 width: 12,
                 height: 12,
-                color: const Color(0xFF00FF00),
+                color: Colors.green,
               ),
               const SizedBox(width: 8),
               const Text('Present'),
@@ -119,7 +119,7 @@ class _TodayAttendanceChartState extends State<TodayAttendanceChart> {
               Container(
                 width: 12,
                 height: 12,
-                color: const Color(0xFFFF0000),
+                color: Colors.red,
               ),
               const SizedBox(width: 8),
               const Text('Absent'),
