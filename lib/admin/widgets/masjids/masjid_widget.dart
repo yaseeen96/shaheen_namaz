@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shaheen_namaz/admin/widgets/masjids/masjid_popup.dart';
+import 'package:shaheen_namaz/common/widgets/loading_indicator.dart';
+import 'package:shaheen_namaz/utils/constants/constants.dart';
 
 class MasjidWidget extends ConsumerStatefulWidget {
   const MasjidWidget({super.key});
@@ -68,6 +70,34 @@ class _MasjidWidgetState extends ConsumerState<MasjidWidget> {
     fetchMasjids();
   }
 
+  void confirmDeleteMasjid(String docID) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Delete'),
+          content: const Text('Are you sure you want to delete this masjid?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('No'),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: Colors.red[600]),
+              onPressed: () {
+                Navigator.of(context).pop();
+                deleteMasjid(docID);
+              },
+              child: const Text('Yes'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void onSearchChanged() {
     String query = searchController.text.trim().toLowerCase();
     setState(() {
@@ -101,9 +131,11 @@ class _MasjidWidgetState extends ConsumerState<MasjidWidget> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        surfaceTintColor: Constants.bgColor,
+        backgroundColor: Constants.bgColor,
         title: const Text(
           "All Masjids",
-          style: TextStyle(fontSize: 40, fontWeight: FontWeight.w900),
+          style: TextStyle(fontWeight: FontWeight.w900),
         ),
         actions: [
           IconButton(
@@ -144,12 +176,14 @@ class _MasjidWidgetState extends ConsumerState<MasjidWidget> {
                         onSelected: (selected) {
                           onClusterChanged(selected ? cluster : 0);
                         },
-                        selectedColor: Colors.black,
-                        backgroundColor: Colors.white,
+                        elevation: 2,
+                        selectedShadowColor: Colors.black87,
+                        selectedColor: Constants.secondaryColor,
+                        backgroundColor: Constants.secondaryColor,
                         labelStyle: TextStyle(
                           color: isActive ? Colors.white : Colors.black,
                         ),
-                        shape: StadiumBorder(
+                        shape: const StadiumBorder(
                           side: BorderSide(
                             color: Colors.black,
                             width: 1,
@@ -165,14 +199,18 @@ class _MasjidWidgetState extends ConsumerState<MasjidWidget> {
         ),
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const CustomLoadingIndicator()
           : ListView.builder(
+              padding: const EdgeInsets.symmetric(
+                vertical: 15,
+              ),
               itemCount: filteredMasjidList.length,
               itemBuilder: (context, index) {
                 final doc = filteredMasjidList[index];
                 final masjidData = doc.data();
                 return Container(
-                  margin: const EdgeInsets.symmetric(vertical: 5),
+                  margin:
+                      const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                   child: ListTile(
                     onTap: () {
                       showDialog(
@@ -197,7 +235,6 @@ class _MasjidWidgetState extends ConsumerState<MasjidWidget> {
                     },
                     leading: const Icon(
                       Icons.mosque,
-                      color: Colors.white,
                     ),
                     title: Text(
                       masjidData["name"],
@@ -211,10 +248,10 @@ class _MasjidWidgetState extends ConsumerState<MasjidWidget> {
                         color: Colors.red,
                       ),
                       onPressed: () {
-                        deleteMasjid(doc.id);
+                        confirmDeleteMasjid(doc.id);
                       },
                     ),
-                    tileColor: Colors.black87,
+                    tileColor: Constants.secondaryColor,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(6),
                     ),

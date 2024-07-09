@@ -9,8 +9,10 @@ import 'package:shaheen_namaz/admin/providers/imam_provider.dart';
 import 'package:shaheen_namaz/admin/providers/menu_items_provider.dart';
 import 'package:shaheen_namaz/admin/widgets/users/tab_bar.dart';
 import 'package:shaheen_namaz/admin/widgets/users/users_popup.dart';
+import 'package:shaheen_namaz/common/widgets/loading_indicator.dart';
 import 'package:shaheen_namaz/providers/selected_items_provider.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
+import 'package:shaheen_namaz/utils/constants/constants.dart';
 
 class UsersWidget extends ConsumerStatefulWidget {
   const UsersWidget({super.key});
@@ -120,12 +122,47 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
     });
   }
 
+  void confirmDeleteUser(DocumentSnapshot<Object?> docs) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Delete'),
+          content: const Text('Are you sure you want to delete this user?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('No'),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: Colors.red[600]),
+              onPressed: () {
+                Navigator.of(context).pop();
+                onDelete(docs);
+              },
+              child: const Text('Yes'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final menuItems = ref.watch(menuItemsProvider);
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Constants.bgColor,
+        surfaceTintColor: Constants.bgColor,
+        toolbarHeight: 120,
+        title: const Text(
+          "All Users",
+          style: TextStyle(fontWeight: FontWeight.w900),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -172,8 +209,10 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                     onSelected: (selected) {
                       onLetterChanged(selected ? letter : '');
                     },
-                    selectedColor: Colors.black,
-                    backgroundColor: Colors.white,
+                    elevation: 2,
+                    selectedShadowColor: Colors.black87,
+                    selectedColor: Constants.secondaryColor,
+                    backgroundColor: Constants.secondaryColor,
                     labelStyle: TextStyle(
                       color: isActive ? Colors.white : Colors.black,
                     ),
@@ -192,8 +231,10 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                       onSelected: (selected) {
                         onLetterChanged('');
                       },
-                      selectedColor: Colors.black,
-                      backgroundColor: Colors.white,
+                      elevation: 2,
+                      selectedShadowColor: Colors.black87,
+                      selectedColor: Constants.secondaryColor,
+                      backgroundColor: Constants.secondaryColor,
                       labelStyle: TextStyle(
                         color:
                             activeLetter.isEmpty ? Colors.white : Colors.black,
@@ -211,44 +252,50 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
           ),
         ),
       ),
-      body: FirestorePagination(
-        isLive: true,
-        key: ValueKey('$currentIndex-$searchQuery-$activeLetter'),
-        query: getQuery(),
-        itemBuilder: (context, docs, index) {
-          final data = docs.data() as Map<String, dynamic>;
+      body: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 15),
+        child: FirestorePagination(
+          isLive: true,
+          key: ValueKey('$currentIndex-$searchQuery-$activeLetter'),
+          query: getQuery(),
+          itemBuilder: (context, docs, index) {
+            final data = docs.data() as Map<String, dynamic>;
 
-          return Container(
-            margin: const EdgeInsets.symmetric(vertical: 3),
-            width: MediaQuery.of(context).size.width * 0.6,
-            constraints: const BoxConstraints(maxHeight: 1500),
-            child: ListTile(
-              key: ValueKey(docs.id),
-              title: Text(data["name"] ?? data["email"]),
-              onTap: () {
-                ref.read(imamProvider.notifier).state =
-                    data["imam_details"] ?? {};
-                logger.i("menu items length: ${menuItems.length}");
-                getSelectedItems(docs);
-                showEditPopup(context, docs, menuItems);
-              },
-              trailing: IconButton(
-                  icon: const Icon(
-                    Icons.delete,
-                    color: Colors.grey,
-                  ),
-                  onPressed: (data["email"] == "admin@shaheen.org")
-                      ? null
-                      : () {
-                          onDelete(docs);
-                        }),
-              tileColor: Colors.black87,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(6),
+            return Container(
+              margin: const EdgeInsets.symmetric(vertical: 3, horizontal: 10),
+              width: MediaQuery.of(context).size.width * 0.6,
+              constraints: const BoxConstraints(maxHeight: 1500),
+              child: ListTile(
+                key: ValueKey(docs.id),
+                leading: const Icon(Icons.verified_user),
+                title: Text(data["name"] ?? data["email"]),
+                onTap: () {
+                  ref.read(imamProvider.notifier).state =
+                      data["imam_details"] ?? {};
+                  logger.i("menu items length: ${menuItems.length}");
+                  getSelectedItems(docs);
+                  showEditPopup(context, docs, menuItems);
+                },
+                subtitle: Text("mobile: ${data["phone_number"]}"),
+                trailing: IconButton(
+                    icon: const Icon(
+                      Icons.delete,
+                      color: Colors.grey,
+                    ),
+                    onPressed: (data["email"] == "admin@shaheen.org")
+                        ? null
+                        : () {
+                            confirmDeleteUser(docs);
+                          }),
+                tileColor: Constants.secondaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
               ),
-            ),
-          );
-        },
+            );
+          },
+          initialLoader: const CustomLoadingIndicator(),
+        ),
       ),
     );
   }

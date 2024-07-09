@@ -9,10 +9,10 @@ class EditStudentDialog extends StatefulWidget {
   final Map<String, dynamic> data;
 
   const EditStudentDialog({
-    Key? key,
+    super.key,
     required this.data,
     required this.studentId,
-  }) : super(key: key);
+  });
 
   @override
   _EditStudentDialogState createState() => _EditStudentDialogState();
@@ -59,7 +59,7 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Edit Student Details'),
+      title: const Text('Edit Student Details'),
       content: SizedBox(
         width: MediaQuery.of(context).size.width * 0.8,
         child: SingleChildScrollView(
@@ -67,11 +67,11 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
             children: [
               TextField(
                 controller: nameController,
-                decoration: InputDecoration(labelText: 'Name'),
+                decoration: const InputDecoration(labelText: 'Name'),
               ),
               TextField(
                 controller: classController,
-                decoration: InputDecoration(labelText: 'Class'),
+                decoration: const InputDecoration(labelText: 'Class'),
               ),
               GestureDetector(
                 onTap: () async {
@@ -91,27 +91,28 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
                 child: AbsorbPointer(
                   child: TextField(
                     controller: dobController,
-                    decoration: InputDecoration(labelText: 'Date of Birth'),
+                    decoration:
+                        const InputDecoration(labelText: 'Date of Birth'),
                   ),
                 ),
               ),
               TextField(
                 controller: addressController,
-                decoration: InputDecoration(labelText: 'Address'),
+                decoration: const InputDecoration(labelText: 'Address'),
               ),
               TextField(
                 controller: guardianNameController,
-                decoration: InputDecoration(labelText: 'Guardian Name'),
+                decoration: const InputDecoration(labelText: 'Guardian Name'),
               ),
               TextField(
                 controller: guardianNumberController,
-                decoration: InputDecoration(labelText: 'Guardian Number'),
+                decoration: const InputDecoration(labelText: 'Guardian Number'),
               ),
               const Gap(10),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Masjid',
                     style: TextStyle(fontSize: 16, color: Colors.black54),
                   ),
@@ -127,7 +128,7 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Volunteer',
                     style: TextStyle(fontSize: 16, color: Colors.black54),
                   ),
@@ -144,6 +145,11 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
         ),
       ),
       actions: [
+        TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text("Cancel")),
         TextButton(
           onPressed: () async {
             final updatedData = {
@@ -172,9 +178,10 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
             } catch (e) {
               logger.e("Failed to update student data: $e");
             }
+            if (!context.mounted) return;
             Navigator.of(context).pop();
           },
-          child: Text('Save'),
+          child: const Text('Save'),
         ),
       ],
     );

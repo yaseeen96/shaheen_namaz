@@ -14,12 +14,7 @@ class _StudentDataNewState extends ConsumerState<StudentDataNew> {
     FirebaseFirestore.instance
         .collection("students")
         .where("masjid", isEqualTo: "Masjid")
-        .get()
-        .then((value) {
-      for (var element in value.docs) {
-        print(element.data());
-      }
-    });
+        .get();
   }
 
   @override

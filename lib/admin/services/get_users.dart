@@ -8,9 +8,7 @@ Stream<AllUsersResponse> getUsers() {
       .snapshots()
       .map((snapshot) {
     logger.i("Snapshot received with ${snapshot.docs.length} users");
-    for (var doc in snapshot.docs) {
-      // logger.i("User ID: ${doc.id}, Data: ${doc.data()}");
-    }
+
     return AllUsersResponse.fromSnapshot(snapshot);
   }).handleError((err) {
     logger.e("Error from getUsers in services: $err");

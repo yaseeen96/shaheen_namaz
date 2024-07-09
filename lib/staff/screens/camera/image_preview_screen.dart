@@ -164,7 +164,7 @@ class _ImagePreviewScreenState extends ConsumerState<ImagePreviewScreen> {
       "image_data": base64Image,
     });
     final jsonResponse = response.data;
-    logger.i("response: ${jsonResponse}");
+    logger.i("response: $jsonResponse");
     setState(() {
       isLoading = false;
     });

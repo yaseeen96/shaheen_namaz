@@ -27,7 +27,7 @@ class _AttendanceChartState extends State<AttendanceChart> {
 
       final cluster = clusters[i];
       final int clusterNumber = cluster['clusterNumber'];
-      final int totalStudents = cluster['totalStudents'];
+
       final int todayAttendanceCluster = cluster['todayAttendance'];
 
       // Calculate percentage of today's attendance in this cluster
@@ -60,7 +60,7 @@ class _AttendanceChartState extends State<AttendanceChart> {
           child: Center(
             child: Text(
               '$clusterNumber',
-              style: TextStyle(fontSize: 12, color: Colors.black),
+              style: const TextStyle(fontSize: 12, color: Colors.black),
             ),
           ),
         ),
@@ -72,40 +72,40 @@ class _AttendanceChartState extends State<AttendanceChart> {
   Color getColorForCluster(int clusterNumber) {
     switch (clusterNumber) {
       case 0:
-        return Color(0xFF2E8B57); // Sea Green
+        return const Color(0xFF2E8B57); // Sea Green
       case 1:
-        return Color(0xFF3CB371); // Medium Sea Green
+        return const Color(0xFF3CB371); // Medium Sea Green
       case 2:
-        return Color(0xFF66CDAA); // Medium Aquamarine
+        return const Color(0xFF66CDAA); // Medium Aquamarine
       case 3:
-        return Color(0xFF8FBC8F); // Dark Sea Green
+        return const Color(0xFF8FBC8F); // Dark Sea Green
       case 4:
-        return Color(0xFF20B2AA); // Light Sea Green
+        return const Color(0xFF20B2AA); // Light Sea Green
       case 5:
-        return Color(0xFF00FA9A); // Medium Spring Green
+        return const Color(0xFF00FA9A); // Medium Spring Green
       case 6:
-        return Color(0xFF98FB98); // Pale Green
+        return const Color(0xFF98FB98); // Pale Green
       case 7:
-        return Color(0xFF4682B4); // Steel Blue
+        return const Color(0xFF4682B4); // Steel Blue
       case 8:
-        return Color(0xFF5F9EA0); // Cadet Blue
+        return const Color(0xFF5F9EA0); // Cadet Blue
       case 9:
-        return Color(0xFF7FFFD4); // Aquamarine
+        return const Color(0xFF7FFFD4); // Aquamarine
       case 10:
-        return Color(0xFF40E0D0); // Turquoise
+        return const Color(0xFF40E0D0); // Turquoise
       case 11:
-        return Color(0xFF00CED1); // Dark Turquoise
+        return const Color(0xFF00CED1); // Dark Turquoise
       case 12:
-        return Color(0xFF1E90FF); // Dodger Blue
+        return const Color(0xFF1E90FF); // Dodger Blue
       default:
-        return Color(0xFF556B2F); // Dark Olive Green
+        return const Color(0xFF556B2F); // Dark Olive Green
     }
   }
 
   Widget buildLegend(List<Map<String, dynamic>> clusters) {
     return Container(
       width: 200,
-      padding: EdgeInsets.all(8),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Constants.bgColor,
         border: Border.all(color: Colors.black),
@@ -125,7 +125,7 @@ class _AttendanceChartState extends State<AttendanceChart> {
                 height: 12,
                 color: getColorForCluster(clusterNumber),
               ),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text(
                 'Cluster $clusterNumber',
               ),
@@ -145,7 +145,7 @@ class _AttendanceChartState extends State<AttendanceChart> {
     return Container(
       decoration: BoxDecoration(
           color: Constants.secondaryColor,
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(color: Colors.black38, blurRadius: 5, spreadRadius: 5)
           ],
           borderRadius: BorderRadius.circular(12)),
@@ -197,49 +197,49 @@ class _AttendanceChartState extends State<AttendanceChart> {
   }
 }
 
-class _Badge extends StatelessWidget {
-  const _Badge({
-    required this.clusterNumber,
-    required this.size,
-    required this.borderColor,
-  });
+// class _Badge extends StatelessWidget {
+//   const _Badge({
+//     required this.clusterNumber,
+//     required this.size,
+//     required this.borderColor,
+//   });
 
-  final int clusterNumber;
-  final double size;
-  final Color borderColor;
+//   final int clusterNumber;
+//   final double size;
+//   final Color borderColor;
 
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: PieChart.defaultDuration,
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: borderColor,
-          width: 2,
-        ),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: Colors.black.withOpacity(.5),
-            offset: const Offset(3, 3),
-            blurRadius: 3,
-          ),
-        ],
-      ),
-      padding: EdgeInsets.all(size * .15),
-      child: Center(
-        child: Text(
-          clusterNumber.toString(),
-          style: TextStyle(
-            fontSize: 16.0, // Adjust the font size as needed
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return AnimatedContainer(
+//       duration: PieChart.defaultDuration,
+//       width: size,
+//       height: size,
+//       decoration: BoxDecoration(
+//         color: Colors.white,
+//         shape: BoxShape.circle,
+//         border: Border.all(
+//           color: borderColor,
+//           width: 2,
+//         ),
+//         boxShadow: <BoxShadow>[
+//           BoxShadow(
+//             color: Colors.black.withOpacity(.5),
+//             offset: const Offset(3, 3),
+//             blurRadius: 3,
+//           ),
+//         ],
+//       ),
+//       padding: EdgeInsets.all(size * .15),
+//       child: Center(
+//         child: Text(
+//           clusterNumber.toString(),
+//           style: const TextStyle(
+//             fontSize: 16.0, // Adjust the font size as needed
+//             fontWeight: FontWeight.bold,
+//             color: Colors.black,
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }

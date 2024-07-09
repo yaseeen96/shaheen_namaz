@@ -1,7 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:shaheen_namaz/admin/providers/admin_home_provider.dart';
@@ -26,7 +24,7 @@ class _AdminHomeWidgetState extends ConsumerState<AdminHomeWidget> {
     final homeState = ref.read(adminNotifierProvider);
     _sidebarController = SidebarXController(
       selectedIndex: homeState.selectedIndex,
-      extended: true,
+      extended: false,
     );
   }
 
@@ -44,7 +42,6 @@ class _AdminHomeWidgetState extends ConsumerState<AdminHomeWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final homeState = ref.watch(adminNotifierProvider);
     return Row(
       children: [
         SidebarX(
@@ -131,7 +128,7 @@ class _AdminHomeWidgetState extends ConsumerState<AdminHomeWidget> {
               },
             ),
             SidebarXItem(
-              icon: Icons.home,
+              icon: Icons.mosque,
               label: 'Masjids',
               onTap: () {
                 ref.read(adminNotifierProvider.notifier).updateSelectedIndex(3);
@@ -150,7 +147,7 @@ class _AdminHomeWidgetState extends ConsumerState<AdminHomeWidget> {
               return Column(
                 children: [
                   IconButton(
-                    icon: Icon(Icons.password),
+                    icon: const Icon(Icons.password),
                     onPressed: () {
                       showDialog(
                         context: context,
@@ -160,7 +157,7 @@ class _AdminHomeWidgetState extends ConsumerState<AdminHomeWidget> {
                   ),
                   const Gap(5),
                   IconButton(
-                    icon: Icon(Icons.logout),
+                    icon: const Icon(Icons.logout),
                     onPressed: () async {
                       await FirebaseAuth.instance.signOut();
                     },
@@ -182,8 +179,8 @@ class _AdminHomeWidgetState extends ConsumerState<AdminHomeWidget> {
                         backgroundColor: Constants.bgColor,
                         foregroundColor: Colors.white,
                       ),
-                      icon: Icon(Icons.password),
-                      label: Text('Change Password'),
+                      icon: const Icon(Icons.password),
+                      label: const Text('Change Password'),
                       onPressed: () {
                         showDialog(
                           context: context,
@@ -205,8 +202,8 @@ class _AdminHomeWidgetState extends ConsumerState<AdminHomeWidget> {
                         backgroundColor: Constants.bgColor,
                         foregroundColor: Colors.white,
                       ),
-                      icon: Icon(Icons.logout),
-                      label: Text('Sign Out'),
+                      icon: const Icon(Icons.logout),
+                      label: const Text('Sign Out'),
                       onPressed: () async {
                         await FirebaseAuth.instance.signOut();
                       },
@@ -217,7 +214,7 @@ class _AdminHomeWidgetState extends ConsumerState<AdminHomeWidget> {
             }
           },
         ),
-        Expanded(child: ChildWidget()), // Replace with your ChildWidget
+        const Expanded(child: ChildWidget()), // Replace with your ChildWidget
       ],
     );
   }

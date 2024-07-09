@@ -75,7 +75,7 @@ class _StudentRegistrationScreenState
         final String? selectedMasjidRef = ref.read(selectedMasjidProvider);
         if (selectedMasjidRef == null) {
           // Handle the case where no masjid is selected, if necessary
-          if (!context.mounted) return;
+          if (!mounted) return;
           showTopSnackBar(
             Overlay.of(context),
             const CustomSnackBar.error(
@@ -110,7 +110,7 @@ class _StudentRegistrationScreenState
           ref.read(studentDetailsProvider.notifier).state = {};
           context.go("/user");
         } else {
-          if (!context.mounted) return;
+          if (!mounted) return;
           showTopSnackBar(
               Overlay.of(context),
               CustomSnackBar.error(
@@ -186,7 +186,7 @@ class _StudentRegistrationScreenState
         studentDetails["studentClass"] as String? ?? "";
     studentAddressController.text =
         studentDetails["studentAddress"] as String? ?? "";
-    selectedGender = studentDetails["gender"] as String? ?? null;
+    selectedGender = studentDetails["gender"] as String?;
 
     super.initState();
   }
@@ -304,7 +304,7 @@ class _StudentRegistrationScreenState
                     const Gap(10),
 
                     DropdownButtonFormField<String>(
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                         labelText: 'Gender',
                         border: OutlineInputBorder(),
                       ),

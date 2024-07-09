@@ -1,7 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
 
 class DashboardNotifier extends StateNotifier<void> {
@@ -61,7 +59,7 @@ class DashboardNotifier extends StateNotifier<void> {
       }
       return result.data['todayAttendance'];
     } catch (e) {
-      logger.e("error in query: ${e}");
+      logger.e("error in query: $e");
       throw Exception('Failed to get today\'s attendance: $e');
     }
   }
@@ -115,7 +113,7 @@ class DashboardNotifier extends StateNotifier<void> {
         'totalStudents': result.data['totalStudents']
       };
     } catch (e) {
-      logger.e("error in query: ${e}");
+      logger.e("error in query: $e");
       throw Exception('Failed to get today\'s attendance by cluster: $e');
     }
   }

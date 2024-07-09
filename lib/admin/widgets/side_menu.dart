@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:dropdown_search/dropdown_search.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,11 +7,8 @@ import 'package:shaheen_namaz/admin/widgets/attendance/attendance_list.dart';
 import 'package:shaheen_namaz/admin/widgets/change_password.dart';
 import 'package:shaheen_namaz/admin/widgets/dashboard/dashboard.dart';
 import 'package:shaheen_namaz/admin/widgets/statistics/statistics.dart';
-import 'package:shaheen_namaz/admin/widgets/masjid_dropdown.dart';
 import 'package:shaheen_namaz/admin/widgets/masjids/masjid_widget.dart';
-import 'package:shaheen_namaz/admin/widgets/student_data_new.dart';
 import 'package:shaheen_namaz/admin/widgets/users/users_widget.dart';
-import 'package:shaheen_namaz/utils/config/logger.dart';
 
 class SideMenuDrawer extends ConsumerWidget {
   const SideMenuDrawer({

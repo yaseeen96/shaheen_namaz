@@ -1,5 +1,4 @@
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shaheen_namaz/utils/constants/constants.dart';
 
@@ -25,7 +24,7 @@ class _TodayAttendanceChartState extends State<TodayAttendanceChart> {
 
     return [
       PieChartSectionData(
-        color: Color(0xFF00FF00), // Green for present
+        color: const Color(0xFF00FF00), // Green for present
         value: presentPercentage,
         title: '${presentPercentage.toStringAsFixed(1)}%',
         radius: touchedIndex == 0 ? 180.0 : 170.0,
@@ -33,7 +32,7 @@ class _TodayAttendanceChartState extends State<TodayAttendanceChart> {
           fontSize: touchedIndex == 0 ? 20.0 : 16.0,
           fontWeight: FontWeight.bold,
           color: const Color(0xffffffff),
-          shadows: [Shadow(color: Colors.black, blurRadius: 2)],
+          shadows: const [Shadow(color: Colors.black, blurRadius: 2)],
         ),
         badgeWidget: Container(
           width: touchedIndex == 0 ? 55.0 : 40.0,
@@ -46,7 +45,7 @@ class _TodayAttendanceChartState extends State<TodayAttendanceChart> {
               width: 2,
             ),
           ),
-          child: Center(
+          child: const Center(
             child: Text(
               'P',
               style: TextStyle(fontSize: 12, color: Colors.black),
@@ -56,7 +55,7 @@ class _TodayAttendanceChartState extends State<TodayAttendanceChart> {
         badgePositionPercentageOffset: .98,
       ),
       PieChartSectionData(
-        color: Color(0xFFFF0000), // Red for absent
+        color: const Color(0xFFFF0000), // Red for absent
         value: absentPercentage,
         title: '${absentPercentage.toStringAsFixed(1)}%',
         radius: touchedIndex == 1 ? 180.0 : 170.0,
@@ -64,7 +63,7 @@ class _TodayAttendanceChartState extends State<TodayAttendanceChart> {
           fontSize: touchedIndex == 1 ? 20.0 : 16.0,
           fontWeight: FontWeight.bold,
           color: const Color(0xffffffff),
-          shadows: [Shadow(color: Colors.black, blurRadius: 2)],
+          shadows: const [Shadow(color: Colors.black, blurRadius: 2)],
         ),
         badgeWidget: Container(
           width: touchedIndex == 1 ? 55.0 : 40.0,
@@ -77,7 +76,7 @@ class _TodayAttendanceChartState extends State<TodayAttendanceChart> {
               width: 2,
             ),
           ),
-          child: Center(
+          child: const Center(
             child: Text(
               'A',
               style: TextStyle(fontSize: 12, color: Colors.black),
@@ -92,7 +91,7 @@ class _TodayAttendanceChartState extends State<TodayAttendanceChart> {
   Widget buildLegend() {
     return Container(
       width: 200,
-      padding: EdgeInsets.all(8),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Constants.bgColor,
         border: Border.all(color: Colors.black),
@@ -107,23 +106,23 @@ class _TodayAttendanceChartState extends State<TodayAttendanceChart> {
               Container(
                 width: 12,
                 height: 12,
-                color: Color(0xFF00FF00),
+                color: const Color(0xFF00FF00),
               ),
-              SizedBox(width: 8),
-              Text('Present'),
+              const SizedBox(width: 8),
+              const Text('Present'),
             ],
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 width: 12,
                 height: 12,
-                color: Color(0xFFFF0000),
+                color: const Color(0xFFFF0000),
               ),
-              SizedBox(width: 8),
-              Text('Absent'),
+              const SizedBox(width: 8),
+              const Text('Absent'),
             ],
           ),
         ],
@@ -140,7 +139,7 @@ class _TodayAttendanceChartState extends State<TodayAttendanceChart> {
     return Container(
       decoration: BoxDecoration(
           color: Constants.secondaryColor,
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(color: Colors.black38, blurRadius: 5, spreadRadius: 5)
           ],
           borderRadius: BorderRadius.circular(12)),
@@ -192,49 +191,49 @@ class _TodayAttendanceChartState extends State<TodayAttendanceChart> {
   }
 }
 
-class _Badge extends StatelessWidget {
-  const _Badge({
-    required this.label,
-    required this.size,
-    required this.borderColor,
-  });
+// class _Badge extends StatelessWidget {
+//   const _Badge({
+//     required this.label,
+//     required this.size,
+//     required this.borderColor,
+//   });
 
-  final String label;
-  final double size;
-  final Color borderColor;
+//   final String label;
+//   final double size;
+//   final Color borderColor;
 
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: PieChart.defaultDuration,
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: borderColor,
-          width: 2,
-        ),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: Colors.black.withOpacity(.5),
-            offset: const Offset(3, 3),
-            blurRadius: 3,
-          ),
-        ],
-      ),
-      padding: EdgeInsets.all(size * .15),
-      child: Center(
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 16.0, // Adjust the font size as needed
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return AnimatedContainer(
+//       duration: PieChart.defaultDuration,
+//       width: size,
+//       height: size,
+//       decoration: BoxDecoration(
+//         color: Colors.white,
+//         shape: BoxShape.circle,
+//         border: Border.all(
+//           color: borderColor,
+//           width: 2,
+//         ),
+//         boxShadow: <BoxShadow>[
+//           BoxShadow(
+//             color: Colors.black.withOpacity(.5),
+//             offset: const Offset(3, 3),
+//             blurRadius: 3,
+//           ),
+//         ],
+//       ),
+//       padding: EdgeInsets.all(size * .15),
+//       child: Center(
+//         child: Text(
+//           label,
+//           style: const TextStyle(
+//             fontSize: 16.0, // Adjust the font size as needed
+//             fontWeight: FontWeight.bold,
+//             color: Colors.black,
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }

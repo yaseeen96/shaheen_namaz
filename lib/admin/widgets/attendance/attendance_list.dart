@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shaheen_namaz/admin/widgets/attendance/single_student_card.dart';
 import 'package:shaheen_namaz/common/widgets/loading_indicator.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
+import 'package:shaheen_namaz/utils/constants/constants.dart';
 
 class AttendanceList extends ConsumerStatefulWidget {
   const AttendanceList({super.key});
@@ -62,6 +63,8 @@ class _AttendanceListState extends ConsumerState<AttendanceList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Constants.bgColor,
+        surfaceTintColor: Constants.bgColor,
         title: const Text("Student Attendance"),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(120.0),
@@ -109,7 +112,7 @@ class _AttendanceListState extends ConsumerState<AttendanceList> {
         future: _getQuery().get(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return CustomLoadingIndicator();
+            return const CustomLoadingIndicator();
           } else if (snapshot.hasError) {
             logger.e("Error: ${snapshot.error}");
             return const Center(child: Text('An error occurred'));
@@ -121,7 +124,7 @@ class _AttendanceListState extends ConsumerState<AttendanceList> {
               padding: const EdgeInsets.all(20),
               viewType: ViewType.grid,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
+                crossAxisCount: 4,
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
                 childAspectRatio: 1.6,
@@ -138,11 +141,11 @@ class _AttendanceListState extends ConsumerState<AttendanceList> {
                   );
                 } catch (e, stackTrace) {
                   logger.e("Error in itemBuilder: $e\n$stackTrace");
-                  return Center(
+                  return const Center(
                       child: Text('An error occurred with this item'));
                 }
               },
-              onEmpty: Center(child: Text('No students found')),
+              onEmpty: const Center(child: Text('No students found')),
             );
           }
         },

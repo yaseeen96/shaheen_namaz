@@ -89,10 +89,6 @@ Future<List<AttendanceDataModel>> getTodayAttendanceListFromFirestore(
 
 // Fetches today's attendance for all documents in the Attendance collection
 Future<List<AttendanceDataModel>> getTodayAttendance() async {
-  DateTime now = DateTime.now();
-  DateTime startOfDay = DateTime(now.year, now.month, now.day);
-  DateTime endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
-
   QuerySnapshot querySnapshot = await FirebaseFirestore.instance
       .collection('Attendance')
       .get(); // Retrieve all documents
@@ -112,6 +108,5 @@ Future<List<AttendanceDataModel>> getTodayAttendance() async {
   // Remove duplicates
   allTodayAttendance = allTodayAttendance.toSet().toList();
 
-  print('All today\'s attendance: $allTodayAttendance');
   return allTodayAttendance;
 }

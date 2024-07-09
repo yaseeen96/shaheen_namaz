@@ -24,6 +24,6 @@ class ParentScreen extends ConsumerWidget {
                 child: Text("An Error Occurred $error"),
               ),
             ),
-        loading: () => Scaffold(body: CustomLoadingIndicator()));
+        loading: () => const Scaffold(body: CustomLoadingIndicator()));
   }
 }

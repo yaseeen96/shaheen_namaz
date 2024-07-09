@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
-import 'package:logger/logger.dart';
 import 'package:shaheen_namaz/admin/providers/imam_provider.dart';
 import 'package:shaheen_namaz/staff/providers/providers.dart';
 import 'package:shaheen_namaz/staff/screens/student_registration/masjids_widget.dart';
@@ -122,7 +121,6 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen> {
           ),
         );
       } finally {
-        if (!mounted) return;
         setState(() {
           isLoading = false;
         });

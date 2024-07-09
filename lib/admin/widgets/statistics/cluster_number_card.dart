@@ -161,7 +161,7 @@ class ClusterNumberCard extends ConsumerWidget {
         ),
       ),
       error: (error, stackTrace) => Center(
-        child: Text("Error: ${error}"),
+        child: Text("Error: $error"),
       ),
     );
   }

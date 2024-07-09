@@ -44,6 +44,7 @@ class _StudentDataTableState extends State<StudentDataTable> {
     } else {
       // Get user's masjid references and handle both cases
       var userMasjidDetails = user.data()?["masjid_details"];
+      // ignore: unused_local_variable
       List<String> userMasjidIds;
 
       if (userMasjidDetails is List) {
@@ -77,7 +78,7 @@ class _StudentDataTableState extends State<StudentDataTable> {
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) return CustomLoadingIndicator();
+    if (isLoading) return const CustomLoadingIndicator();
     return SizedBox(
       width: double.infinity,
       height: double.infinity,

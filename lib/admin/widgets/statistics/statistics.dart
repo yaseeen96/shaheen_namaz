@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
@@ -65,7 +64,7 @@ class _ShaheenStatisticsState extends ConsumerState<ShaheenStatistics> {
           ],
         ),
         const Gap(15),
-        Text(
+        const Text(
           "Attendance based on Cluster",
           style: TextStyle(color: Colors.white, fontSize: 20),
         ),
@@ -85,7 +84,7 @@ class _ShaheenStatisticsState extends ConsumerState<ShaheenStatistics> {
                 int clusterNumber = index;
                 return InfoCard(
                     clusterNumber: clusterNumber,
-                    icon: Icon(Icons.one_k),
+                    icon: const Icon(Icons.one_k),
                     title: "Cluster $clusterNumber",
                     provider: todayAttendanceByClusterProvider(clusterNumber),
                     downloadUrl:

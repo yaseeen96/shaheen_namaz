@@ -40,14 +40,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         logger.i(credential.user!.uid);
       } on FirebaseAuthException catch (e) {
         if (e.code == 'user-not-found') {
-          if (!mounted) return;
+          if (!context.mounted) return;
           showTopSnackBar(
             Overlay.of(context),
             const CustomSnackBar.error(
                 message: "No user found for that number."),
           );
         } else if (e.code == 'wrong-password') {
-          if (!mounted) return;
+          if (!context.mounted) return;
           showTopSnackBar(
             Overlay.of(context),
             const CustomSnackBar.error(
@@ -55,7 +55,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           );
         }
         logger.e("error logging in: ${e.message}");
-        if (!mounted) return;
+        if (!context.mounted) return;
 
         showTopSnackBar(
           Overlay.of(context),

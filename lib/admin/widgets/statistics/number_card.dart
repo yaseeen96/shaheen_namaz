@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gap/gap.dart';
 import 'package:shaheen_namaz/utils/constants/constants.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -35,7 +34,7 @@ class NumberCard extends ConsumerWidget {
                 children: [
                   Text(
                     title,
-                    style: TextStyle(color: Colors.white, fontSize: 16),
+                    style: const TextStyle(color: Colors.white, fontSize: 16),
                   ),
                   const SizedBox(height: 10),
                   Text(
@@ -74,14 +73,14 @@ class NumberCard extends ConsumerWidget {
       },
       loading: () => const ShimmerLoadingWidget(),
       error: (error, stackTrace) => Center(
-        child: Text("Error: ${error}"),
+        child: Text("Error: $error"),
       ),
     );
   }
 }
 
 class ShimmerLoadingWidget extends StatelessWidget {
-  const ShimmerLoadingWidget({Key? key}) : super(key: key);
+  const ShimmerLoadingWidget({super.key});
 
   @override
   Widget build(BuildContext context) {

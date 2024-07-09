@@ -17,7 +17,7 @@ class ManualAttendance extends ConsumerStatefulWidget {
 }
 
 class _ManualAttendanceState extends ConsumerState<ManualAttendance> {
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   late Query<Object?> _baseQuery;
   Query<Object?>? _currentQuery;
   Key _paginationKey = UniqueKey();

@@ -7,10 +7,10 @@ class VolunteerDropdownWidget extends StatefulWidget {
   final Map<String, dynamic>? initialValue;
 
   const VolunteerDropdownWidget({
-    Key? key,
+    super.key,
     required this.onSelected,
     this.initialValue,
-  }) : super(key: key);
+  });
 
   @override
   _VolunteerDropdownWidgetState createState() =>
@@ -35,11 +35,11 @@ class _VolunteerDropdownWidgetState extends State<VolunteerDropdownWidget> {
       future: fetchVolunteers(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: LinearProgressIndicator());
+          return const Center(child: LinearProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text('No volunteers found'));
+          return const Center(child: Text('No volunteers found'));
         } else {
           return DropdownSearch<Map<String, dynamic>>(
             items: snapshot.data!,
@@ -47,7 +47,7 @@ class _VolunteerDropdownWidgetState extends State<VolunteerDropdownWidget> {
                 volunteer['volunteerName'],
             popupProps: PopupProps.menu(
               showSearchBox: true,
-              searchFieldProps: TextFieldProps(
+              searchFieldProps: const TextFieldProps(
                 decoration: InputDecoration(
                   hintText: 'Search by volunteer name',
                 ),
@@ -56,7 +56,6 @@ class _VolunteerDropdownWidgetState extends State<VolunteerDropdownWidget> {
                 return ListTile(
                   title: Text(
                     volunteer['volunteerName'],
-                    style: TextStyle(color: Colors.black),
                   ),
                 );
               },

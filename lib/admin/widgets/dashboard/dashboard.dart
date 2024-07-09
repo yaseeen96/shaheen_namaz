@@ -1,18 +1,14 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shaheen_namaz/admin/providers/dashboard_provider.dart';
 import 'package:shaheen_namaz/admin/widgets/dashboard/attendance_chart.dart';
 import 'package:shaheen_namaz/admin/widgets/dashboard/cluster_card.dart';
 import 'package:shaheen_namaz/admin/widgets/dashboard/today_attendance_chart.dart';
 import 'package:shaheen_namaz/admin/widgets/dashboard/total_students_chart.dart';
 import 'package:shaheen_namaz/common/widgets/loading_indicator.dart';
-import 'package:shaheen_namaz/utils/config/logger.dart';
-import 'package:shaheen_namaz/utils/constants/constants.dart';
 
 class ShaheenDashboard extends ConsumerStatefulWidget {
-  const ShaheenDashboard({Key? key}) : super(key: key);
+  const ShaheenDashboard({super.key});
 
   @override
   ShaheenDashboardState createState() => ShaheenDashboardState();
@@ -36,7 +32,7 @@ class ShaheenDashboardState extends ConsumerState<ShaheenDashboard> {
           ],
         );
       },
-      loading: () => CustomLoadingIndicator(),
+      loading: () => const CustomLoadingIndicator(),
       error: (error, stackTrace) => Center(child: Text('Error: $error')),
     );
   }

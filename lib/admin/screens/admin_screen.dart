@@ -56,7 +56,7 @@ class AdminScreen extends ConsumerWidget {
           }
         },
         error: (err, stk) => _buildError(err),
-        loading: () => CustomLoadingIndicator(),
+        loading: () => const CustomLoadingIndicator(),
       );
     }
   }
@@ -68,6 +68,6 @@ class AdminScreen extends ConsumerWidget {
 
   Widget _buildLoading() {
     logger.i('Loading');
-    return CustomLoadingIndicator();
+    return const CustomLoadingIndicator();
   }
 }

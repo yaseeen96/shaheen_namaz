@@ -12,6 +12,23 @@ class ClusterCard extends StatefulWidget {
 }
 
 class _ClusterCardState extends State<ClusterCard> {
+  // Function to get progress color based on percentage
+  Color getProgressColor(double percentage) {
+    if (percentage >= 0.9) {
+      return Colors.blue;
+    } else if (percentage >= 0.75) {
+      return Colors.green;
+    } else if (percentage >= 0.6) {
+      return Colors.lightGreen;
+    } else if (percentage >= 0.45) {
+      return Colors.yellow;
+    } else if (percentage >= 0.3) {
+      return Colors.orange;
+    } else {
+      return Colors.red;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final clusters =
@@ -20,7 +37,7 @@ class _ClusterCardState extends State<ClusterCard> {
     return Container(
       decoration: BoxDecoration(
         color: Constants.secondaryColor,
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(color: Colors.black38, blurRadius: 5, spreadRadius: 5)
         ],
         borderRadius: BorderRadius.circular(12),
@@ -31,13 +48,13 @@ class _ClusterCardState extends State<ClusterCard> {
       margin: const EdgeInsets.all(20),
       child: ListView(
         children: [
-          Text("Cluster Based Attendance for today",
+          const Text("Cluster Based Attendance for today",
               style: TextStyle(fontSize: 24)),
           const Gap(10),
           GridView.builder(
-            physics: ScrollPhysics(),
+            physics: const ScrollPhysics(),
             shrinkWrap: true,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 4,
               mainAxisSpacing: 10,
               crossAxisSpacing: 10,
@@ -72,20 +89,20 @@ class _ClusterCardState extends State<ClusterCard> {
                         percent: attendancePercentage,
                         center: Text(
                           "${(attendancePercentage * 100).toStringAsFixed(1)}%",
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 20.0,
                           ),
                         ),
                         footer: Text(
                           "Cluster $clusterNumber",
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16.0,
                           ),
                         ),
                         circularStrokeCap: CircularStrokeCap.round,
-                        progressColor: Constants.primaryColor,
+                        progressColor: getProgressColor(attendancePercentage),
                       ),
                     ],
                   ),

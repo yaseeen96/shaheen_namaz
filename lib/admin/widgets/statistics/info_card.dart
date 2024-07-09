@@ -1,20 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shaheen_namaz/utils/constants/constants.dart';
-import 'dart:math';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shimmer/shimmer.dart';
 
 class InfoCard extends ConsumerWidget {
   const InfoCard(
-      {Key? key,
+      {super.key,
       required this.icon,
       required this.title,
       required this.provider,
       required this.downloadUrl,
-      required this.clusterNumber})
-      : super(key: key);
+      required this.clusterNumber});
 
   final Icon icon;
   final String title;
@@ -46,10 +43,10 @@ class InfoCard extends ConsumerWidget {
         final percentage = doublePercentage.ceil();
         final dynamicProgressLineColor = getProgressLineColor(percentage);
         return Container(
-          padding: EdgeInsets.all(Constants.defaultPadding),
-          decoration: BoxDecoration(
+          padding: const EdgeInsets.all(Constants.defaultPadding),
+          decoration: const BoxDecoration(
             color: Constants.secondaryColor,
-            borderRadius: const BorderRadius.all(Radius.circular(10)),
+            borderRadius: BorderRadius.all(Radius.circular(10)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -60,17 +57,17 @@ class InfoCard extends ConsumerWidget {
                 children: [
                   Container(
                       alignment: Alignment.center,
-                      padding: EdgeInsets.all(Constants.defaultPadding * 0.75),
+                      padding: const EdgeInsets.all(Constants.defaultPadding * 0.75),
                       height: 40,
                       width: 40,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Constants.bgColor,
                         borderRadius:
-                            const BorderRadius.all(Radius.circular(10)),
+                            BorderRadius.all(Radius.circular(10)),
                       ),
                       child: Text("$clusterNumber")),
                   IconButton(
-                    icon: Icon(Icons.download, color: Colors.white54),
+                    icon: const Icon(Icons.download, color: Colors.white54),
                     onPressed: () async {
                       await launchUrl(
                           Uri.parse(
@@ -94,7 +91,7 @@ class InfoCard extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "${numOfPresent} present",
+                    "$numOfPresent present",
                     style: Theme.of(context)
                         .textTheme
                         .bodySmall!
@@ -123,10 +120,10 @@ class InfoCard extends ConsumerWidget {
 
 class ProgressLine extends StatelessWidget {
   const ProgressLine({
-    Key? key,
+    super.key,
     this.color = Constants.primaryColor,
     required this.percentage,
-  }) : super(key: key);
+  });
 
   final Color? color;
   final int? percentage;
@@ -140,7 +137,7 @@ class ProgressLine extends StatelessWidget {
           height: 5,
           decoration: BoxDecoration(
             color: color!.withOpacity(0.1),
-            borderRadius: BorderRadius.all(Radius.circular(10)),
+            borderRadius: const BorderRadius.all(Radius.circular(10)),
           ),
         ),
         LayoutBuilder(
@@ -149,7 +146,7 @@ class ProgressLine extends StatelessWidget {
             height: 5,
             decoration: BoxDecoration(
               color: color,
-              borderRadius: BorderRadius.all(Radius.circular(10)),
+              borderRadius: const BorderRadius.all(Radius.circular(10)),
             ),
           ),
         ),
@@ -159,7 +156,7 @@ class ProgressLine extends StatelessWidget {
 }
 
 class ShimmerLoadingWidget extends StatelessWidget {
-  const ShimmerLoadingWidget({Key? key}) : super(key: key);
+  const ShimmerLoadingWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -167,10 +164,10 @@ class ShimmerLoadingWidget extends StatelessWidget {
       baseColor: Colors.grey.shade300.withOpacity(0.1),
       highlightColor: Colors.grey.shade100.withOpacity(0.1),
       child: Container(
-        padding: EdgeInsets.all(Constants.defaultPadding),
-        decoration: BoxDecoration(
+        padding: const EdgeInsets.all(Constants.defaultPadding),
+        decoration: const BoxDecoration(
           color: Constants.secondaryColor,
-          borderRadius: const BorderRadius.all(Radius.circular(10)),
+          borderRadius: BorderRadius.all(Radius.circular(10)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,12 +178,12 @@ class ShimmerLoadingWidget extends StatelessWidget {
               children: [
                 Container(
                   alignment: Alignment.center,
-                  padding: EdgeInsets.all(Constants.defaultPadding * 0.75),
+                  padding: const EdgeInsets.all(Constants.defaultPadding * 0.75),
                   height: 40,
                   width: 40,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: Constants.bgColor,
-                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
                   ),
                   child: Container(
                     width: 20,
@@ -211,7 +208,7 @@ class ShimmerLoadingWidget extends StatelessWidget {
               height: 5,
               decoration: BoxDecoration(
                 color: Constants.primaryColor.withOpacity(0.3),
-                borderRadius: BorderRadius.all(Radius.circular(10)),
+                borderRadius: const BorderRadius.all(Radius.circular(10)),
               ),
             ),
             Row(

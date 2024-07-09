@@ -56,7 +56,7 @@ class _SideDrawerState extends ConsumerState<SideDrawer> {
                       const Gap(20),
                       Text(
                         "My Masjid: ${(snapshot.data?["imam_details"] != null) ? (snapshot.data?["imam_details"]["masjidName"]) : (snapshot.data?["masjid_details"] is List) ? (snapshot.data?["masjid_details"] as List)[0]["masjidName"] ?? "not sure what your masjid is" : snapshot.data?["masjid_details"]["masjidName"]}",
-                        style: TextStyle(color: Colors.black),
+                        style: const TextStyle(color: Colors.black),
                       ),
                       const Gap(20),
                       ListTile(

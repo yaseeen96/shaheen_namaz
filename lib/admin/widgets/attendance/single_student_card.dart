@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:badges/badges.dart' as badges;
-import 'package:gap/gap.dart';
+import 'package:shaheen_namaz/admin/widgets/attendance/attendance_popup.dart';
 import 'package:shaheen_namaz/admin/widgets/attendance/edit_student_dialog.dart';
+import 'package:shaheen_namaz/utils/constants/constants.dart';
 
 class SingleStudentCard extends StatefulWidget {
   const SingleStudentCard({
@@ -44,7 +45,7 @@ class _SingleStudentCardState extends State<SingleStudentCard> {
           ),
           badgeStyle: badges.BadgeStyle(
             shape: badges.BadgeShape.square,
-            badgeColor: Colors.blue,
+            badgeColor: Constants.primaryColor,
             padding: const EdgeInsets.all(5),
             borderRadius: BorderRadius.circular(10),
             elevation: 0,
@@ -54,29 +55,45 @@ class _SingleStudentCardState extends State<SingleStudentCard> {
               width: MediaQuery.of(context).size.width * 0.6,
               constraints: const BoxConstraints(maxHeight: 1500),
               child: Card(
+                surfaceTintColor: Constants.secondaryColor,
+                color: Constants.secondaryColor,
                 elevation: 5,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Icon(Icons.account_circle, size: 50),
+                    const Icon(
+                      Icons.account_circle,
+                      size: 50,
+                    ),
                     Text(
                       widget.data["name"],
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     Text(widget.data["guardianNumber"].toString()),
                     Text(widget.data["masjid_details"]["masjidName"]),
                     const Spacer(),
-                    ElevatedButton.icon(
-                        onPressed: () {},
-                        icon: Icon(Icons.present_to_all),
-                        label: Text("Check Attendance")),
-                    const Gap(10),
-                    ElevatedButton.icon(
-                        onPressed: handleEditStudent,
-                        icon: Icon(Icons.details),
-                        label: Text("Show More Details")),
-                    const Gap(10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Tooltip(
+                          message: 'Check Attendance',
+                          child: IconButton(
+                            icon: const Icon(Icons.check_circle),
+                            onPressed: () => showAttendancePopup(
+                                context, widget.studentId, widget.data),
+                          ),
+                        ),
+                        // const Gap(5),
+                        Tooltip(
+                          message: 'Show More Details',
+                          child: IconButton(
+                            icon: const Icon(Icons.info),
+                            onPressed: handleEditStudent,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               )),
@@ -90,13 +107,13 @@ class _SingleStudentCardState extends State<SingleStudentCard> {
               padding: const EdgeInsets.all(5),
               width: 30,
               height: 30,
-              decoration: BoxDecoration(
-                color: Colors.amber,
+              decoration: const BoxDecoration(
+                color: Constants.bgColor,
                 shape: BoxShape.circle,
               ),
               child: Text(
                 widget.data["streak"].toString(),
-                style: TextStyle(
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                 ),
               ),

@@ -1,5 +1,4 @@
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shaheen_namaz/utils/constants/constants.dart';
 
@@ -59,7 +58,7 @@ class _TotalStudentsChartState extends State<TotalStudentsChart> {
           child: Center(
             child: Text(
               '$clusterNumber',
-              style: TextStyle(fontSize: 12, color: Colors.black),
+              style: const TextStyle(fontSize: 12, color: Colors.black),
             ),
           ),
         ),
@@ -71,40 +70,40 @@ class _TotalStudentsChartState extends State<TotalStudentsChart> {
   Color getColorForCluster(int clusterNumber) {
     switch (clusterNumber) {
       case 0:
-        return Color(0xFF8B4513); // Saddle Brown
+        return const Color(0xFF8B4513); // Saddle Brown
       case 1:
-        return Color(0xFFA0522D); // Sienna
+        return const Color(0xFFA0522D); // Sienna
       case 2:
-        return Color(0xFFCD853F); // Peru
+        return const Color(0xFFCD853F); // Peru
       case 3:
-        return Color(0xFFD2691E); // Chocolate
+        return const Color(0xFFD2691E); // Chocolate
       case 4:
-        return Color(0xFFF4A460); // Sandy Brown
+        return const Color(0xFFF4A460); // Sandy Brown
       case 5:
-        return Color(0xFFDEB887); // Burlywood
+        return const Color(0xFFDEB887); // Burlywood
       case 6:
-        return Color(0xFFD2B48C); // Tan
+        return const Color(0xFFD2B48C); // Tan
       case 7:
-        return Color(0xFFBC8F8F); // Rosy Brown
+        return const Color(0xFFBC8F8F); // Rosy Brown
       case 8:
-        return Color(0xFFA52A2A); // Brown
+        return const Color(0xFFA52A2A); // Brown
       case 9:
-        return Color(0xFFB22222); // Fire Brick
+        return const Color(0xFFB22222); // Fire Brick
       case 10:
-        return Color(0xFFDC143C); // Crimson
+        return const Color(0xFFDC143C); // Crimson
       case 11:
-        return Color(0xFFFF4500); // Orange Red
+        return const Color(0xFFFF4500); // Orange Red
       case 12:
-        return Color(0xFFFF6347); // Tomato
+        return const Color(0xFFFF6347); // Tomato
       default:
-        return Color(0xFF8B0000); // Dark Red
+        return const Color(0xFF8B0000); // Dark Red
     }
   }
 
   Widget buildLegend(List<Map<String, dynamic>> clusters) {
     return Container(
       width: 200,
-      padding: EdgeInsets.all(8),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Constants.bgColor,
         border: Border.all(color: Colors.black),
@@ -124,7 +123,7 @@ class _TotalStudentsChartState extends State<TotalStudentsChart> {
                 height: 12,
                 color: getColorForCluster(clusterNumber),
               ),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text(
                 'Cluster $clusterNumber',
               ),
@@ -149,7 +148,7 @@ class _TotalStudentsChartState extends State<TotalStudentsChart> {
     return Container(
       decoration: BoxDecoration(
           color: Constants.secondaryColor,
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(color: Colors.black38, blurRadius: 5, spreadRadius: 5)
           ],
           borderRadius: BorderRadius.circular(12)),
@@ -201,49 +200,49 @@ class _TotalStudentsChartState extends State<TotalStudentsChart> {
   }
 }
 
-class _Badge extends StatelessWidget {
-  const _Badge({
-    required this.clusterNumber,
-    required this.size,
-    required this.borderColor,
-  });
+// class _Badge extends StatelessWidget {
+//   const _Badge({
+//     required this.clusterNumber,
+//     required this.size,
+//     required this.borderColor,
+//   });
 
-  final int clusterNumber;
-  final double size;
-  final Color borderColor;
+//   final int clusterNumber;
+//   final double size;
+//   final Color borderColor;
 
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: PieChart.defaultDuration,
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: borderColor,
-          width: 2,
-        ),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: Colors.black.withOpacity(.5),
-            offset: const Offset(3, 3),
-            blurRadius: 3,
-          ),
-        ],
-      ),
-      padding: EdgeInsets.all(size * .15),
-      child: Center(
-        child: Text(
-          clusterNumber.toString(),
-          style: TextStyle(
-            fontSize: 16.0, // Adjust the font size as needed
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return AnimatedContainer(
+//       duration: PieChart.defaultDuration,
+//       width: size,
+//       height: size,
+//       decoration: BoxDecoration(
+//         color: Colors.white,
+//         shape: BoxShape.circle,
+//         border: Border.all(
+//           color: borderColor,
+//           width: 2,
+//         ),
+//         boxShadow: <BoxShadow>[
+//           BoxShadow(
+//             color: Colors.black.withOpacity(.5),
+//             offset: const Offset(3, 3),
+//             blurRadius: 3,
+//           ),
+//         ],
+//       ),
+//       padding: EdgeInsets.all(size * .15),
+//       child: Center(
+//         child: Text(
+//           clusterNumber.toString(),
+//           style: const TextStyle(
+//             fontSize: 16.0, // Adjust the font size as needed
+//             fontWeight: FontWeight.bold,
+//             color: Colors.black,
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }

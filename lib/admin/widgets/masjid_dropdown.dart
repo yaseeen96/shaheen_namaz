@@ -7,10 +7,10 @@ class MasjidDropdownWidget extends StatefulWidget {
   final Map<String, dynamic>? initialValue;
 
   const MasjidDropdownWidget({
-    Key? key,
+    super.key,
     required this.onSelected,
     this.initialValue,
-  }) : super(key: key);
+  });
 
   @override
   _MasjidDropdownWidgetState createState() => _MasjidDropdownWidgetState();
@@ -35,18 +35,18 @@ class _MasjidDropdownWidgetState extends State<MasjidDropdownWidget> {
       future: fetchMasjids(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: LinearProgressIndicator());
+          return const Center(child: LinearProgressIndicator());
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text('No masjids found'));
+          return const Center(child: Text('No masjids found'));
         } else {
           return DropdownSearch<Map<String, dynamic>>(
             items: snapshot.data!,
             itemAsString: (Map<String, dynamic> masjid) => masjid['masjidName'],
             popupProps: PopupProps.menu(
               showSearchBox: true,
-              searchFieldProps: TextFieldProps(
+              searchFieldProps: const TextFieldProps(
                 decoration: InputDecoration(
                   hintText: 'Search by masjid name',
                 ),
@@ -55,11 +55,9 @@ class _MasjidDropdownWidgetState extends State<MasjidDropdownWidget> {
                 return ListTile(
                   title: Text(
                     masjid['masjidName'],
-                    style: TextStyle(color: Colors.black),
                   ),
                   subtitle: Text(
                     'Cluster Number: ${masjid['clusterNumber']}',
-                    style: TextStyle(color: Colors.black),
                   ),
                 );
               },
