@@ -80,7 +80,6 @@ class _AttendancePopupState extends State<AttendancePopup> {
             .doc(widget.studentId)
             .update({
           'streak': FieldValue.increment(1),
-          'streak_last_modified': Timestamp.now(),
         });
       }
 
@@ -145,7 +144,6 @@ class _AttendancePopupState extends State<AttendancePopup> {
                 .doc(widget.studentId)
                 .update({
               'streak': FieldValue.increment(-1),
-              'streak_last_modified': Timestamp.now(),
             });
           }
         }
