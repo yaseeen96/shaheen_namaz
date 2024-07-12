@@ -74,13 +74,30 @@ class _AttendancePopupState extends State<AttendancePopup> {
         'attendance_details': FieldValue.arrayUnion([newAttendance])
       });
 
+      // Check if attendance is for today
+      DateTime now = DateTime.now();
+      bool isToday = selectedDate.year == now.year &&
+          selectedDate.month == now.month &&
+          selectedDate.day == now.day;
+
       if (increaseStreak) {
-        await FirebaseFirestore.instance
-            .collection('students')
-            .doc(widget.studentId)
-            .update({
-          'streak': FieldValue.increment(1),
-        });
+        if (isToday) {
+          await FirebaseFirestore.instance
+              .collection('students')
+              .doc(widget.studentId)
+              .update({
+            'streak': FieldValue.increment(1),
+            'streak_last_modified':
+                Timestamp.now(), // Update streak_last_modified
+          });
+        } else {
+          await FirebaseFirestore.instance
+              .collection('students')
+              .doc(widget.studentId)
+              .update({
+            'streak': FieldValue.increment(1),
+          });
+        }
       }
 
       setState(() {});
