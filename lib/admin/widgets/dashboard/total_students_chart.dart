@@ -70,33 +70,33 @@ class _TotalStudentsChartState extends State<TotalStudentsChart> {
   Color getColorForCluster(int clusterNumber) {
     switch (clusterNumber) {
       case 0:
-        return const Color(0xFF8B4513); // Saddle Brown
+        return const Color(0xFF2E8B57); // Sea Green
       case 1:
-        return const Color(0xFFA0522D); // Sienna
+        return const Color(0xFF3CB371); // Medium Sea Green
       case 2:
-        return const Color(0xFFCD853F); // Peru
+        return const Color(0xFF66CDAA); // Medium Aquamarine
       case 3:
-        return const Color(0xFFD2691E); // Chocolate
+        return const Color(0xFF8FBC8F); // Dark Sea Green
       case 4:
-        return const Color(0xFFF4A460); // Sandy Brown
+        return const Color(0xFF20B2AA); // Light Sea Green
       case 5:
-        return const Color(0xFFDEB887); // Burlywood
+        return const Color(0xFF00FA9A); // Medium Spring Green
       case 6:
-        return const Color(0xFFD2B48C); // Tan
+        return const Color(0xFF98FB98); // Pale Green
       case 7:
-        return const Color(0xFFBC8F8F); // Rosy Brown
+        return const Color(0xFF4682B4); // Steel Blue
       case 8:
-        return const Color(0xFFA52A2A); // Brown
+        return const Color(0xFF5F9EA0); // Cadet Blue
       case 9:
-        return const Color(0xFFB22222); // Fire Brick
+        return const Color(0xFF7FFFD4); // Aquamarine
       case 10:
-        return const Color(0xFFDC143C); // Crimson
+        return const Color(0xFF40E0D0); // Turquoise
       case 11:
-        return const Color(0xFFFF4500); // Orange Red
+        return const Color(0xFF00CED1); // Dark Turquoise
       case 12:
-        return const Color(0xFFFF6347); // Tomato
+        return const Color(0xFF1E90FF); // Dodger Blue
       default:
-        return const Color(0xFF8B0000); // Dark Red
+        return const Color(0xFF556B2F); // Dark Olive Green
     }
   }
 

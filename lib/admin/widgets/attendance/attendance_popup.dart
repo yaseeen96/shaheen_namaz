@@ -24,7 +24,7 @@ class _AttendancePopupState extends State<AttendancePopup> {
   late Map<String, dynamic> selectedMasjid;
   late DateTime selectedDate;
   final TextEditingController _dateController = TextEditingController();
-  bool increaseStreak = false;
+  bool increaseStreak = true;
 
   @override
   void initState() {
@@ -247,10 +247,10 @@ class _AttendancePopupState extends State<AttendancePopup> {
                                     "Tracked By: ${data["tracked_by"]["name"] ?? 'N/A'}"),
                               ],
                             ),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.delete),
-                              onPressed: () => deleteAttendance(data),
-                            ),
+                            // trailing: IconButton(
+                            //   icon: const Icon(Icons.delete),
+                            //   onPressed: () => deleteAttendance(data),
+                            // ),
                           ),
                         );
                       },
@@ -282,21 +282,21 @@ class _AttendancePopupState extends State<AttendancePopup> {
                     onTap: () => _selectDate(context),
                   ),
                   const Gap(10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Increase streak:'),
-                      Switch(
-                        value: increaseStreak,
-                        onChanged: (value) {
-                          setState(() {
-                            increaseStreak = value;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                  const Gap(10),
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //   children: [
+                  //     const Text('Increase streak:'),
+                  //     Switch(
+                  //       value: increaseStreak,
+                  //       onChanged: (value) {
+                  //         setState(() {
+                  //           increaseStreak = value;
+                  //         });
+                  //       },
+                  //     ),
+                  //   ],
+                  // ),
+                  // const Gap(10),
                   ElevatedButton(
                     onPressed: addAttendance,
                     child: const Text('Add Attendance'),
