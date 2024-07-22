@@ -5,6 +5,8 @@ import 'package:gap/gap.dart';
 import 'package:shaheen_namaz/admin/widgets/masjid_dropdown.dart';
 import 'package:shaheen_namaz/common/widgets/loading_indicator.dart';
 import 'package:intl/intl.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:logger/logger.dart';
 
 class AttendancePopup extends StatefulWidget {
   final String studentId;
@@ -24,7 +26,9 @@ class _AttendancePopupState extends State<AttendancePopup> {
   late Map<String, dynamic> selectedMasjid;
   late DateTime selectedDate;
   final TextEditingController _dateController = TextEditingController();
-  bool increaseStreak = true;
+  final logger = Logger();
+  bool _isLoading = false;
+  String? _message;
 
   @override
   void initState() {
@@ -35,7 +39,7 @@ class _AttendancePopupState extends State<AttendancePopup> {
         DateFormat('yyyy-MM-dd – kk:mm').format(selectedDate);
   }
 
-  Future<List<Map<String, dynamic>>> getAttendanceDetails() async {
+  Stream<List<Map<String, dynamic>>> getAttendanceDetails() async* {
     DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
         .collection('Attendance')
         .doc(widget.studentId)
@@ -45,71 +49,86 @@ class _AttendancePopupState extends State<AttendancePopup> {
       List<dynamic> attendanceDetails = docSnapshot.get('attendance_details');
       attendanceDetails
           .sort((a, b) => b['attendance_time'].compareTo(a['attendance_time']));
-      return List<Map<String, dynamic>>.from(attendanceDetails);
+      yield List<Map<String, dynamic>>.from(attendanceDetails);
     } else {
-      return [];
+      yield [];
     }
   }
 
   void addAttendance() async {
-    try {
-      final newAttendance = {
-        "id": DateTime.now().millisecondsSinceEpoch.toString(), // Unique ID
-        "attendance_time": Timestamp.fromDate(selectedDate),
-        "masjid": FirebaseFirestore.instance
-            .collection('Masjid')
-            .doc(selectedMasjid['masjidId']),
-        "masjid_details": selectedMasjid,
-        "name": widget.data['name'],
-        "tracked_by": {
-          "name": FirebaseAuth.instance.currentUser?.displayName ?? "admin",
-          "userId": FirebaseAuth.instance.currentUser?.uid ?? "uid12a"
-        },
-      };
+    setState(() {
+      _isLoading = true;
+      _message = null;
+    });
 
-      await FirebaseFirestore.instance
-          .collection('Attendance')
-          .doc(widget.studentId)
-          .update({
-        'attendance_details': FieldValue.arrayUnion([newAttendance])
+    try {
+      // Log start of attendance addition
+      logger.i("Adding attendance...");
+
+      // Prepare the data for the cloud function
+      final HttpsCallable callable = FirebaseFunctions.instance
+          .httpsCallable('add_attendance_update_streak');
+      final result = await callable.call(<String, dynamic>{
+        'studentId': widget.studentId,
+        'attendance_datetime': selectedDate.toUtc().toIso8601String(),
+        'userId': FirebaseAuth.instance.currentUser?.uid ?? "uid12a",
+        'displayName':
+            FirebaseAuth.instance.currentUser?.displayName ?? "admin",
+        'masjidId': selectedMasjid['masjidId'],
+        'masjidName': selectedMasjid['masjidName'],
+        'clusterNumber': selectedMasjid['clusterNumber'],
+        "studentName": widget.data["name"]
       });
 
-      // Check if attendance is for today
-      DateTime now = DateTime.now();
-      bool isToday = selectedDate.year == now.year &&
-          selectedDate.month == now.month &&
-          selectedDate.day == now.day;
+      logger.i("Cloud function result: ${result.data}");
 
-      if (increaseStreak) {
-        if (isToday) {
-          await FirebaseFirestore.instance
-              .collection('students')
-              .doc(widget.studentId)
-              .update({
-            'streak': FieldValue.increment(1),
-            'streak_last_modified':
-                Timestamp.now(), // Update streak_last_modified
-          });
-        } else {
-          await FirebaseFirestore.instance
-              .collection('students')
-              .doc(widget.studentId)
-              .update({
-            'streak': FieldValue.increment(1),
-          });
-        }
+      if (result.data['error'] != null) {
+        setState(() {
+          _message = 'Failed to add attendance: ${result.data['error']}';
+        });
+      } else {
+        setState(() {
+          _message = 'Attendance added successfully';
+        });
       }
-
-      setState(() {});
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Attendance added successfully')),
-      );
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to add attendance: $error')),
+      logger.e("Error: $error");
+      setState(() {
+        _message = 'Failed to add attendance: $error';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: selectedDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (pickedDate != null && pickedDate != selectedDate) {
+      if (!context.mounted) return;
+      final TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.fromDateTime(selectedDate),
       );
+      if (pickedTime != null) {
+        setState(() {
+          selectedDate = DateTime(
+            pickedDate.year,
+            pickedDate.month,
+            pickedDate.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          );
+          _dateController.text =
+              DateFormat('yyyy-MM-dd – kk:mm').format(selectedDate);
+        });
+      }
     }
   }
 
@@ -168,42 +187,13 @@ class _AttendancePopupState extends State<AttendancePopup> {
         setState(() {});
         if (!mounted) return;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Attendance deleted successfully')),
-        );
+        setState(() {
+          _message = 'Attendance deleted successfully';
+        });
       } catch (error) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to delete attendance: $error')),
-        );
-      }
-    }
-  }
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: selectedDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
-    );
-    if (pickedDate != null && pickedDate != selectedDate) {
-      if (!context.mounted) return;
-      final TimeOfDay? pickedTime = await showTimePicker(
-        context: context,
-        initialTime: TimeOfDay.fromDateTime(selectedDate),
-      );
-      if (pickedTime != null) {
         setState(() {
-          selectedDate = DateTime(
-            pickedDate.year,
-            pickedDate.month,
-            pickedDate.day,
-            pickedTime.hour,
-            pickedTime.minute,
-          );
-          _dateController.text =
-              DateFormat('yyyy-MM-dd – kk:mm').format(selectedDate);
+          _message = 'Failed to delete attendance: $error';
         });
       }
     }
@@ -228,9 +218,20 @@ class _AttendancePopupState extends State<AttendancePopup> {
                 ),
               ],
             ),
+            if (_message != null)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  _message!,
+                  style: TextStyle(
+                      color: _message!.contains('successfully')
+                          ? Colors.green
+                          : Colors.red),
+                ),
+              ),
             Expanded(
-              child: FutureBuilder<List<Map<String, dynamic>>>(
-                future: getAttendanceDetails(),
+              child: StreamBuilder<List<Map<String, dynamic>>>(
+                stream: getAttendanceDetails(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const CustomLoadingIndicator();
@@ -299,24 +300,11 @@ class _AttendancePopupState extends State<AttendancePopup> {
                     onTap: () => _selectDate(context),
                   ),
                   const Gap(10),
-                  // Row(
-                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  //   children: [
-                  //     const Text('Increase streak:'),
-                  //     Switch(
-                  //       value: increaseStreak,
-                  //       onChanged: (value) {
-                  //         setState(() {
-                  //           increaseStreak = value;
-                  //         });
-                  //       },
-                  //     ),
-                  //   ],
-                  // ),
-                  // const Gap(10),
                   ElevatedButton(
-                    onPressed: addAttendance,
-                    child: const Text('Add Attendance'),
+                    onPressed: _isLoading ? null : addAttendance,
+                    child: _isLoading
+                        ? const CircularProgressIndicator()
+                        : const Text('Add Attendance'),
                   ),
                 ],
               ),

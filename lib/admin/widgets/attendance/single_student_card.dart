@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:shaheen_namaz/admin/widgets/attendance/attendance_popup.dart';
 import 'package:shaheen_namaz/admin/widgets/attendance/edit_student_dialog.dart';
+import 'package:shaheen_namaz/utils/config/logger.dart';
 import 'package:shaheen_namaz/utils/constants/constants.dart';
+import 'package:cloud_functions/cloud_functions.dart'; // Import the cloud functions package
 
 class SingleStudentCard extends StatefulWidget {
   const SingleStudentCard({
@@ -19,6 +21,8 @@ class SingleStudentCard extends StatefulWidget {
 }
 
 class _SingleStudentCardState extends State<SingleStudentCard> {
+  bool _isLoading = false;
+
   void handleEditStudent() {
     showDialog(
       context: context,
@@ -27,6 +31,82 @@ class _SingleStudentCardState extends State<SingleStudentCard> {
         studentId: widget.studentId,
       ),
     );
+  }
+
+  void showDeleteConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: const Text(
+            'Are you sure? This cannot be undone. '
+            'Please confirm to delete the student.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              onPressed: () {
+                Navigator.of(context).pop();
+                handleDeleteStudent();
+              },
+              child: const Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> handleDeleteStudent() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final HttpsCallable callable =
+          FirebaseFunctions.instance.httpsCallable('delete_student');
+      final result = await callable.call(<String, dynamic>{
+        'face_id': widget.studentId,
+      });
+
+      if (result.data['error'] != null) {
+        // Handle error
+        logger.e("Error deleting student: ${result.data['error']}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error deleting student: ${result.data['error']}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } else {
+        logger.i("Student ${widget.data["name"]} has been deleted.");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Student ${widget.data["name"]} has been deleted.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      logger.e("Error deleting student: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error deleting student: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -84,7 +164,6 @@ class _SingleStudentCardState extends State<SingleStudentCard> {
                                 context, widget.studentId, widget.data),
                           ),
                         ),
-                        // const Gap(5),
                         Tooltip(
                           message: 'Show More Details',
                           child: IconButton(
@@ -98,6 +177,10 @@ class _SingleStudentCardState extends State<SingleStudentCard> {
                 ),
               )),
         ),
+        if (_isLoading)
+          const Center(
+            child: CircularProgressIndicator(),
+          ),
         Positioned(
             top: 0,
             right: 0,
@@ -116,6 +199,16 @@ class _SingleStudentCardState extends State<SingleStudentCard> {
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                 ),
+              ),
+            )),
+        Positioned(
+            bottom: 5,
+            right: 5,
+            child: IconButton(
+              onPressed: showDeleteConfirmationDialog,
+              icon: const Icon(
+                Icons.delete,
+                color: Colors.red,
               ),
             ))
       ],

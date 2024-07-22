@@ -200,11 +200,7 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                   jamaatName = value;
                 },
                 selectedItem: jamaatName,
-                dropdownDecoratorProps: const DropDownDecoratorProps(
-                  baseStyle: TextStyle(
-                    color: Colors.black,
-                  ),
-                ),
+                dropdownDecoratorProps: const DropDownDecoratorProps(),
                 popupProps: PopupProps.menu(
                   showSearchBox: true,
                   searchFieldProps: const TextFieldProps(
