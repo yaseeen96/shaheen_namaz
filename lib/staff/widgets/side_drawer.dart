@@ -56,16 +56,12 @@ class _SideDrawerState extends ConsumerState<SideDrawer> {
                       const Gap(20),
                       Text(
                         "My Masjid: ${(snapshot.data?["imam_details"] != null) ? (snapshot.data?["imam_details"]["masjidName"]) : (snapshot.data?["masjid_details"] is List) ? (snapshot.data?["masjid_details"] as List)[0]["masjidName"] ?? "not sure what your masjid is" : snapshot.data?["masjid_details"]["masjidName"]}",
-                        style: const TextStyle(color: Colors.black),
                       ),
                       const Gap(20),
                       ListTile(
                         title: const Text(
                           "Edit Student Data",
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.black,
-                          ),
                         ),
                         onTap: () async {
                           final cameras = await availableCameras();
@@ -121,10 +117,6 @@ class MasjidNameText extends StatelessWidget {
         }
         return Text(
           snapshot.data!["name"],
-          style: const TextStyle(
-            color: Colors.black,
-            fontSize: 14,
-          ),
         );
       },
     );

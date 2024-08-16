@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,7 +11,6 @@ import 'package:go_router/go_router.dart';
 import 'package:shaheen_namaz/staff/providers/providers.dart';
 import 'package:shaheen_namaz/staff/widgets/app_bar.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
-import 'package:shaheen_namaz/utils/conversions/conversions.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
@@ -61,13 +59,14 @@ class _ImagePreviewScreenState extends ConsumerState<ImagePreviewScreen> {
         context.pushNamed("edit_student", pathParameters: {
           "faceId": jsonResponse["faceId"],
           "name": studentData?["name"],
-          "dob": (studentData?["dob"] is String)
+          "dob": studentData?["dob"] is String
               ? studentData!["dob"]
-              : Conversions.firestoreTimestampToDateString(studentData?["dob"]),
+              : (studentData?["dob"] as Timestamp).toDate().toString(),
           "guardianName": studentData?["guardianName"],
           "guardianNumber": studentData?["guardianNumber"],
           "address": studentData?["address"],
           "className": studentData?["class"],
+          "schoolName": studentData?["school_name"] ?? "No School Selected"
         });
       } else {
         if (jsonResponse["error"] != null) {
@@ -91,8 +90,6 @@ class _ImagePreviewScreenState extends ConsumerState<ImagePreviewScreen> {
         ),
       );
       logger.e("error response: ${err.message}");
-
-      // logger.e("Errrorrrr from onVerify", error: err, stackTrace: stk);
     } finally {
       setState(() {
         isLoading = false;
@@ -130,6 +127,7 @@ class _ImagePreviewScreenState extends ConsumerState<ImagePreviewScreen> {
           if (!mounted) return;
           showTopSnackBar(Overlay.of(context),
               CustomSnackBar.error(message: jsonResponse["error"]));
+          Navigator.of(context).pop();
         }
       }
 
@@ -142,8 +140,7 @@ class _ImagePreviewScreenState extends ConsumerState<ImagePreviewScreen> {
             message: "Uh Ohh. Try Again",
           ));
       logger.e("error response: ${err.message}");
-
-      // logger.e("Errrorrrr from onVerify", error: err, stackTrace: stk);
+      Navigator.of(context).pop();
     } finally {
       setState(() {
         isLoading = false;
@@ -248,108 +245,47 @@ class _VerificationPopupState extends State<VerificationPopup> {
     });
 
     try {
-      // get current user id
-      final userId = FirebaseAuth.instance.currentUser!.uid;
+      final HttpsCallable callable =
+          FirebaseFunctions.instance.httpsCallable('mark_as_present');
+      logger.i("selected masjid: $selectedMasjid");
 
-      logger.i("Selected Masjid: $selectedMasjid");
+      final response = await callable.call(<String, dynamic>{
+        'faceId': widget.faceId,
+        'name': widget.name,
+        'guardianNumber': widget.guardianNumber,
+        'streak': widget.streak,
+        'masjidDetails': selectedMasjid,
+        'userId': FirebaseAuth.instance.currentUser!.uid,
+        'displayName': FirebaseAuth.instance.currentUser!.displayName,
+      });
 
-      final student = await FirebaseFirestore.instance
-          .collection("students")
-          .doc(widget.faceId)
-          .get();
-      final studentData = student.data();
-      logger.i("Student Details: $studentData");
+      final jsonResponse = response.data;
+      logger.i("Response: $jsonResponse");
 
-      // check if the student registered to the masjid is the same masjid as the masjid allocated to the volunteer
-      if (userDetails?["imam_details"] == null ||
-          !userDetails!.containsKey("imam_details")) {
-        if (selectedMasjid!["masjidId"] !=
-            studentData?["masjid_details"]["masjidId"]) {
+      if (jsonResponse is Map<String, dynamic> &&
+          jsonResponse["isSuccess"] != null) {
+        if (jsonResponse["isSuccess"]) {
+          return {
+            "isSuccess": true,
+            "message": jsonResponse["message"],
+          };
+        } else {
           return {
             "isSuccess": false,
-            "message":
-                "Student is registered in ${studentData?["masjid_details"]["masjidName"]}."
+            "message": jsonResponse["message"],
           };
         }
-      }
-
-      // check if doc exists
-      final doc = await FirebaseFirestore.instance
-          .collection("Attendance")
-          .doc(widget.faceId)
-          .get();
-      // check if doc exists
-      if (!doc.exists) {
-        await FirebaseFirestore.instance
-            .collection("Attendance")
-            .doc(widget.faceId)
-            .set({
-          "attendance_details": [
-            {
-              "name": widget.name,
-              "masjid": FirebaseFirestore.instance
-                  .doc("/Masjid/${selectedMasjid!["masjidId"]}"),
-              "masjid_details": selectedMasjid,
-              "attendance_time": DateTime.now(),
-              "tracked_by": {
-                "userId": userId,
-                "name": FirebaseAuth.instance.currentUser!.displayName,
-              }
-            },
-          ]
-        }, SetOptions(merge: true));
       } else {
-        await FirebaseFirestore.instance
-            .collection("Attendance")
-            .doc(widget.faceId)
-            .update({
-          "attendance_details": FieldValue.arrayUnion([
-            {
-              "name": widget.name,
-              "masjid": FirebaseFirestore.instance
-                  .doc("/Masjid/${selectedMasjid!["masjidId"]}"),
-              "masjid_details": selectedMasjid,
-              "attendance_time": DateTime.now(),
-              "tracked_by": {
-                "userId": userId,
-                "name": FirebaseAuth.instance.currentUser!.displayName,
-              }
-            }
-          ])
-        });
-      }
-
-      await FirebaseFirestore.instance
-          .collection("students")
-          .doc(widget.faceId)
-          .update({
-        "streak": FieldValue.increment(1),
-        "masjid": FirebaseFirestore.instance
-            .doc("/Masjid/${selectedMasjid!["masjidId"]}"),
-        "masjid_details": selectedMasjid,
-        "streak_last_modified": DateTime.now()
-      });
-      final String url =
-          'http://bulksms.saakshisoftware.com/api/mt/SendSMS?user=BETTERMENTFOUNDATION&password=91647676&senderid=BDRBBF&channel=Trans&DCS=0&flashsms=0&number=${widget.guardianNumber}&text=Dear Parent, Great news! ${widget.name} prayed Fajr today, on day ${widget.streak < 40 ? (widget.streak + 1) : 40} of the 40-Day Fajr Challenge. Keep the support! BIDAR BETTERMENT FOUNDATION&route=04&DLTTemplateId=1707170436518100086&PEID=1701170408820217696';
-      final response = await Dio().get(url);
-
-      if (response.statusCode == 200) {
-        // If the server returns a 200 OK response, then return true.
-        return {
-          "isSuccess": true,
-          "message": "Student marked as present",
-        };
-      } else {
-        // If the server returns an error response, then throw an exception.
         return {
           "isSuccess": false,
-          "message": "SMS quota exceeded. Please recharge your account",
+          "message": "error: $jsonResponse",
         };
       }
-    } catch (error) {
+    } catch (e) {
+      logger.e("Error calling cloud function: $e");
       return {
         "isSuccess": false,
-        "message": error.toString(),
+        "message": "An error occurred: $e",
       };
     } finally {
       if (mounted) {
@@ -374,7 +310,7 @@ class _VerificationPopupState extends State<VerificationPopup> {
         child: ListBody(
           children: <Widget>[
             Text('Name: ${widget.name}'),
-            Text('Streak: ${widget.streak}'),
+            Text('Streak Uptill now: ${widget.streak}'),
             Text('Guardian Phone Number: ${widget.guardianNumber}'),
             if (userDetails != null &&
                 userDetails!["isTrustee"] == true &&
@@ -392,7 +328,6 @@ class _VerificationPopupState extends State<VerificationPopup> {
                     },
                     title: Text(
                       masjid["masjidName"],
-                      style: const TextStyle(color: Colors.black, fontSize: 12),
                     ),
                   ),
           ],
@@ -418,18 +353,21 @@ class _VerificationPopupState extends State<VerificationPopup> {
                         message: result["message"],
                       ),
                     );
-                    Navigator.of(context).pop();
+                    Navigator.of(context, rootNavigator: true)
+                        .pop(); // Pop the AlertDialog
+                    Navigator.of(context).pop(); // Pop the ImagePreviewScreen
                   } else {
                     if (!context.mounted) return;
-
                     showTopSnackBar(
                       Overlay.of(context),
                       CustomSnackBar.error(
                         message: result["message"],
                       ),
                     );
+                    Navigator.of(context, rootNavigator: true)
+                        .pop(); // Pop the AlertDialog
+                    Navigator.of(context).pop(); // Pop the AlertDialog
                   }
-                  Navigator.of(context).pop();
                 },
           child: isLoading
               ? const CircularProgressIndicator()

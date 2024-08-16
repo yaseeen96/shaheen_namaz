@@ -8,6 +8,8 @@ import 'package:go_router/go_router.dart';
 import 'package:shaheen_namaz/admin/providers/imam_provider.dart';
 import 'package:shaheen_namaz/staff/providers/providers.dart';
 import 'package:shaheen_namaz/staff/screens/student_registration/masjids_widget.dart';
+import 'package:shaheen_namaz/staff/widgets/school_dropdown.dart';
+import 'package:shaheen_namaz/utils/constants/constants.dart';
 import 'package:shaheen_namaz/utils/conversions/conversions.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
@@ -25,6 +27,7 @@ class EditStudentScreen extends ConsumerStatefulWidget {
     this.address,
     this.dob,
     this.guardianName,
+    this.schoolName,
   });
   final String faceId;
   final XFile? image;
@@ -34,6 +37,7 @@ class EditStudentScreen extends ConsumerStatefulWidget {
   final String? address;
   final String? dob;
   final String? guardianName;
+  final String? schoolName;
 
   @override
   ConsumerState<EditStudentScreen> createState() => _EditStudentScreenState();
@@ -47,6 +51,7 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen> {
   String? studentClass;
   String? studentAddress;
   String? dob;
+  String? schoolName;
   bool isLoading = false;
   final TextEditingController nameController = TextEditingController();
   final TextEditingController guardianNumberController =
@@ -65,6 +70,7 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen> {
     dob = widget.dob ?? "";
     studentClassController.text = widget.className ?? "";
     studentAddressController.text = widget.address ?? "";
+    schoolName = widget.schoolName;
   }
 
   void onUpdate() async {
@@ -101,7 +107,8 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen> {
             "masjidName": masjidData?["name"],
             "clusterNumber": masjidData?["cluster_number"],
           },
-          "imam_details": imamDetails == {} ? null : imamDetails
+          "imam_details": imamDetails == {} ? null : imamDetails,
+          "school_name": schoolName,
         });
         if (!mounted) return;
         showTopSnackBar(
@@ -231,6 +238,22 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen> {
                         logger.i("saved value: $value");
                         dob = value;
                       },
+                    ),
+                    const Gap(10),
+                    SchoolDropdownWidget(
+                      validator: (value) {
+                        if (value == null ||
+                            !Constants.schools.contains(value)) {
+                          return "Please select a valid school";
+                        }
+                        return null;
+                      },
+                      onSelected: (value) {
+                        setState(() {
+                          schoolName = value;
+                        });
+                      },
+                      initialValue: schoolName,
                     ),
                     const Gap(10),
                     TextFormField(

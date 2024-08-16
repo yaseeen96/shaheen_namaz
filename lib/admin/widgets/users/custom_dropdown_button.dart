@@ -81,24 +81,14 @@ class _CustomDropDownState extends State<CustomDropDown> {
                         return ListTile(
                           title: Text(
                             item.get("name"),
-                            style: const TextStyle(
-                              color: Colors.black,
-                            ),
                           ),
                           subtitle: Text(
                             item.get("cluster_number").toString(),
-                            style: const TextStyle(
-                              color: Colors.black,
-                            ),
                           ),
                         );
                       },
                     ),
-                    dropdownDecoratorProps: const DropDownDecoratorProps(
-                      baseStyle: TextStyle(
-                        color: Colors.black,
-                      ),
-                    ),
+                    dropdownDecoratorProps: const DropDownDecoratorProps(),
                     onChanged: (value) {
                       if (widget.onMultiSelectChanged != null) {
                         logger.i(value);
@@ -136,24 +126,14 @@ class _CustomDropDownState extends State<CustomDropDown> {
                   return ListTile(
                     title: Text(
                       item.get("name"),
-                      style: const TextStyle(
-                        color: Colors.black,
-                      ),
                     ),
                     subtitle: Text(
                       item.get("cluster_number").toString(),
-                      style: const TextStyle(
-                        color: Colors.black,
-                      ),
                     ),
                   );
                 },
               ),
-              dropdownDecoratorProps: const DropDownDecoratorProps(
-                baseStyle: TextStyle(
-                  color: Colors.black,
-                ),
-              ),
+              dropdownDecoratorProps: const DropDownDecoratorProps(),
               onChanged: (value) {
                 if (widget.onChanged != null) {
                   widget.onChanged!(value);

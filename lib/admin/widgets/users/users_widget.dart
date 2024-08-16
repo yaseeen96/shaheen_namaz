@@ -214,7 +214,7 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                     selectedColor: Constants.secondaryColor,
                     backgroundColor: Constants.secondaryColor,
                     labelStyle: TextStyle(
-                      color: isActive ? Colors.white : Colors.black,
+                      color: isActive ? Colors.white : Colors.grey,
                     ),
                     shape: const StadiumBorder(
                       side: BorderSide(

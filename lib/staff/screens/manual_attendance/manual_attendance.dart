@@ -118,11 +118,9 @@ class _ManualAttendanceState extends ConsumerState<ManualAttendance> {
                     },
                     title: Text(
                       "${data["name"]}",
-                      style: const TextStyle(color: Colors.black),
                     ),
                     subtitle: Text(
                       "${data["guardianNumber"]}",
-                      style: const TextStyle(color: Colors.black),
                     ));
               },
               onEmpty: const Center(

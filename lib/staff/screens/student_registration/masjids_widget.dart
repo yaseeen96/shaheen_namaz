@@ -66,15 +66,9 @@ class _MasjidSearchWidgetState extends ConsumerState<MasjidSearchWidget> {
                 },
                 title: Text(
                   masjidRef.get("name") as String,
-                  style: const TextStyle(
-                    color: Colors.black,
-                  ),
                 ),
                 subtitle: Text(
                   masjidRef.get("cluster_number").toString(),
-                  style: const TextStyle(
-                    color: Colors.black,
-                  ),
                 ));
           })
       ],

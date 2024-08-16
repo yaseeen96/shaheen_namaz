@@ -3,6 +3,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
+import 'package:shaheen_namaz/utils/constants/constants.dart';
 
 class TakePictureScreen extends StatefulWidget {
   const TakePictureScreen({
@@ -93,12 +94,18 @@ class TakePictureScreenState extends State<TakePictureScreen> {
           // If the Future is complete, display the preview.
           return Scaffold(
             body: CameraPreview(_controller),
-            floatingActionButton: FloatingActionButton(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(100),
+            floatingActionButton: InkWell(
+              borderRadius: BorderRadius.circular(1000),
+              onTap: onCapture,
+              child: Ink(
+                padding: EdgeInsets.all(20),
+                decoration:
+                    BoxDecoration(shape: BoxShape.circle, color: Colors.purple),
+                child: const Icon(
+                  Icons.camera,
+                  size: 50,
+                ),
               ),
-              onPressed: onCapture,
-              child: const Icon(Icons.camera),
             ),
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.centerFloat,

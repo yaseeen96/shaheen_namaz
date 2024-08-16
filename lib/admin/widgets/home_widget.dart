@@ -141,6 +141,13 @@ class _AdminHomeWidgetState extends ConsumerState<AdminHomeWidget> {
                 ref.read(adminNotifierProvider.notifier).updateSelectedIndex(4);
               },
             ),
+            SidebarXItem(
+              icon: Icons.school,
+              label: 'Certifications',
+              onTap: () {
+                ref.read(adminNotifierProvider.notifier).updateSelectedIndex(5);
+              },
+            ),
           ],
           footerBuilder: (context, extended) {
             if (!extended) {

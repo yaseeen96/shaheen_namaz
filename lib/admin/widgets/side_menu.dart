@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:shaheen_namaz/admin/providers/admin_home_provider.dart';
 import 'package:shaheen_namaz/admin/widgets/attendance/attendance_list.dart';
+import 'package:shaheen_namaz/admin/widgets/certificates/certificate_list.dart';
 import 'package:shaheen_namaz/admin/widgets/change_password.dart';
 import 'package:shaheen_namaz/admin/widgets/dashboard/dashboard.dart';
 import 'package:shaheen_namaz/admin/widgets/statistics/statistics.dart';
@@ -152,18 +153,20 @@ class _ChildWidgetState extends ConsumerState<ChildWidget> {
                       ? const MasjidWidget()
                       : homeState.selectedIndex == 4
                           ? const AttendanceList()
-                          // ? Center(
-                          //     child: MasjidDropdownWidget(
-                          //     initialValue: {
-                          //       'masjidId': '13F62rkjL28061lNvPMm',
-                          //       'masjidName': 'Masjid-e-Ismail',
-                          //       'clusterNumber': 11,
-                          //     },
-                          //     onSelected: (selectedMasjid) {
-                          //       logger.i("Selected Masjid: $selectedMasjid");
-                          //     },
-                          //   ))
-                          : const Text("Please Select a view from menu"),
+                          : homeState.selectedIndex == 5
+                              ? const CertificateList()
+                              // ? Center(
+                              //     child: MasjidDropdownWidget(
+                              //     initialValue: {
+                              //       'masjidId': '13F62rkjL28061lNvPMm',
+                              //       'masjidName': 'Masjid-e-Ismail',
+                              //       'clusterNumber': 11,
+                              //     },
+                              //     onSelected: (selectedMasjid) {
+                              //       logger.i("Selected Masjid: $selectedMasjid");
+                              //     },
+                              //   ))
+                              : const Text("Please Select a view from menu"),
     );
   }
 }

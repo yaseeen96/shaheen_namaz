@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -47,9 +49,20 @@ class _AttendancePopupState extends State<AttendancePopup> {
 
     if (docSnapshot.exists) {
       List<dynamic> attendanceDetails = docSnapshot.get('attendance_details');
-      attendanceDetails
+
+      // Create indexed list before sorting
+      List<Map<String, dynamic>> indexedAttendanceDetails = attendanceDetails
+          .asMap()
+          .entries
+          .map((entry) =>
+              {'index': entry.key, ...entry.value as Map<String, dynamic>})
+          .toList();
+
+      // Sort the indexed list by attendance_time
+      indexedAttendanceDetails
           .sort((a, b) => b['attendance_time'].compareTo(a['attendance_time']));
-      yield List<Map<String, dynamic>>.from(attendanceDetails);
+
+      yield indexedAttendanceDetails;
     } else {
       yield [];
     }
@@ -132,7 +145,22 @@ class _AttendancePopupState extends State<AttendancePopup> {
     }
   }
 
-  void deleteAttendance(Map<String, dynamic> attendance,
+  void logAttendanceDetails() async {
+    DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
+        .collection('Attendance')
+        .doc(widget.studentId)
+        .get();
+
+    if (docSnapshot.exists) {
+      List<dynamic> attendanceDetails = docSnapshot.get('attendance_details');
+      logger.i("Current attendance details in Firestore: $attendanceDetails");
+    } else {
+      logger
+          .i("No attendance details found for student ID ${widget.studentId}");
+    }
+  }
+
+  void deleteAttendance(int indexToDelete,
       {bool decreaseStreak = false}) async {
     final shouldDelete = await showDialog<int>(
       context: context,
@@ -160,38 +188,83 @@ class _AttendancePopupState extends State<AttendancePopup> {
 
     if (shouldDelete == 1 || shouldDelete == 2) {
       try {
-        await FirebaseFirestore.instance
+        DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
             .collection('Attendance')
             .doc(widget.studentId)
-            .update({
-          'attendance_details': FieldValue.arrayRemove([attendance])
-        });
+            .get();
 
-        if (shouldDelete == 2) {
-          DocumentSnapshot studentDoc = await FirebaseFirestore.instance
-              .collection('students')
-              .doc(widget.studentId)
-              .get();
+        if (docSnapshot.exists) {
+          List<dynamic> attendanceDetails =
+              List.from(docSnapshot.get('attendance_details'));
 
-          int currentStreak = studentDoc.get('streak') ?? 0;
-          if (currentStreak > 0) {
+          if (indexToDelete >= 0 && indexToDelete < attendanceDetails.length) {
+            final attendanceToRemove = attendanceDetails[indexToDelete];
+            logger.i("Attendance to remove: $attendanceToRemove");
+
+            attendanceDetails.removeAt(indexToDelete);
+            logger.i("Attendance after removed: $attendanceDetails");
+
             await FirebaseFirestore.instance
-                .collection('students')
+                .collection('Attendance')
                 .doc(widget.studentId)
                 .update({
-              'streak': FieldValue.increment(-1),
+              'attendance_details': attendanceDetails,
+            });
+
+            // Fetch the updated document to verify the deletion
+            DocumentSnapshot updatedDocSnapshot = await FirebaseFirestore
+                .instance
+                .collection('Attendance')
+                .doc(widget.studentId)
+                .get();
+
+            List<dynamic> updatedAttendanceDetails =
+                List.from(updatedDocSnapshot.get('attendance_details'));
+            logger.i(
+                "Updated attendance details in Firestore: $updatedAttendanceDetails");
+
+            // Verify if the record still exists after deletion
+            bool stillExists =
+                updatedAttendanceDetails.contains(attendanceToRemove);
+            if (stillExists) {
+              logger.e(
+                  "The record still exists after deletion: $attendanceToRemove");
+            } else {
+              logger.i("The record was successfully deleted.");
+            }
+
+            if (shouldDelete == 2) {
+              DocumentSnapshot studentDoc = await FirebaseFirestore.instance
+                  .collection('students')
+                  .doc(widget.studentId)
+                  .get();
+
+              int currentStreak = studentDoc.get('streak') ?? 0;
+              if (currentStreak > 0) {
+                await FirebaseFirestore.instance
+                    .collection('students')
+                    .doc(widget.studentId)
+                    .update({
+                  'streak': FieldValue.increment(-1),
+                });
+              }
+            }
+
+            setState(() {
+              _message = 'Attendance deleted successfully';
+            });
+          } else {
+            setState(() {
+              _message = 'Invalid index for deletion';
             });
           }
+        } else {
+          setState(() {
+            _message = 'No attendance records found';
+          });
         }
-
-        setState(() {});
-        if (!mounted) return;
-
-        setState(() {
-          _message = 'Attendance deleted successfully';
-        });
       } catch (error) {
-        if (!mounted) return;
+        logger.e("error: $error");
         setState(() {
           _message = 'Failed to delete attendance: $error';
         });
@@ -250,25 +323,25 @@ class _AttendancePopupState extends State<AttendancePopup> {
                           margin: const EdgeInsets.symmetric(
                               vertical: 3, horizontal: 10),
                           child: ListTile(
-                            key: ValueKey(index),
+                            key: ValueKey(data['index']),
                             leading: const Icon(Icons.verified_user),
                             title: Text(
-                                "Attendance Time: ${DateFormat('MMMM dd, yyyy – hh:mm a').format(data["attendance_time"].toDate())}"),
+                                "Attendance Time: ${DateFormat('MMMM dd, yyyy – hh:mm a').format(data['attendance_time'].toDate())}"),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                    "Masjid: ${data["masjid_details"]["masjidName"] ?? 'N/A'}"),
+                                    "Masjid: ${data['masjid_details']['masjidName'] ?? 'N/A'}"),
                                 Text(
-                                    "Cluster Number: ${data["masjid_details"]["clusterNumber"]?.toString() ?? 'N/A'}"),
+                                    "Cluster Number: ${data['masjid_details']['clusterNumber']?.toString() ?? 'N/A'}"),
                                 Text(
-                                    "Tracked By: ${data["tracked_by"]["name"] ?? 'N/A'}"),
+                                    "Tracked By: ${data['tracked_by']['name'] ?? 'N/A'}"),
                               ],
                             ),
-                            // trailing: IconButton(
-                            //   icon: const Icon(Icons.delete),
-                            //   onPressed: () => deleteAttendance(data),
-                            // ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete),
+                              onPressed: () => deleteAttendance(data['index']),
+                            ),
                           ),
                         );
                       },

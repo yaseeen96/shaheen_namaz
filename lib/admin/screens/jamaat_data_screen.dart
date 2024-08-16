@@ -114,7 +114,6 @@ class _JamaatDataScreenState extends ConsumerState<JamaatDataScreen> {
                           tileColor: Colors.black12,
                           title: Text(
                             jamaatName,
-                            style: const TextStyle(color: Colors.black),
                           ),
                           trailing: Container(
                             alignment: Alignment.center,

@@ -133,6 +133,21 @@ class DashboardNotifier extends StateNotifier<void> {
       throw Exception('Failed to get dashboard data: $e');
     }
   }
+
+  // Add this method
+  Future<int> getTotalCertificates() async {
+    try {
+      final functions = FirebaseFunctions.instance;
+      final result =
+          await functions.httpsCallable('get_total_certificates').call();
+      if (result.data['error'] != null) {
+        throw Exception(result.data['error']);
+      }
+      return result.data['totalCertificates'];
+    } catch (e) {
+      throw Exception('Failed to get total certificates: $e');
+    }
+  }
 }
 
 final dashboardNotifierProvider =
@@ -183,132 +198,8 @@ final dashboardDataProvider =
   return dashboardNotifier.getDashboardData();
 });
 
-
-
-
-// for getting data from server
-
-// import 'package:cloud_functions/cloud_functions.dart';
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:shaheen_namaz/utils/config/logger.dart';
-
-// final dashboardNotifierProvider =
-//     StateNotifierProvider<DashboardNotifier, void>((ref) {
-//   return DashboardNotifier();
-// });
-
-// class DashboardNotifier extends StateNotifier<void> {
-//   DashboardNotifier() : super(null);
-
-//   Future<int> getTotalStudents() async {
-//     final functions = FirebaseFunctions.instance;
-//     final result = await functions.httpsCallable('get_total_students').call();
-//     if (result.data['error'] != null) {
-//       throw Exception(result.data['error']);
-//     }
-//     return result.data['totalStudents'];
-//   }
-
-//   Future<int> getTotalMasjids() async {
-//     final functions = FirebaseFunctions.instance;
-//     final result = await functions.httpsCallable('get_total_masjids').call();
-//     if (result.data['error'] != null) {
-//       logger.e("masjid error ${result.data['error']}");
-//       throw Exception(result.data['error']);
-//     }
-//     return result.data['totalMasjids'];
-//   }
-
-//   Future<int> getTotalVolunteers() async {
-//     final functions = FirebaseFunctions.instance;
-//     final result = await functions.httpsCallable('get_total_volunteers').call();
-//     if (result.data['error'] != null) {
-//       throw Exception(result.data['error']);
-//     }
-//     return result.data['totalVolunteers'];
-//   }
-
-//   Future<int> getTodayAttendance({int? clusterNumber}) async {
-//     final functions = FirebaseFunctions.instance;
-//     final result = await functions
-//         .httpsCallable('get_today_attendance')
-//         .call({'clusterNumber': clusterNumber});
-//     if (result.data['error'] != null) {
-//       logger.e("Error from gettodayAttendance: ${result.data['error']}");
-//       throw Exception(result.data['error']);
-//     }
-//     return result.data['todayAttendance'];
-//   }
-
-//   Future<int> getTodayAbsent({int? clusterNumber}) async {
-//     final functions = FirebaseFunctions.instance;
-//     final result = await functions
-//         .httpsCallable('get_today_absent_data')
-//         .call({'clusterNumber': clusterNumber});
-//     if (result.data['error'] != null) {
-//       throw Exception(result.data['error']);
-//     }
-//     return result.data['todayAbsent'];
-//   }
-
-//   Future<int> getTotalStudentsByCluster(int clusterNumber) async {
-//     final functions = FirebaseFunctions.instance;
-//     final result = await functions
-//         .httpsCallable('get_total_students_by_cluster')
-//         .call({'clusterNumber': clusterNumber});
-//     if (result.data['error'] != null) {
-//       logger.e("total student by cluster error ${result.data['error']}");
-//       throw Exception(result.data['error']);
-//     }
-//     return result.data['totalStudentsInCluster'];
-//   }
-
-//   Future<int> getTodayAttendanceByCluster(int clusterNumber) async {
-//     final functions = FirebaseFunctions.instance;
-//     final result = await functions
-//         .httpsCallable('get_today_attendance')
-//         .call({'clusterNumber': clusterNumber});
-//     if (result.data['error'] != null) {
-//       logger.e("today attendance by cluster error ${result.data['error']}");
-//       throw Exception(result.data['error']);
-//     }
-//     return result.data['todayAttendanceInCluster'];
-//   }
-// }
-
-// final totalStudentsProvider = FutureProvider.autoDispose<int>((ref) async {
-//   final dashboardNotifier = ref.watch(dashboardNotifierProvider.notifier);
-//   return dashboardNotifier.getTotalStudents();
-// });
-
-// final totalMasjidsProvider = FutureProvider.autoDispose<int>((ref) async {
-//   final dashboardNotifier = ref.watch(dashboardNotifierProvider.notifier);
-//   return dashboardNotifier.getTotalMasjids();
-// });
-
-// final totalVolunteersProvider = FutureProvider.autoDispose<int>((ref) async {
-//   final dashboardNotifier = ref.watch(dashboardNotifierProvider.notifier);
-//   return dashboardNotifier.getTotalVolunteers();
-// });
-
-// final attendanceProvider = FutureProvider.autoDispose<int>((ref) async {
-//   final dashboardNotifier = ref.watch(dashboardNotifierProvider.notifier);
-//   return dashboardNotifier.getTodayAttendance();
-// });
-
-// final absentProvider = FutureProvider.autoDispose<int>((ref) async {
-//   final dashboardNotifier = ref.watch(dashboardNotifierProvider.notifier);
-//   return dashboardNotifier.getTodayAbsent();
-// });
-
-// final totalStudentsByClusterProvider =
-//     FutureProvider.family.autoDispose<int, int>((ref, clusterNumber) async {
-//   final dashboardNotifier = ref.watch(dashboardNotifierProvider.notifier);
-//   return dashboardNotifier.getTotalStudentsByCluster(clusterNumber);
-// });
-
-// final todayAttendanceByClusterProvider =
-//     FutureProvider.family.autoDispose<int, int>((ref, clusterNumber) async {
-//   final dashboardNotifier = ref.watch(dashboardNotifierProvider.notifier);
-//   return dashboardNotifier.getTodayAttendanceByCluster(clusterNumber);
-// });
+// Add this provider
+final totalCertificatesProvider = FutureProvider.autoDispose<int>((ref) async {
+  final dashboardNotifier = ref.watch(dashboardNotifierProvider.notifier);
+  return dashboardNotifier.getTotalCertificates();
+});

@@ -12,6 +12,7 @@ import 'package:shaheen_namaz/staff/screens/manual_attendance/manual_attendance.
 import 'package:shaheen_namaz/staff/screens/parent_screen.dart';
 import 'package:shaheen_namaz/staff/screens/student_data_mobile.dart';
 import 'package:shaheen_namaz/staff/screens/student_registration/student_registration_screen.dart';
+import 'package:shaheen_namaz/staff/screens/track_attendance/track_attendance.dart';
 
 final routes = GoRouter(
   initialLocation: "/",
@@ -73,7 +74,7 @@ final routes = GoRouter(
     GoRoute(
         name: "edit_student",
         path:
-            "/edit_student/:faceId/:name/:dob/:className/:address/:guardianName/:guardianNumber",
+            "/edit_student/:faceId/:name/:dob/:className/:address/:guardianName/:guardianNumber/:schoolName",
         builder: (ctx, state) => EditStudentScreen(
               faceId: state.pathParameters["faceId"]!,
               name: state.pathParameters["name"],
@@ -82,6 +83,7 @@ final routes = GoRouter(
               guardianNumber: state.pathParameters["guardianNumber"],
               address: state.pathParameters["address"],
               className: state.pathParameters["className"],
+              schoolName: state.pathParameters["schoolName"],
             )),
     GoRoute(
       name: "image_preview",
@@ -94,6 +96,6 @@ final routes = GoRouter(
     ),
     GoRoute(
         path: "/student_data_mobile",
-        builder: (ctx, state) => const StudentDataMobile()),
+        builder: (ctx, state) => const TrackAttendanceScreen()),
   ],
 );

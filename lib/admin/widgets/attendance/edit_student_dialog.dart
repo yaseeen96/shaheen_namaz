@@ -114,7 +114,9 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
                 children: [
                   const Text(
                     'Masjid',
-                    style: TextStyle(fontSize: 16, color: Colors.black54),
+                    style: TextStyle(
+                      fontSize: 16,
+                    ),
                   ),
                   MasjidDropdownWidget(
                     onSelected: (masjid) {
@@ -130,7 +132,7 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
                 children: [
                   const Text(
                     'Volunteer',
-                    style: TextStyle(fontSize: 16, color: Colors.black54),
+                    style: TextStyle(fontSize: 16),
                   ),
                   VolunteerDropdownWidget(
                     onSelected: (volunteer) {

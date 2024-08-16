@@ -210,9 +210,6 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                     return ListTile(
                       title: Text(
                         item,
-                        style: const TextStyle(
-                          color: Colors.black,
-                        ),
                       ),
                     );
                   },
@@ -380,6 +377,9 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
           logger.i("role: ${role!.split(".").last}");
           final imamDetails = ref.read(imamProvider);
           logger.i("role: ${role!.split(".").last})");
+          phoneNumber = phoneNumber!.startsWith("+91")
+              ? phoneNumber!.substring(3)
+              : phoneNumber!;
           await FirebaseFunctions.instance.httpsCallable(functionName).call(
             {
               if (shouldUpdate) "uid": widget.user!.uid,

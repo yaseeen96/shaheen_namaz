@@ -13,7 +13,9 @@ import 'package:shaheen_namaz/staff/providers/providers.dart';
 import 'package:shaheen_namaz/staff/screens/student_registration/masjids_widget.dart';
 import 'package:shaheen_namaz/staff/widgets/app_bar.dart';
 import 'package:shaheen_namaz/staff/widgets/image_preview.dart';
+import 'package:shaheen_namaz/staff/widgets/school_dropdown.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
+import 'package:shaheen_namaz/utils/constants/constants.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
 import 'package:top_snackbar_flutter/top_snack_bar.dart';
 
@@ -39,6 +41,7 @@ class _StudentRegistrationScreenState
   String? studentAddress;
   String? dob;
   String? selectedGender;
+  String? selectedSchool;
   bool isLoading = false;
   final TextEditingController nameController = TextEditingController();
   final TextEditingController guardianNumberController =
@@ -96,6 +99,7 @@ class _StudentRegistrationScreenState
           "address": studentAddress,
           "volunteer_name": FirebaseAuth.instance.currentUser!.displayName,
           "volunteer_id": FirebaseAuth.instance.currentUser!.uid,
+          "school_name": selectedSchool,
         });
 
         final jsonResponse = response.data;
@@ -154,6 +158,7 @@ class _StudentRegistrationScreenState
       "gender": selectedGender,
       "studentClass": studentClassController.text,
       "studentAddress": studentAddressController.text,
+      "school_name": selectedSchool,
     };
     final cameras = await availableCameras();
 
@@ -187,6 +192,7 @@ class _StudentRegistrationScreenState
     studentAddressController.text =
         studentDetails["studentAddress"] as String? ?? "";
     selectedGender = studentDetails["gender"] as String?;
+    selectedSchool = studentDetails["school_name"] as String?;
 
     super.initState();
   }
@@ -342,6 +348,21 @@ class _StudentRegistrationScreenState
                         studentAddress = currentVal;
                       },
                     ),
+                    const Gap(10),
+                    SchoolDropdownWidget(
+                        validator: (value) {
+                          if (value == null ||
+                              !Constants.schools.contains(value)) {
+                            return "Please select a school";
+                          }
+                          return null;
+                        },
+                        initialValue: selectedSchool,
+                        onSelected: (value) {
+                          setState(() {
+                            selectedSchool = value;
+                          });
+                        }),
                     const Gap(10),
                     TextFormField(
                       controller: guardianNameController,

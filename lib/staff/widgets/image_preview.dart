@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
+import 'package:shaheen_namaz/utils/constants/constants.dart';
 
 class ImagePreview extends StatelessWidget {
   const ImagePreview({
@@ -51,6 +52,7 @@ class ImagePreview extends StatelessWidget {
                 ? const Icon(
                     Icons.camera,
                     size: 100,
+                    color: Constants.bgColor,
                   )
                 : null,
           ),

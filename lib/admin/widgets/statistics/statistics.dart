@@ -61,6 +61,12 @@ class _ShaheenStatisticsState extends ConsumerState<ShaheenStatistics> {
                   "https://download-absent-report-ytvfas5sda-uc.a.run.app",
               provider: absentProvider,
             ),
+            NumberCard(
+              title: "Total Certificates",
+              downloadUrl:
+                  "https://download-certificates-report-ytvfas5sda-uc.a.run.app/",
+              provider: totalCertificatesProvider,
+            ),
           ],
         ),
         const Gap(15),
