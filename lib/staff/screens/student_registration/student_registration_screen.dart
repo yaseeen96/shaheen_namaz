@@ -38,6 +38,7 @@ class _StudentRegistrationScreenState
   String? guardianNumber;
   String? guardianName;
   String? studentClass;
+  String? studentSection;
   String? studentAddress;
   String? dob;
   String? selectedGender;
@@ -48,6 +49,8 @@ class _StudentRegistrationScreenState
       TextEditingController();
   final TextEditingController guardianNameController = TextEditingController();
   final TextEditingController studentClassController = TextEditingController();
+  final TextEditingController studentSectionController =
+      TextEditingController();
   final TextEditingController studentAddressController =
       TextEditingController();
 
@@ -96,10 +99,11 @@ class _StudentRegistrationScreenState
           "guardianName": guardianName,
           "dob": dob,
           "class": studentClass,
+          "section": studentSection?.toLowerCase(),
           "address": studentAddress,
           "volunteer_name": FirebaseAuth.instance.currentUser!.displayName,
           "volunteer_id": FirebaseAuth.instance.currentUser!.uid,
-          "school_name": selectedSchool,
+          "school_name": selectedSchool?.toLowerCase(),
         });
 
         final jsonResponse = response.data;
@@ -144,6 +148,7 @@ class _StudentRegistrationScreenState
     guardianNumberController.dispose();
     guardianNameController.dispose();
     studentClassController.dispose();
+    studentSectionController.dispose();
     studentAddressController.dispose();
 
     super.dispose();
@@ -157,6 +162,7 @@ class _StudentRegistrationScreenState
       "dob": dob,
       "gender": selectedGender,
       "studentClass": studentClassController.text,
+      "studentSection": studentSectionController.text,
       "studentAddress": studentAddressController.text,
       "school_name": selectedSchool,
     };
@@ -189,6 +195,8 @@ class _StudentRegistrationScreenState
     dob = studentDetails["dob"] as String? ?? "";
     studentClassController.text =
         studentDetails["studentClass"] as String? ?? "";
+    studentSectionController.text =
+        studentDetails["studentSection"] as String? ?? "";
     studentAddressController.text =
         studentDetails["studentAddress"] as String? ?? "";
     selectedGender = studentDetails["gender"] as String?;
@@ -266,6 +274,21 @@ class _StudentRegistrationScreenState
                       },
                     ),
 
+                    const Gap(10),
+                    TextFormField(
+                      controller: studentSectionController,
+                      decoration: formDecoration(label: "Section"),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return "Please enter a valid Section";
+                        } else {
+                          return null;
+                        }
+                      },
+                      onSaved: (currentVal) {
+                        studentSection = currentVal;
+                      },
+                    ),
                     const Gap(10),
 
                     TextFormField(

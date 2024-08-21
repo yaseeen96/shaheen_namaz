@@ -66,7 +66,8 @@ class _ImagePreviewScreenState extends ConsumerState<ImagePreviewScreen> {
           "guardianNumber": studentData?["guardianNumber"],
           "address": studentData?["address"],
           "className": studentData?["class"],
-          "schoolName": studentData?["school_name"] ?? "No School Selected"
+          "schoolName": studentData?["school_name"] ?? "No School Selected",
+          "section": studentData?["section"] ?? "e.g B"
         });
       } else {
         if (jsonResponse["error"] != null) {

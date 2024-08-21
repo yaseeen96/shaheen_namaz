@@ -28,6 +28,7 @@ class EditStudentScreen extends ConsumerStatefulWidget {
     this.dob,
     this.guardianName,
     this.schoolName,
+    this.section,
   });
   final String faceId;
   final XFile? image;
@@ -38,6 +39,7 @@ class EditStudentScreen extends ConsumerStatefulWidget {
   final String? dob;
   final String? guardianName;
   final String? schoolName;
+  final String? section;
 
   @override
   ConsumerState<EditStudentScreen> createState() => _EditStudentScreenState();
@@ -49,6 +51,7 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen> {
   String? guardianNumber;
   String? guardianName;
   String? studentClass;
+  String? studentSection;
   String? studentAddress;
   String? dob;
   String? schoolName;
@@ -58,6 +61,8 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen> {
       TextEditingController();
   final TextEditingController guardianNameController = TextEditingController();
   final TextEditingController studentClassController = TextEditingController();
+  final TextEditingController studentSectionController =
+      TextEditingController();
   final TextEditingController studentAddressController =
       TextEditingController();
 
@@ -69,6 +74,7 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen> {
     guardianNameController.text = widget.guardianName ?? "";
     dob = widget.dob ?? "";
     studentClassController.text = widget.className ?? "";
+    studentSectionController.text = widget.section ?? "";
     studentAddressController.text = widget.address ?? "";
     schoolName = widget.schoolName;
   }
@@ -108,7 +114,8 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen> {
             "clusterNumber": masjidData?["cluster_number"],
           },
           "imam_details": imamDetails == {} ? null : imamDetails,
-          "school_name": schoolName,
+          "school_name": schoolName?.toLowerCase(),
+          "section": studentSection?.toLowerCase(),
         });
         if (!mounted) return;
         showTopSnackBar(
@@ -141,6 +148,7 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen> {
     guardianNumberController.dispose();
     guardianNameController.dispose();
     studentClassController.dispose();
+    studentSectionController.dispose();
     studentAddressController.dispose();
     super.dispose();
   }
@@ -202,6 +210,23 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen> {
                       },
                       onSaved: (currentVal) {
                         studentClass = currentVal;
+                      },
+                    ),
+                    const Gap(10),
+                    TextFormField(
+                      controller: studentSectionController,
+                      decoration: formDecoration(label: "Section"),
+                      validator: (value) {
+                        if (value == null ||
+                            value.trim().isEmpty ||
+                            value == "e.g B") {
+                          return "Please enter a valid Section";
+                        } else {
+                          return null;
+                        }
+                      },
+                      onSaved: (currentVal) {
+                        studentSection = currentVal;
                       },
                     ),
                     const Gap(10),

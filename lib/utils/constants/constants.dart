@@ -257,7 +257,15 @@ class Constants {
     "Good Will Public School, Bidar",
     "Govt Hps Urdu Nawbad",
     "Al-Almas Urdu Hps School Janta Colony Bidar",
-    "Oasis Public School Multani Colony"
+    "Oasis Public School Multani Colony",
+    "Sharda Public School",
+    "Multirose Talent School English Medium",
+    "Al Ameen Urdu Boys High School Bidar",
+    "Al Mazhar School",
+    "Iqra international School",
+    "Oyster School Of Excellence",
+    "NPS Public School",
+    "Haji Mohammad Sultan Memorial High school"
   ];
 
   static const primaryColor = Color(0xff002147);
