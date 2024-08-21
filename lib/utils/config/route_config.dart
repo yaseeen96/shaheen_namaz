@@ -10,7 +10,6 @@ import 'package:shaheen_namaz/staff/screens/camera/image_preview_screen.dart';
 import 'package:shaheen_namaz/staff/screens/edit_student/edit_student_screen.dart';
 import 'package:shaheen_namaz/staff/screens/manual_attendance/manual_attendance.dart';
 import 'package:shaheen_namaz/staff/screens/parent_screen.dart';
-import 'package:shaheen_namaz/staff/screens/student_data_mobile.dart';
 import 'package:shaheen_namaz/staff/screens/student_registration/student_registration_screen.dart';
 import 'package:shaheen_namaz/staff/screens/track_attendance/track_attendance.dart';
 
