@@ -265,7 +265,15 @@ class Constants {
     "Iqra international School",
     "Oyster School Of Excellence",
     "NPS Public School",
-    "Haji Mohammad Sultan Memorial High school"
+    "Haji Mohammad Sultan Memorial High school",
+    "Moulana Azad modal English medium school faiz pura",
+    "Madina Public School",
+    "Al amas foundation school",
+    "Siddi baba public school",
+    "Indira HRPS badruddin colony chidri road Bidar",
+    "Vidyashree Model Primary & High School",
+    "Sharda Public School",
+    "Zainabiya Salf BBanu Urdu Higher Primary School"
   ];
 
   static const primaryColor = Color(0xff002147);
