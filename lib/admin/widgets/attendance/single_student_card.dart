@@ -181,6 +181,7 @@ class _SingleStudentCardState extends State<SingleStudentCard> {
           const Center(
             child: CircularProgressIndicator(),
           ),
+        // Streak at the top right
         Positioned(
             top: 0,
             right: 0,
@@ -201,6 +202,28 @@ class _SingleStudentCardState extends State<SingleStudentCard> {
                 ),
               ),
             )),
+        // Certificate Count at the bottom left
+        Positioned(
+            bottom: 0,
+            left: 0,
+            child: Container(
+              alignment: Alignment.center,
+              margin: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(5),
+              width: 100,
+              height: 30,
+              decoration: const BoxDecoration(
+                color: Constants.bgColor,
+                borderRadius: BorderRadius.all(Radius.circular(5)),
+              ),
+              child: Text(
+                '${widget.data["certificate_count"]}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            )),
+        // Delete button at the bottom right
         Positioned(
             bottom: 5,
             right: 5,
@@ -210,7 +233,7 @@ class _SingleStudentCardState extends State<SingleStudentCard> {
                 Icons.delete,
                 color: Colors.red,
               ),
-            ))
+            )),
       ],
     );
   }

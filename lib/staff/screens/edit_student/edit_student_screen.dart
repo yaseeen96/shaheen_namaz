@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
-import 'package:shaheen_namaz/admin/providers/imam_provider.dart';
 import 'package:shaheen_namaz/staff/providers/providers.dart';
 import 'package:shaheen_namaz/staff/screens/student_registration/masjids_widget.dart';
 import 'package:shaheen_namaz/staff/widgets/school_dropdown.dart';
@@ -81,7 +80,6 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen> {
 
   void onUpdate() async {
     final masjidId = ref.read(selectedMasjidProvider);
-    final imamDetails = ref.watch(imamProvider);
 
     final masjid = await FirebaseFirestore.instance
         .collection("Masjid")
@@ -113,7 +111,6 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen> {
             "masjidName": masjidData?["name"],
             "clusterNumber": masjidData?["cluster_number"],
           },
-          "imam_details": imamDetails == {} ? null : imamDetails,
           "school_name": schoolName?.toLowerCase(),
           "section": studentSection?.toLowerCase(),
         });

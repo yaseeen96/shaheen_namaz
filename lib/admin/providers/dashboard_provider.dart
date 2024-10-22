@@ -18,6 +18,24 @@ class DashboardNotifier extends StateNotifier<void> {
     }
   }
 
+  Future<int> getTodayCertificates() async {
+    try {
+      final functions = FirebaseFunctions.instance;
+      final result =
+          await functions.httpsCallable('get_todays_certificates').call();
+
+      // Check for errors in the response
+      if (result.data['error'] != null) {
+        throw Exception(result.data['error']);
+      }
+
+      // Return the total number of today's certificates
+      return result.data['totalTodaysCertificates'];
+    } catch (e) {
+      throw Exception('Failed to get today\'s certificates: $e');
+    }
+  }
+
   Future<int> getTotalMasjids() async {
     try {
       final functions = FirebaseFunctions.instance;
@@ -158,6 +176,11 @@ final dashboardNotifierProvider =
 final totalStudentsProvider = FutureProvider.autoDispose<int>((ref) async {
   final dashboardNotifier = ref.watch(dashboardNotifierProvider.notifier);
   return dashboardNotifier.getTotalStudents();
+});
+
+final todayCertificatesProvider = FutureProvider.autoDispose<int>((ref) async {
+  final dashboardNotifier = ref.watch(dashboardNotifierProvider.notifier);
+  return dashboardNotifier.getTodayCertificates();
 });
 
 final totalMasjidsProvider = FutureProvider.autoDispose<int>((ref) async {
