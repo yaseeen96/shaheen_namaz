@@ -5,6 +5,7 @@ import 'package:shaheen_namaz/admin/widgets/attendance/edit_student_dialog.dart'
 import 'package:shaheen_namaz/utils/config/logger.dart';
 import 'package:shaheen_namaz/utils/constants/constants.dart';
 import 'package:cloud_functions/cloud_functions.dart'; // Import the cloud functions package
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import Cloud Firestore package
 
 class SingleStudentCard extends StatefulWidget {
   const SingleStudentCard({
@@ -22,6 +23,42 @@ class SingleStudentCard extends StatefulWidget {
 
 class _SingleStudentCardState extends State<SingleStudentCard> {
   bool _isLoading = false;
+  int _certificateCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCertificateCount();
+  }
+
+  Future<void> _fetchCertificateCount() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      QuerySnapshot certificatesSnapshot = await FirebaseFirestore.instance
+          .collection('certificates')
+          .where('studentId', isEqualTo: widget.studentId)
+          .get();
+
+      setState(() {
+        _certificateCount = certificatesSnapshot.docs.length;
+      });
+    } catch (e) {
+      logger.e("Error fetching certificate count: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error fetching certificate count: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   void handleEditStudent() {
     showDialog(
@@ -78,7 +115,7 @@ class _SingleStudentCardState extends State<SingleStudentCard> {
 
       if (result.data['error'] != null) {
         // Handle error
-        logger.e("Error deleting student: ${result.data['error']}");
+        logger.e("Error deleting student: \${result.data['error']}");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error deleting student: ${result.data['error']}'),
@@ -89,7 +126,7 @@ class _SingleStudentCardState extends State<SingleStudentCard> {
         logger.i("Student ${widget.data["name"]} has been deleted.");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Student ${widget.data["name"]} has been deleted.'),
+            content: Text('Student \${widget.data["name"]} has been deleted.'),
             backgroundColor: Colors.green,
           ),
         );
@@ -217,7 +254,7 @@ class _SingleStudentCardState extends State<SingleStudentCard> {
                 borderRadius: BorderRadius.all(Radius.circular(5)),
               ),
               child: Text(
-                '${widget.data["certificate_count"]}',
+                '$_certificateCount',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                 ),
