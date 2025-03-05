@@ -24,6 +24,8 @@ class User {
   List<String> masjidAllocated;
   List<MasjidDetails> masjidDetails;
   Map<String, dynamic>? imamDetails; // Optional field
+  bool isSchoolCoordinator; // New field
+  String? schoolName; // New field
 
   User({
     required this.uid,
@@ -37,6 +39,8 @@ class User {
     required this.masjidAllocated,
     required this.masjidDetails,
     this.imamDetails,
+    required this.isSchoolCoordinator,
+    this.schoolName,
   });
 
   factory User.fromJson(String uid, Map<String, dynamic> json) {
@@ -61,6 +65,8 @@ class User {
               .toList() ??
           [],
       imamDetails: json['imam_details'] as Map<String, dynamic>?,
+      isSchoolCoordinator: json['isSchoolCoordinator'] ?? false, // New field
+      schoolName: json['schoolName'], // New field
     );
   }
 
@@ -82,6 +88,8 @@ class User {
       'masjid_allocated': masjidAllocated,
       'masjid_details': masjidDetails.map((masjid) => masjid.toJson()).toList(),
       if (imamDetails != null) 'imam_details': imamDetails,
+      'isSchoolCoordinator': isSchoolCoordinator, // New field
+      'schoolName': schoolName, // New field
     };
   }
 }

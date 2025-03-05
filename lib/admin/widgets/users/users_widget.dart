@@ -61,7 +61,11 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
 
   void onSearchChanged(String query) {
     setState(() {
-      searchQuery = query;
+      // Capitalize the first letter of the first word for querying purposes only
+      searchQuery = query.trim();
+      if (searchQuery.isNotEmpty) {
+        searchQuery = searchQuery[0].toUpperCase() + searchQuery.substring(1);
+      }
     });
   }
 
@@ -344,6 +348,8 @@ class _UsersWidgetState extends ConsumerState<UsersWidget> {
                   masjidAllocated: [],
                   masjidDetails: masjidDetailsList,
                   imamDetails: data?["imam_details"],
+                  isSchoolCoordinator: data?["isSchoolCoordinator"] ?? false,
+                  schoolName: data?["school_name"],
                 ),
         );
       },

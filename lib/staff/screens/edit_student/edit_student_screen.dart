@@ -28,6 +28,7 @@ class EditStudentScreen extends ConsumerStatefulWidget {
     this.guardianName,
     this.schoolName,
     this.section,
+    this.isSpecialProgramEligible,
   });
   final String faceId;
   final XFile? image;
@@ -39,6 +40,7 @@ class EditStudentScreen extends ConsumerStatefulWidget {
   final String? guardianName;
   final String? schoolName;
   final String? section;
+  final bool? isSpecialProgramEligible;
 
   @override
   ConsumerState<EditStudentScreen> createState() => _EditStudentScreenState();
@@ -55,6 +57,9 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen> {
   String? dob;
   String? schoolName;
   bool isLoading = false;
+  // Added toggle state for special program eligibility (default false).
+  bool isSpecialProgramEligible = false;
+
   final TextEditingController nameController = TextEditingController();
   final TextEditingController guardianNumberController =
       TextEditingController();
@@ -76,6 +81,7 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen> {
     studentSectionController.text = widget.section ?? "";
     studentAddressController.text = widget.address ?? "";
     schoolName = widget.schoolName;
+    isSpecialProgramEligible = widget.isSpecialProgramEligible ?? false;
   }
 
   void onUpdate() async {
@@ -113,6 +119,8 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen> {
           },
           "school_name": schoolName?.toLowerCase(),
           "section": studentSection?.toLowerCase(),
+          // Added special program eligibility field
+          "special_program_eligible": isSpecialProgramEligible,
         });
         if (!mounted) return;
         showTopSnackBar(
@@ -329,6 +337,16 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen> {
                         guardianNumber = currentVal;
                       },
                     ),
+                    // Added toggle for special program eligibility.
+                    SwitchListTile(
+                      title: const Text("Special Program"),
+                      value: isSpecialProgramEligible,
+                      onChanged: (bool value) {
+                        setState(() {
+                          isSpecialProgramEligible = value;
+                        });
+                      },
+                    ),
                     Padding(
                       padding: const EdgeInsets.only(left: 8),
                       child: Align(
@@ -337,7 +355,7 @@ class _EditStudentScreenState extends ConsumerState<EditStudentScreen> {
                           "Masjids",
                           style:
                               Theme.of(context).textTheme.titleLarge!.copyWith(
-                                    color: Theme.of(context).primaryColor,
+                                    color: Colors.white,
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                   ),

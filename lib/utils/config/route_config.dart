@@ -73,7 +73,7 @@ final routes = GoRouter(
     GoRoute(
         name: "edit_student",
         path:
-            "/edit_student/:faceId/:name/:dob/:className/:address/:guardianName/:guardianNumber/:schoolName/:section",
+            "/edit_student/:faceId/:name/:dob/:className/:address/:guardianName/:guardianNumber/:schoolName/:section/:isSpecialProgramEligible",
         builder: (ctx, state) => EditStudentScreen(
               faceId: state.pathParameters["faceId"]!,
               name: state.pathParameters["name"],
@@ -84,6 +84,10 @@ final routes = GoRouter(
               className: state.pathParameters["className"],
               schoolName: state.pathParameters["schoolName"],
               section: state.pathParameters["section"],
+              isSpecialProgramEligible:
+                  state.pathParameters["isSpecialProgramEligible"] == "true"
+                      ? true
+                      : false,
             )),
     GoRoute(
       name: "image_preview",

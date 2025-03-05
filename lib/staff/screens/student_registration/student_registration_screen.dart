@@ -33,146 +33,21 @@ class StudentRegistrationScreen extends ConsumerStatefulWidget {
 
 class _StudentRegistrationScreenState
     extends ConsumerState<StudentRegistrationScreen> {
-  final formkey = GlobalKey<FormState>();
-  String? name;
-  String? guardianNumber;
-  String? guardianName;
-  String? studentClass;
-  String? studentSection;
-  String? studentAddress;
-  String? dob;
-  String? selectedGender;
-  String? selectedSchool;
+  // Create a GlobalKey to interact with the form widget.
+  final GlobalKey<StudentFormSectionState> _formKey =
+      GlobalKey<StudentFormSectionState>();
+
   bool isLoading = false;
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController guardianNumberController =
-      TextEditingController();
-  final TextEditingController guardianNameController = TextEditingController();
-  final TextEditingController studentClassController = TextEditingController();
-  final TextEditingController studentSectionController =
-      TextEditingController();
-  final TextEditingController studentAddressController =
-      TextEditingController();
 
-  void onRegister() async {
-    final currentState = formkey.currentState;
-    logger.i(currentState == null);
-    if (currentState == null) return;
-    if (currentState.validate()) {
-      logger.i("Form is valid");
-      currentState.save();
-      try {
-        setState(() {
-          isLoading = true;
-        });
-        if (widget.image == null) {
-          if (!context.mounted) return;
-          showTopSnackBar(
-            Overlay.of(context),
-            const CustomSnackBar.error(
-                message: "Please select an image before registering."),
-          );
-          return;
-        }
-
-        final bytes = await widget.image!.readAsBytes();
-        final base64Image = base64Encode(bytes);
-        // Read the selected masjid from the provider
-        final String? selectedMasjidRef = ref.read(selectedMasjidProvider);
-        if (selectedMasjidRef == null) {
-          // Handle the case where no masjid is selected, if necessary
-          if (!mounted) return;
-          showTopSnackBar(
-            Overlay.of(context),
-            const CustomSnackBar.error(
-                message: "Please select a masjid before registering."),
-          );
-          return;
-        }
-        final response = await FirebaseFunctions.instance
-            .httpsCallable('register_student')
-            .call({
-          "image_data": base64Image,
-          "name": name,
-          "guardianNumber": guardianNumber,
-          "masjidId": selectedMasjidRef, //add id if not working
-          "guardianName": guardianName,
-          "dob": dob,
-          "class": studentClass,
-          "section": studentSection?.toLowerCase(),
-          "address": studentAddress,
-          "volunteer_name": FirebaseAuth.instance.currentUser!.displayName,
-          "volunteer_id": FirebaseAuth.instance.currentUser!.uid,
-          "school_name": selectedSchool?.toLowerCase(),
-        });
-
-        final jsonResponse = response.data;
-        if (jsonResponse["faceId"] != null) {
-          logger.i("Success");
-          if (!mounted) return;
-          showTopSnackBar(
-            Overlay.of(context),
-            const CustomSnackBar.success(
-                message: "Yayyy!! Successfully Registered"),
-          );
-          ref.read(studentDetailsProvider.notifier).state = {};
-          context.go("/user");
-        } else {
-          if (!mounted) return;
-          showTopSnackBar(
-              Overlay.of(context),
-              CustomSnackBar.error(
-                  message:
-                      "An Error Occurred: ${jsonResponse["error"] ?? ''}"));
-        }
-
-        logger.i("Response: $jsonResponse");
-      } catch (err) {
-        logger.e("Error: $err");
-        if (!mounted) return;
-        showTopSnackBar(
-            Overlay.of(context),
-            const CustomSnackBar.error(
-                message: "Server Error. Please Come Back Later."));
-      } finally {
-        setState(() {
-          isLoading = false;
-        });
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    nameController.dispose();
-    guardianNumberController.dispose();
-    guardianNameController.dispose();
-    studentClassController.dispose();
-    studentSectionController.dispose();
-    studentAddressController.dispose();
-
-    super.dispose();
-  }
-
+  // onAddImage remains in the parent to capture any extra actions.
   void onAddImage() async {
-    ref.read(studentDetailsProvider.notifier).state = {
-      "name": nameController.text,
-      "guardianNumber": guardianNumberController.text,
-      "guardianName": guardianNameController.text,
-      "dob": dob,
-      "gender": selectedGender,
-      "studentClass": studentClassController.text,
-      "studentSection": studentSectionController.text,
-      "studentAddress": studentAddressController.text,
-      "school_name": selectedSchool,
-    };
-    final cameras = await availableCameras();
+    // Save the current form state in a provider (or pass via callback)
+    ref.read(studentDetailsProvider.notifier).state =
+        _formKey.currentState?.getCurrentFormValues() ?? {};
 
+    final cameras = await availableCameras();
     final firstCamera = cameras.first;
     if (!mounted) return;
-
-    Logger().e("name: ${nameController.text == ""}");
-
     context.pushNamed(
       "camera_preview",
       extra: firstCamera,
@@ -184,10 +59,219 @@ class _StudentRegistrationScreenState
     );
   }
 
+  Future<void> onRegister() async {
+    // Validate and get form data from the separate form widget.
+    final formData = _formKey.currentState?.validateAndSave();
+    if (formData == null) {
+      Logger().e("Form validation failed");
+      return;
+    }
+
+    try {
+      setState(() {
+        isLoading = true;
+      });
+      if (widget.image == null) {
+        if (!context.mounted) return;
+        showTopSnackBar(
+          Overlay.of(context),
+          const CustomSnackBar.error(
+              message: "Please select an image before registering."),
+        );
+        return;
+      }
+
+      // Process image
+      final bytes = await widget.image!.readAsBytes();
+      final base64Image = base64Encode(bytes);
+
+      // Get selected masjid from provider
+      final String? selectedMasjidRef = ref.read(selectedMasjidProvider);
+      if (selectedMasjidRef == null) {
+        if (!mounted) return;
+        showTopSnackBar(
+          Overlay.of(context),
+          const CustomSnackBar.error(
+              message: "Please select a masjid before registering."),
+        );
+        return;
+      }
+
+      // Build payload merging form data with extra fields
+      final payload = {
+        "image_data": base64Image,
+        ...formData,
+        "masjidId": selectedMasjidRef,
+        "volunteer_name": FirebaseAuth.instance.currentUser!.displayName,
+        "volunteer_id": FirebaseAuth.instance.currentUser!.uid,
+      };
+
+      final response = await FirebaseFunctions.instance
+          .httpsCallable('register_student')
+          .call(payload);
+
+      final jsonResponse = response.data;
+      if (jsonResponse["faceId"] != null) {
+        Logger().i("Success");
+        if (!mounted) return;
+        showTopSnackBar(
+          Overlay.of(context),
+          const CustomSnackBar.success(
+              message: "Yayyy!! Successfully Registered"),
+        );
+        // Reset stored student details.
+        ref.read(studentDetailsProvider.notifier).state = {};
+        context.go("/user");
+      } else {
+        if (!mounted) return;
+        showTopSnackBar(
+            Overlay.of(context),
+            CustomSnackBar.error(
+                message: "An Error Occurred: ${jsonResponse["error"] ?? ''}"));
+      }
+    } catch (err) {
+      Logger().e("Error: $err");
+      if (!mounted) return;
+      showTopSnackBar(
+          Overlay.of(context),
+          const CustomSnackBar.error(
+              message: "Server Error. Please Come Back Later."));
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    DocumentReference userDoc = FirebaseFirestore.instance
+        .collection("Users")
+        .doc(FirebaseAuth.instance.currentUser!.uid);
+    return Scaffold(
+      appBar: const CustomAppbar(),
+      body: StreamBuilder(
+          stream: userDoc.snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              Logger().e("Error: ${snapshot.error}");
+              return const Center(child: Text("Something went Wrong"));
+            }
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                children: [
+                  Gap(MediaQuery.of(context).size.height * 0.05),
+                  // The image section is isolated.
+                  StudentImageSection(
+                    image: widget.image,
+                    onTap: onAddImage,
+                  ),
+                  Gap(MediaQuery.of(context).size.height * 0.05),
+                  // The form is encapsulated in its own widget.
+                  StudentFormSection(key: _formKey),
+                  const Gap(10),
+                  // Masjid selection remains separate.
+                  const Padding(
+                    padding: EdgeInsets.only(left: 8),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Masjids",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors
+                              .white, // Use your theme primary color here.
+                        ),
+                      ),
+                    ),
+                  ),
+                  const MasjidSearchWidget(),
+                ],
+              ),
+            );
+          }),
+      floatingActionButton: FloatingActionButton(
+        onPressed: onRegister,
+        child: isLoading
+            ? const CircularProgressIndicator()
+            : const Icon(Icons.keyboard_arrow_right_rounded),
+      ),
+    );
+  }
+}
+
+/// A widget for displaying the image preview with an onTap callback.
+class StudentImageSection extends StatelessWidget {
+  const StudentImageSection({
+    Key? key,
+    required this.image,
+    required this.onTap,
+  }) : super(key: key);
+
+  final XFile? image;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.center,
+      child: ImagePreview(
+        onTap: onTap,
+        image: image,
+      ),
+    );
+  }
+}
+
+/// A widget that encapsulates the student registration form.
+class StudentFormSection extends ConsumerStatefulWidget {
+  const StudentFormSection({Key? key}) : super(key: key);
+
+  @override
+  StudentFormSectionState createState() => StudentFormSectionState();
+}
+
+class StudentFormSectionState extends ConsumerState<StudentFormSection> {
+  final formKey = GlobalKey<FormState>();
+
+  // Form field values
+  String? name;
+  String? guardianNumber;
+  String? guardianName;
+  String? studentClass;
+  String? studentSection;
+  String? studentAddress;
+  String? dob;
+  String? selectedGender;
+  String? selectedSchool;
+  bool isSpecialProgramEligible = false;
+
+  // Controllers for text fields.
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController dobController = TextEditingController();
+
+  final TextEditingController guardianNumberController =
+      TextEditingController();
+  final TextEditingController guardianNameController = TextEditingController();
+  final TextEditingController studentClassController = TextEditingController();
+  final TextEditingController studentSectionController =
+      TextEditingController();
+  final TextEditingController studentAddressController =
+      TextEditingController();
+
   @override
   void initState() {
+    super.initState();
+    // Retrieve initial values if available from a provider
     final studentDetails = ref.read(studentDetailsProvider);
     nameController.text = studentDetails["name"] as String? ?? "";
+    if (dob != null) {
+      dobController.text = dob!;
+    }
     guardianNumberController.text =
         studentDetails["guardianNumber"] as String? ?? "";
     guardianNameController.text =
@@ -201,255 +285,43 @@ class _StudentRegistrationScreenState
         studentDetails["studentAddress"] as String? ?? "";
     selectedGender = studentDetails["gender"] as String?;
     selectedSchool = studentDetails["school_name"] as String?;
-
-    super.initState();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    DocumentReference collection = FirebaseFirestore.instance
-        .collection("Users")
-        .doc(FirebaseAuth.instance.currentUser!.uid);
-    return Scaffold(
-      appBar: const CustomAppbar(),
-      body: StreamBuilder(
-          stream: collection.snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-            } else if (snapshot.hasError) {
-              logger.e("Error: ${snapshot.error}");
-              return const Center(
-                child: Text("Something went Wrong"),
-              );
-            }
+  /// Call this to perform validation and save form values.
+  /// Returns a map of form data if valid, or null if validation fails.
+  Map<String, dynamic>? validateAndSave() {
+    if (formKey.currentState!.validate()) {
+      formKey.currentState!.save();
+      return {
+        "name": name,
+        "guardianNumber": guardianNumber,
+        "guardianName": guardianName,
+        "dob": dob,
+        "class": studentClass,
+        "section": studentSection?.toLowerCase(),
+        "address": studentAddress,
+        "school_name": selectedSchool?.toLowerCase(),
+        "gender": selectedGender,
+        "special_program_eligible": isSpecialProgramEligible,
+      };
+    }
+    return null;
+  }
 
-            return Form(
-              key: formkey,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  children: [
-                    Gap(MediaQuery.of(context).size.height * 0.05),
-                    Align(
-                      alignment: Alignment.center,
-                      child: ImagePreview(
-                        onTap: onAddImage,
-                        image: widget.image,
-                      ),
-                    ),
-                    Gap(MediaQuery.of(context).size.height * 0.05),
-                    TextFormField(
-                      controller: nameController,
-                      decoration: formDecoration(label: "Name"),
-                      validator: (value) {
-                        if (value == null ||
-                            value.length < 2 ||
-                            value.trim().isEmpty) {
-                          return "Please enter a valid name";
-                        } else {
-                          return null;
-                        }
-                      },
-                      onSaved: (currentVal) {
-                        name = currentVal;
-                      },
-                    ),
-                    const Gap(10),
-                    // add dropdown list for studentClass. keep options 1-10
-                    TextFormField(
-                      controller: studentClassController,
-                      decoration: formDecoration(label: "Class"),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return "Please enter a valid class";
-                        } else {
-                          return null;
-                        }
-                      },
-                      onSaved: (currentVal) {
-                        studentClass = currentVal;
-                      },
-                    ),
-
-                    const Gap(10),
-                    TextFormField(
-                      controller: studentSectionController,
-                      decoration: formDecoration(label: "Section"),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return "Please enter a valid Section";
-                        } else {
-                          return null;
-                        }
-                      },
-                      onSaved: (currentVal) {
-                        studentSection = currentVal;
-                      },
-                    ),
-                    const Gap(10),
-
-                    TextFormField(
-                      initialValue: dob,
-                      decoration: formDecoration(label: "Date of Birth"),
-                      readOnly: true,
-                      onTap: () async {
-                        final selectedDate = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime(1900),
-                          lastDate: DateTime.now(),
-                        );
-                        if (selectedDate != null) {
-                          setState(() {
-                            dob = selectedDate.toString().split(" ")[0];
-                          });
-                        }
-                      },
-                      validator: (value) {
-                        if (dob == null) {
-                          return "Please select a valid date";
-                        } else {
-// check if age is between 10 and 25, if more than 25, return error
-                          // if less than 10, return error
-                          // value is of type string and is in the format yyyy-mm-dd
-                          // convert value to datetime first
-                          var dobDateTime = DateTime.parse(dob!);
-                          var age = DateTime.now().year - dobDateTime.year;
-                          if (age < 10 || age > 25) {
-                            return "Age must be between 10 and 25";
-                          }
-
-                          return null;
-                        }
-                      },
-                      onSaved: (value) {
-                        logger.i("saved value: $value");
-                        dob = value;
-                      },
-                    ),
-                    const Gap(10),
-
-                    DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(
-                        labelText: 'Gender',
-                        border: OutlineInputBorder(),
-                      ),
-                      value: selectedGender,
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          selectedGender = newValue;
-                        });
-                      },
-                      validator: (value) =>
-                          value == null ? 'Please select a gender' : null,
-                      items: ['Male', 'Female']
-                          .map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                    ),
-                    const Gap(10),
-
-                    // add field for student address
-                    TextFormField(
-                      maxLines: 3,
-                      controller: studentAddressController,
-                      decoration: formDecoration(label: "Address"),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return "Please enter a valid address";
-                        } else {
-                          return null;
-                        }
-                      },
-                      onSaved: (currentVal) {
-                        studentAddress = currentVal;
-                      },
-                    ),
-                    const Gap(10),
-                    SchoolDropdownWidget(
-                        validator: (value) {
-                          if (value == null ||
-                              !Constants.schools.contains(value)) {
-                            return "Please select a school";
-                          }
-                          return null;
-                        },
-                        initialValue: selectedSchool,
-                        onSelected: (value) {
-                          setState(() {
-                            selectedSchool = value;
-                          });
-                        }),
-                    const Gap(10),
-                    TextFormField(
-                      controller: guardianNameController,
-                      decoration: formDecoration(label: "Guardian Name"),
-                      validator: (value) {
-                        if (value == null ||
-                            value.length < 2 ||
-                            value.trim().isEmpty) {
-                          return "Please enter a valid name";
-                        } else {
-                          return null;
-                        }
-                      },
-                      onSaved: (currentVal) {
-                        guardianName = currentVal;
-                      },
-                    ),
-                    const Gap(10),
-                    TextFormField(
-                      controller: guardianNumberController,
-                      maxLength: 10,
-                      keyboardType: TextInputType.number,
-                      decoration: formDecoration(label: "Guardian Number"),
-                      validator: (value) {
-                        if (value == null ||
-                            value.length < 10 ||
-                            value.trim().isEmpty) {
-                          return "Please enter a valid number";
-                        } else {
-                          return null;
-                        }
-                      },
-                      onSaved: (currentVal) {
-                        guardianNumber = currentVal;
-                      },
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          "Masjids",
-                          style:
-                              Theme.of(context).textTheme.titleLarge!.copyWith(
-                                    color: Theme.of(context).primaryColor,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                        ),
-                      ),
-                    ),
-                    const MasjidSearchWidget(),
-                  ],
-                ),
-              ),
-            );
-          }),
-      floatingActionButton: FloatingActionButton(
-        onPressed: onRegister,
-        child: isLoading
-            ? const CircularProgressIndicator()
-            : const Icon(Icons.keyboard_arrow_right_rounded),
-      ),
-    );
+  /// This method returns the current form values (useful when saving state before navigation).
+  Map<String, dynamic> getCurrentFormValues() {
+    return {
+      "name": nameController.text,
+      "guardianNumber": guardianNumberController.text,
+      "guardianName": guardianNameController.text,
+      "dob": dob,
+      "class": studentClassController.text,
+      "section": studentSectionController.text,
+      "address": studentAddressController.text,
+      "school_name": selectedSchool,
+      "gender": selectedGender,
+      "special_program_eligible": isSpecialProgramEligible,
+    };
   }
 
   InputDecoration formDecoration({required String label}) {
@@ -462,5 +334,188 @@ class _StudentRegistrationScreenState
       border: const OutlineInputBorder(),
       contentPadding: const EdgeInsets.symmetric(horizontal: 10),
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: formKey,
+      child: Column(
+        children: [
+          // Name Field
+          TextFormField(
+            controller: nameController,
+            decoration: formDecoration(label: "Name"),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty || value.length < 2) {
+                return "Please enter a valid name";
+              }
+              return null;
+            },
+            onSaved: (val) => name = val,
+          ),
+          const Gap(10),
+          // Class Field
+          TextFormField(
+            controller: studentClassController,
+            decoration: formDecoration(label: "Class"),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return "Please enter a valid class";
+              }
+              return null;
+            },
+            onSaved: (val) => studentClass = val,
+          ),
+          const Gap(10),
+          // Section Field
+          TextFormField(
+            controller: studentSectionController,
+            decoration: formDecoration(label: "Section"),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return "Please enter a valid Section";
+              }
+              return null;
+            },
+            onSaved: (val) => studentSection = val,
+          ),
+          const Gap(10),
+          TextFormField(
+            controller: dobController, // Use controller here
+            decoration: formDecoration(label: "Date of Birth"),
+            readOnly: true,
+            onTap: () async {
+              final selectedDate = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(1900),
+                lastDate: DateTime.now(),
+              );
+              if (selectedDate != null) {
+                setState(() {
+                  dob = selectedDate
+                      .toString()
+                      .split(" ")[0]; // Set the selected date
+                  dobController.text = dob!; // Update the controller text
+                });
+              }
+            },
+            validator: (value) {
+              if (dob == null || dob!.isEmpty) {
+                return "Please select a valid date";
+              }
+              final dobDateTime = DateTime.parse(dob!);
+              final age = DateTime.now().year - dobDateTime.year;
+              if (age < 10 || age > 25) {
+                return "Age must be between 10 and 25";
+              }
+              return null;
+            },
+            onSaved: (val) => dob = val,
+          ),
+          const Gap(10),
+          // Gender Dropdown
+          DropdownButtonFormField<String>(
+            decoration: const InputDecoration(
+              labelText: 'Gender',
+              border: OutlineInputBorder(),
+            ),
+            value: selectedGender,
+            onChanged: (String? newValue) {
+              setState(() {
+                selectedGender = newValue;
+              });
+            },
+            validator: (value) =>
+                value == null ? 'Please select a gender' : null,
+            items: ['Male', 'Female']
+                .map((value) => DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    ))
+                .toList(),
+          ),
+          const Gap(10),
+          // Address Field
+          TextFormField(
+            controller: studentAddressController,
+            maxLines: 3,
+            decoration: formDecoration(label: "Address"),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return "Please enter a valid address";
+              }
+              return null;
+            },
+            onSaved: (val) => studentAddress = val,
+          ),
+          const Gap(10),
+          // School Dropdown
+          SchoolDropdownWidget(
+              initialValue: selectedSchool,
+              validator: (value) {
+                if (value == null || !Constants.schools.contains(value)) {
+                  return "Please select a school";
+                }
+                return null;
+              },
+              onSelected: (value) {
+                setState(() {
+                  selectedSchool = value;
+                });
+              }),
+          const Gap(10),
+          // Guardian Name Field
+          TextFormField(
+            controller: guardianNameController,
+            decoration: formDecoration(label: "Guardian Name"),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty || value.length < 2) {
+                return "Please enter a valid name";
+              }
+              return null;
+            },
+            onSaved: (val) => guardianName = val,
+          ),
+          const Gap(10),
+          // Guardian Number Field
+          TextFormField(
+            controller: guardianNumberController,
+            maxLength: 10,
+            keyboardType: TextInputType.number,
+            decoration: formDecoration(label: "Guardian Number"),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty || value.length < 10) {
+                return "Please enter a valid number";
+              }
+              return null;
+            },
+            onSaved: (val) => guardianNumber = val,
+          ),
+          // Toggle for Special Program Eligibility
+          SwitchListTile(
+            title: const Text("Special Program"),
+            value: isSpecialProgramEligible,
+            onChanged: (bool value) {
+              setState(() {
+                isSpecialProgramEligible = value;
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    guardianNumberController.dispose();
+    guardianNameController.dispose();
+    studentClassController.dispose();
+    studentSectionController.dispose();
+    studentAddressController.dispose();
+    super.dispose();
   }
 }

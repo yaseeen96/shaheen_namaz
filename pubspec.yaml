@@ -65,6 +65,8 @@ dependencies:
   fl_chart: ^0.68.0
   percent_indicator: ^4.2.3
   loading_indicator: ^3.1.1
+  win32: ^5.10.1
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter

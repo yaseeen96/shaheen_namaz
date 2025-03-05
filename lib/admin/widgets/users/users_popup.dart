@@ -11,6 +11,7 @@ import 'package:shaheen_namaz/admin/providers/imam_provider.dart';
 import 'package:shaheen_namaz/admin/providers/menu_items_provider.dart';
 import 'package:shaheen_namaz/admin/widgets/users/custom_dropdown_button.dart';
 import 'package:shaheen_namaz/providers/selected_items_provider.dart';
+import 'package:shaheen_namaz/staff/widgets/school_dropdown.dart';
 import 'package:shaheen_namaz/utils/config/logger.dart';
 import 'package:shaheen_namaz/utils/constants/constants.dart';
 import 'package:top_snackbar_flutter/custom_snack_bar.dart';
@@ -46,6 +47,8 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
   String? password;
   String? displayName;
   String? phoneNumber;
+  bool isSchoolCoordinator = false; // Added toggle for school coordinator
+  String? selectedSchool;
 
   final TextEditingController clusterController = TextEditingController();
 
@@ -66,8 +69,11 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
     role = widget.user?.isTrustee == true
         ? "UserRoles.trustee"
         : "UserRoles.volunteer";
+    logger.i("School name: ${widget.user?.schoolName}");
     setState(() {
       jamaatName = widget.user?.jamaatName;
+      selectedSchool = widget.user?.schoolName;
+      isSchoolCoordinator = widget.user?.isSchoolCoordinator ?? false;
     });
 
     super.initState();
@@ -215,6 +221,29 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                   },
                 ),
               ),
+              const Gap(20),
+              // Added toggle for School Coordinator
+              SwitchListTile(
+                title: const Text("Is School Coordinator"),
+                value: isSchoolCoordinator,
+                onChanged: (bool value) {
+                  setState(() {
+                    isSchoolCoordinator = value;
+                  });
+                },
+              ),
+              const Gap(10),
+              // Conditionally show school dropdown
+              if (isSchoolCoordinator)
+                SchoolDropdownWidget(
+                  onSelected: (school) {
+                    logger.i("Selected school: ${school}");
+                    setState(() {
+                      selectedSchool = school;
+                    });
+                  },
+                  initialValue: selectedSchool,
+                ),
               const Gap(20),
               if (widget.user?.isTrustee == true ||
                   role == "UserRoles.trustee" ||
@@ -377,6 +406,7 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
           logger.i("role: ${role!.split(".").last}");
           final imamDetails = ref.read(imamProvider);
           logger.i("role: ${role!.split(".").last})");
+          logger.i("school name: ${selectedSchool}");
           phoneNumber = phoneNumber!.startsWith("+91")
               ? phoneNumber!.substring(3)
               : phoneNumber!;
@@ -393,6 +423,9 @@ class _UserDetailsPopupState extends ConsumerState<UserDetailsPopup> {
                   (imamDetails.isEmpty || role?.split(".").last != "trustee")
                       ? ""
                       : imamDetails,
+              // Add school details if the user is a school coordinator
+              "isSchoolCoordinator": isSchoolCoordinator,
+              "school_name": selectedSchool,
             },
           );
 
