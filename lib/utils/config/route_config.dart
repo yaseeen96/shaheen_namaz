@@ -10,6 +10,7 @@ import 'package:shaheen_namaz/staff/screens/camera/image_preview_screen.dart';
 import 'package:shaheen_namaz/staff/screens/edit_student/edit_student_screen.dart';
 import 'package:shaheen_namaz/staff/screens/manual_attendance/manual_attendance.dart';
 import 'package:shaheen_namaz/staff/screens/parent_screen.dart';
+import 'package:shaheen_namaz/staff/screens/school_attendance/school_attendance_screen.dart';
 import 'package:shaheen_namaz/staff/screens/student_registration/student_registration_screen.dart';
 import 'package:shaheen_namaz/staff/screens/track_attendance/track_attendance.dart';
 
@@ -70,6 +71,10 @@ final routes = GoRouter(
         isManual: state.pathParameters["isManual"] == "true",
       ),
     ),
+    GoRoute(
+        name: "school_attendance",
+        path: "/school_attendance",
+        builder: (ctx, state) => const SchoolAttendanceScreen()),
     GoRoute(
         name: "edit_student",
         path:

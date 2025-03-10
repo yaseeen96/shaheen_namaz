@@ -79,6 +79,18 @@ class _SideDrawerState extends ConsumerState<SideDrawer> {
                           );
                         },
                       ),
+                      ListTile(
+                        title: const Text(
+                          "School Attendance",
+                          textAlign: TextAlign.center,
+                        ),
+                        onTap: () async {
+                          if (!context.mounted) return;
+                          context.pushNamed(
+                            "school_attendance",
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),
