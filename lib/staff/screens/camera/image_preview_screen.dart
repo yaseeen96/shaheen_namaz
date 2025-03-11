@@ -58,7 +58,7 @@ class _ImagePreviewScreenState extends ConsumerState<ImagePreviewScreen> {
         if (!mounted) return;
         context.pushNamed("edit_student", pathParameters: {
           "faceId": jsonResponse["faceId"],
-          "name": studentData?["name"],
+          "name": studentData?["name"] ?? "",
           "dob": studentData?["dob"] is String
               ? studentData!["dob"]
               : (studentData?["dob"] as Timestamp).toDate().toString(),
@@ -93,6 +93,14 @@ class _ImagePreviewScreenState extends ConsumerState<ImagePreviewScreen> {
         ),
       );
       logger.e("error response: ${err.message}");
+    } catch (err, _) {
+      showTopSnackBar(
+        Overlay.of(context),
+        CustomSnackBar.error(
+          message: "Student Not registered",
+        ),
+      );
+      logger.e("error response: ${err}");
     } finally {
       setState(() {
         isLoading = false;

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shaheen_namaz/utils/config/logger.dart';
 
 class SideDrawer extends ConsumerStatefulWidget {
   const SideDrawer({
@@ -79,18 +80,19 @@ class _SideDrawerState extends ConsumerState<SideDrawer> {
                           );
                         },
                       ),
-                      ListTile(
-                        title: const Text(
-                          "School Attendance",
-                          textAlign: TextAlign.center,
+                      if (snapshot.data?["isSchoolCoordinator"] == true)
+                        ListTile(
+                          title: const Text(
+                            "School Attendance",
+                            textAlign: TextAlign.center,
+                          ),
+                          onTap: () async {
+                            if (!context.mounted) return;
+                            context.pushNamed(
+                              "school_attendance",
+                            );
+                          },
                         ),
-                        onTap: () async {
-                          if (!context.mounted) return;
-                          context.pushNamed(
-                            "school_attendance",
-                          );
-                        },
-                      ),
                     ],
                   ),
                 ),
